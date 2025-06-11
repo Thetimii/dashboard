@@ -21,7 +21,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   compress: true,
-  // Remove unsupported experimental options for Turbopack compatibility
+  // Ensure proper routing
+  trailingSlash: false,
+  // Make sure all pages are properly built
+  experimental: {
+    optimizePackageImports: ['@heroicons/react', 'framer-motion'],
+  },
 }
 
 export default nextConfig;
