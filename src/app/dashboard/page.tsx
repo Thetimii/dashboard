@@ -238,10 +238,10 @@ export default function DashboardPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 font-inter">Loading your dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
+          <p className="text-gray-600 font-inter">Dashboard wird geladen...</p>
         </div>
       </div>
     )
@@ -252,26 +252,26 @@ export default function DashboardPage() {
       case 'not_touched':
         return {
           icon: ExclamationCircleIcon,
-          text: 'Not Started',
-          color: 'text-gray-500',
-          bgColor: 'bg-gray-100 dark:bg-gray-800',
-          description: 'Your project hasn\'t been started yet. We\'ll begin work soon!'
+          text: 'Noch nicht begonnen',
+          color: 'text-gray-600',
+          bgColor: 'bg-gray-50 border border-gray-200',
+          description: 'Dein Projekt wurde noch nicht gestartet. Wir beginnen bald mit der Arbeit!'
         }
       case 'in_progress':
         return {
           icon: ClockIcon,
-          text: 'In Progress',
+          text: 'In Bearbeitung',
           color: 'text-yellow-600',
-          bgColor: 'bg-yellow-100 dark:bg-yellow-900/20',
-          description: 'Great! Work on your project is currently underway.'
+          bgColor: 'bg-yellow-50 border border-yellow-200',
+          description: 'Großartig! Die Arbeit an deinem Projekt ist im Gange.'
         }
       case 'complete':
         return {
           icon: CheckCircleIcon,
-          text: 'Complete',
+          text: 'Abgeschlossen',
           color: 'text-green-600',
-          bgColor: 'bg-green-100 dark:bg-green-900/20',
-          description: 'Congratulations! Your project has been completed.'
+          bgColor: 'bg-green-50 border border-green-200',
+          description: 'Glückwunsch! Dein Projekt wurde erfolgreich abgeschlossen.'
         }
       default:
         return null
@@ -304,49 +304,49 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white">Project Progress</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Projekt Fortschritt</h2>
                 <button
                   onClick={handleRefreshTracker}
                   disabled={refreshingTracker}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Refresh project status"
+                  className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Projektstatus aktualisieren"
                 >
-                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingTracker ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 ${refreshingTracker ? 'animate-spin' : ''}`} />
                 </button>
               </div>
               
               {statusInfo && (
-                <div className={`${statusInfo.bgColor} rounded-lg p-6 mb-6`}>
+                <div className={`${statusInfo.bgColor} rounded-xl p-6 mb-6`}>
                   <div className="flex items-center mb-4">
                     <statusInfo.icon className={`w-6 h-6 ${statusInfo.color} mr-3`} />
                     <span className={`font-semibold ${statusInfo.color} font-inter`}>
                       {statusInfo.text}
                     </span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 font-inter">
+                  <p className="text-gray-700 font-inter">
                     {statusInfo.description}
                   </p>
                   {projectStatus?.updated_at && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-inter">
-                      Last updated: {new Date(projectStatus.updated_at).toLocaleDateString()}
+                    <p className="text-sm text-gray-500 mt-2 font-inter">
+                      Zuletzt aktualisiert: {new Date(projectStatus.updated_at).toLocaleDateString()}
                     </p>
                   )}
                 </div>
               )}
 
               {!statusInfo && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                   <div className="flex items-center mb-4">
                     <ComputerDesktopIcon className="w-6 h-6 text-blue-600 mr-3" />
-                    <span className="font-semibold text-blue-600 font-inter">Getting Started</span>
+                    <span className="font-semibold text-blue-600 font-inter">Erste Schritte</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4 font-inter">
-                    Welcome to your project dashboard! Once we begin work on your project, you'll see progress updates here.
+                  <p className="text-gray-700 mb-4 font-inter">
+                    Willkommen in deinem Projekt-Dashboard! Sobald wir mit der Arbeit an deinem Projekt beginnen, siehst du hier Fortschritt-Updates.
                   </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                    We'll send you an email notification when work begins.
+                  <p className="text-sm text-gray-500 font-inter">
+                    Wir senden dir eine E-Mail-Benachrichtigung, wenn die Arbeit beginnt.
                   </p>
                 </div>
               )}
@@ -361,65 +361,66 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white">Demo Reviews</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Demo Reviews</h2>
                 <button
                   onClick={handleRefreshDemos}
                   disabled={refreshingDemos}
-                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  aria-label="Refresh demo links"
+                  className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Demo-Links aktualisieren"
                 >
-                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingDemos ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 ${refreshingDemos ? 'animate-spin' : ''}`} />
                 </button>
               </div>
               
               {demoLinks?.approved_option ? (
-                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
                   <div className="flex items-center mb-4">
                     <CheckCircleIcon className="w-6 h-6 text-green-600 mr-3" />
-                    <span className="font-semibold text-green-600 font-inter">Demo Approved</span>
+                    <span className="font-semibold text-green-600 font-inter">Demo Genehmigt</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 mb-4 font-inter">
-                    You've approved <strong>Option {demoLinks.approved_option}</strong> on{' '}
-                    {demoLinks.approved_at && new Date(demoLinks.approved_at).toLocaleDateString()}
+                  <p className="text-gray-700 mb-4 font-inter">
+                    Du hast <strong>Option {demoLinks.approved_option}</strong> am{' '}
+                    {demoLinks.approved_at && new Date(demoLinks.approved_at).toLocaleDateString()} genehmigt
                   </p>
                   <a
                     href={demoLinks[`option_${demoLinks.approved_option}_url` as keyof DemoLinks] as string}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-inter"
+                    className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 font-inter"
                   >
                     <EyeIcon className="w-4 h-4 mr-2" />
-                    View Approved Demo
+                    Genehmigte Demo ansehen
                   </a>
                 </div>
               ) : demoLinks && (demoLinks.option_1_url || demoLinks.option_2_url || demoLinks.option_3_url) ? (
                 <div className="space-y-6">
                   {/* Payment Status Section */}
                   {paymentStatus && (
-                    <div className={`p-4 rounded-lg border ${
+                    <div className={`p-4 rounded-xl border ${
                       paymentStatus.status === 'completed' 
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        ? 'bg-green-50 border-green-200'
                         : paymentStatus.status === 'pending'
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : 'bg-red-50 border-red-200'
                     }`}>
                       <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium">
-                          Payment Status: 
+                        <span className="text-sm font-medium text-gray-700 font-inter">
+                          Zahlungsstatus: 
                         </span>
                         <span className={`text-sm font-semibold ${
                           paymentStatus.status === 'completed' 
-                            ? 'text-green-600 dark:text-green-400'
+                            ? 'text-green-600'
                             : paymentStatus.status === 'pending'
-                            ? 'text-yellow-600 dark:text-yellow-400'
-                            : 'text-red-600 dark:text-red-400'
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
                         }`}>
-                          {paymentStatus.status.charAt(0).toUpperCase() + paymentStatus.status.slice(1)}
+                          {paymentStatus.status === 'completed' ? 'Abgeschlossen' :
+                           paymentStatus.status === 'pending' ? 'Ausstehend' : 'Fehlgeschlagen'}
                         </span>
                         {paymentStatus.amount && (
-                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                          <span className="text-sm text-gray-600 font-inter">
                             ({paymentStatus.amount} CHF)
                           </span>
                         )}
@@ -427,8 +428,8 @@ export default function DashboardPage() {
                     </div>
                   )}
                   
-                  <p className="text-gray-700 dark:text-gray-300 font-inter">
-                    Review the demo options below and approve your favorite one to proceed with the final project.
+                  <p className="text-gray-700 font-inter">
+                    Überprüfe die Demo-Optionen unten und genehmige deine Lieblingsoption, um mit dem finalen Projekt fortzufahren.
                   </p>
                   
                   <div className="grid gap-6">
@@ -437,8 +438,8 @@ export default function DashboardPage() {
                       if (!url) return null
                       
                       return (
-                        <div key={optionNum} className="border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-                          <h3 className="font-semibold text-gray-900 dark:text-white mb-3 font-inter">
+                        <div key={optionNum} className="bg-gray-50 border border-gray-200 rounded-xl p-6">
+                          <h3 className="font-bold text-gray-900 mb-3 text-lg">
                             Option {optionNum}
                           </h3>
                           <div className="flex items-center justify-between">
@@ -446,17 +447,17 @@ export default function DashboardPage() {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 font-inter"
+                              className="inline-flex items-center text-teal-600 hover:text-teal-700 transition-colors font-inter"
                             >
                               <EyeIcon className="w-4 h-4 mr-2" />
-                              View Demo
+                              Demo ansehen
                             </a>
                             <button
                               onClick={() => approveDemo(optionNum.toString())}
                               disabled={approving}
-                              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-inter"
+                              className="px-4 py-2 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:from-teal-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-inter font-semibold"
                             >
-                              {approving ? 'Processing...' : paymentStatus?.status === 'completed' ? 'Approved & Paid' : 'Approve & Pay (99 CHF)'}
+                              {approving ? 'Wird verarbeitet...' : paymentStatus?.status === 'completed' ? 'Genehmigt & Bezahlt' : 'Genehmigen & Bezahlen (99 CHF)'}
                             </button>
                           </div>
                         </div>
@@ -465,14 +466,14 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-6">
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
                   <div className="flex items-center mb-4">
                     <ComputerDesktopIcon className="w-6 h-6 text-blue-600 mr-3" />
-                    <span className="font-semibold text-blue-600 font-inter">Demos Coming Soon</span>
+                    <span className="font-semibold text-blue-600 font-inter">Demos kommen bald</span>
                   </div>
-                  <p className="text-gray-700 dark:text-gray-300 font-inter">
-                    Demo options will appear here once we've prepared initial versions of your project. 
-                    You'll be able to review and approve your preferred option.
+                  <p className="text-gray-700 font-inter">
+                    Demo-Optionen werden hier angezeigt, sobald wir erste Versionen deines Projekts vorbereitet haben. 
+                    Du kannst dann deine bevorzugte Option überprüfen und genehmigen.
                   </p>
                 </div>
               )}
@@ -487,49 +488,49 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-              <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Billing & Subscription</h2>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Abrechnung & Abonnement</h2>
               
               <div className="space-y-6">
                 {/* Payment Status */}
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Payment Status</h3>
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Zahlungsstatus</h3>
                   
                   {paymentStatus ? (
-                    <div className={`p-4 rounded-lg border ${
+                    <div className={`p-4 rounded-xl border ${
                       paymentStatus.status === 'completed' 
-                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        ? 'bg-green-50 border-green-200'
                         : paymentStatus.status === 'pending'
-                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
-                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                        ? 'bg-yellow-50 border-yellow-200'
+                        : 'bg-red-50 border-red-200'
                     }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <CreditCardIcon className={`w-5 h-5 mr-3 ${
                             paymentStatus.status === 'completed' 
-                              ? 'text-green-600 dark:text-green-400'
+                              ? 'text-green-600'
                               : paymentStatus.status === 'pending'
-                              ? 'text-yellow-600 dark:text-yellow-400'
-                              : 'text-red-600 dark:text-red-400'
+                              ? 'text-yellow-600'
+                              : 'text-red-600'
                           }`} />
                           <div>
-                            <span className={`font-semibold ${
+                            <span className={`font-semibold font-inter ${
                               paymentStatus.status === 'completed' 
-                                ? 'text-green-600 dark:text-green-400'
+                                ? 'text-green-600'
                                 : paymentStatus.status === 'pending'
-                                ? 'text-yellow-600 dark:text-yellow-400'
-                                : 'text-red-600 dark:text-red-400'
+                                ? 'text-yellow-600'
+                                : 'text-red-600'
                             }`}>
-                              {paymentStatus.status === 'completed' ? 'Payment Completed' : 
-                               paymentStatus.status === 'pending' ? 'Payment Pending' : 'Payment Failed'}
+                              {paymentStatus.status === 'completed' ? 'Zahlung Abgeschlossen' : 
+                               paymentStatus.status === 'pending' ? 'Zahlung Ausstehend' : 'Zahlung Fehlgeschlagen'}
                             </span>
                             {paymentStatus.amount && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                Amount: {paymentStatus.amount} CHF
+                              <p className="text-sm text-gray-600 mt-1 font-inter">
+                                Betrag: {paymentStatus.amount} CHF
                               </p>
                             )}
                             {paymentStatus.created_at && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                              <p className="text-sm text-gray-500 font-inter">
                                 {new Date(paymentStatus.created_at).toLocaleDateString()}
                               </p>
                             )}
@@ -538,19 +539,19 @@ export default function DashboardPage() {
                         
                         {paymentStatus.status === 'completed' && (
                           <div className="flex items-center">
-                            <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            <CheckCircleIcon className="w-5 h-5 text-green-600" />
                           </div>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <div className="flex items-center">
                         <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
                         <div>
-                          <span className="text-gray-700 dark:text-gray-300 font-inter">No payment yet</span>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            You haven't made any payments yet. Payment will be required when you approve a demo.
+                          <span className="text-gray-700 font-inter">Noch keine Zahlung</span>
+                          <p className="text-sm text-gray-600 mt-1 font-inter">
+                            Du hast noch keine Zahlungen getätigt. Eine Zahlung ist erforderlich, wenn du eine Demo genehmigst.
                           </p>
                         </div>
                       </div>
@@ -559,37 +560,37 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Subscription Management */}
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Subscription Management</h3>
+                <div className={`${customerDetails?.stripe_customer_id ? 'border-b border-gray-200 pb-6' : ''}`}>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Abonnement-Verwaltung</h3>
                   
                   {customerDetails?.stripe_customer_id ? (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <CreditCardIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
+                          <CreditCardIcon className="w-5 h-5 text-blue-600 mr-3" />
                           <div>
-                            <span className="text-blue-600 dark:text-blue-400 font-semibold">Active Subscription</span>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              Manage your subscription, update payment methods, and view billing history.
+                            <span className="text-blue-600 font-semibold font-inter">Aktives Abonnement</span>
+                            <p className="text-sm text-gray-600 mt-1 font-inter">
+                              Verwalte dein Abonnement, aktualisiere Zahlungsmethoden und sieh die Rechnungshistorie ein.
                             </p>
                           </div>
                         </div>
                         <button
                           onClick={handleManageSubscription}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-inter text-sm"
+                          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-xl hover:from-blue-600 hover:to-indigo-600 transition-all duration-300 font-inter text-sm font-semibold"
                         >
-                          Manage Subscription
+                          Abonnement Verwalten
                         </button>
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
                       <div className="flex items-center">
                         <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
                         <div>
-                          <span className="text-gray-700 dark:text-gray-300 font-inter">No active subscription</span>
-                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Your subscription will be activated after your first payment is completed.
+                          <span className="text-gray-700 font-inter">Kein aktives Abonnement</span>
+                          <p className="text-sm text-gray-600 mt-1 font-inter">
+                            Dein Abonnement wird nach der ersten abgeschlossenen Zahlung aktiviert.
                           </p>
                         </div>
                       </div>
@@ -597,35 +598,37 @@ export default function DashboardPage() {
                   )}
                 </div>
 
-                {/* Billing Information */}
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Billing Information</h3>
-                  <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
-                    <div className="space-y-3">
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400 font-inter">Monthly Subscription</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">99 CHF</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-gray-600 dark:text-gray-400 font-inter">Setup Fee</span>
-                        <span className="font-semibold text-gray-900 dark:text-white">0 CHF</span>
-                      </div>
-                      <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                {/* Billing Information - Only show if customer has active subscription */}
+                {customerDetails?.stripe_customer_id && (
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Rechnungsinformationen</h3>
+                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                      <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-gray-900 dark:text-white font-inter">Total per Month</span>
-                          <span className="font-bold text-lg text-gray-900 dark:text-white">99 CHF</span>
+                          <span className="text-gray-600 font-inter">Monatliches Abonnement</span>
+                          <span className="font-semibold text-gray-900">99 CHF</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-600 font-inter">Setup-Gebühr</span>
+                          <span className="font-semibold text-gray-900">0 CHF</span>
+                        </div>
+                        <div className="border-t border-gray-200 pt-3">
+                          <div className="flex justify-between items-center">
+                            <span className="font-semibold text-gray-900 font-inter">Gesamt pro Monat</span>
+                            <span className="font-bold text-lg text-gray-900">99 CHF</span>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
+                      <p className="text-sm text-blue-700 font-inter">
+                        <strong>Hinweis:</strong> Du zahlst erst nach der Genehmigung deines Website-Designs. 
+                        Keine versteckten Gebühren, keine langfristigen Verträge. Jederzeit über das Kundenportal kündbar.
+                      </p>
+                    </div>
                   </div>
-                  
-                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                    <p className="text-sm text-blue-700 dark:text-blue-300 font-inter">
-                      <strong>Note:</strong> You only pay after approving your website design. 
-                      No hidden fees, no long-term contracts. Cancel anytime through the customer portal.
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -638,35 +641,43 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-              <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Account Settings</h2>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">Konto-Einstellungen</h2>
               
               <div className="space-y-6">
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Profile Information</h3>
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Profil-Informationen</h3>
                   <div className="flex items-center space-x-4">
                     <UserCircleIcon className="w-12 h-12 text-gray-400" />
                     <div>
-                      <p className="font-semibold text-gray-900 dark:text-white font-inter">
+                      <p className="font-semibold text-gray-900 font-inter">
                         {user?.email}
                       </p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
-                        Account created: {user?.created_at && new Date(user.created_at).toLocaleDateString()}
+                      <p className="text-sm text-gray-600 font-inter">
+                        Konto erstellt: {user?.created_at && new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Notifications</h3>
+                <div className="border-b border-gray-200 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 mb-4">Benachrichtigungen</h3>
                   <div className="space-y-3">
                     <label className="flex items-center">
-                      <input type="checkbox" defaultChecked className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Email notifications for project updates</span>
+                      <input 
+                        type="checkbox" 
+                        defaultChecked 
+                        className="rounded border-gray-300 text-teal-500 focus:ring-teal-500 focus:ring-offset-0" 
+                      />
+                      <span className="ml-2 text-gray-700 font-inter">E-Mail-Benachrichtigungen für Projekt-Updates</span>
                     </label>
                     <label className="flex items-center">
-                      <input type="checkbox" defaultChecked className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
-                      <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Email notifications for demo availability</span>
+                      <input 
+                        type="checkbox" 
+                        defaultChecked 
+                        className="rounded border-gray-300 text-teal-500 focus:ring-teal-500 focus:ring-offset-0" 
+                      />
+                      <span className="ml-2 text-gray-700 font-inter">E-Mail-Benachrichtigungen für Demo-Verfügbarkeit</span>
                     </label>
                   </div>
                 </div>

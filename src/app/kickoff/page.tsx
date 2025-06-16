@@ -20,21 +20,21 @@ import {
 } from '@heroicons/react/24/outline'
 
 const steps = [
-  { id: 1, title: 'Business Name', icon: BuildingOfficeIcon },
-  { id: 2, title: 'Business Description', icon: DocumentTextIcon },
-  { id: 3, title: 'Website Style', icon: PaintBrushIcon },
-  { id: 4, title: 'Desired Pages', icon: DocumentDuplicateIcon },
-  { id: 5, title: 'Color Preferences', icon: SwatchIcon },
+  { id: 1, title: 'Firmenname', icon: BuildingOfficeIcon },
+  { id: 2, title: 'Beschreibung', icon: DocumentTextIcon },
+  { id: 3, title: 'Website-Stil', icon: PaintBrushIcon },
+  { id: 4, title: 'Gewünschte Seiten', icon: DocumentDuplicateIcon },
+  { id: 5, title: 'Farbpräferenzen', icon: SwatchIcon },
   { id: 6, title: 'Logo Upload', icon: PhotoIcon },
   { id: 7, title: 'Content Upload', icon: FolderOpenIcon },
-  { id: 8, title: 'Special Requests', icon: ChatBubbleLeftRightIcon },
+  { id: 8, title: 'Besondere Wünsche', icon: ChatBubbleLeftRightIcon },
 ]
 
 const websiteStyles = [
   { 
     value: 'clean', 
-    label: 'Clean & Simple', 
-    description: 'Minimalist design with lots of white space',
+    label: 'Sauber & Einfach', 
+    description: 'Minimalistisches Design mit viel Weißraum',
     preview: {
       bg: 'bg-white',
       accent: 'bg-gray-100',
@@ -44,8 +44,8 @@ const websiteStyles = [
   },
   { 
     value: 'bold', 
-    label: 'Bold & Vibrant', 
-    description: 'Eye-catching with strong visual elements',
+    label: 'Mutig & Lebendig', 
+    description: 'Auffällig mit starken visuellen Elementen',
     preview: {
       bg: 'bg-gradient-to-br from-purple-600 to-pink-600',
       accent: 'bg-yellow-400',
@@ -55,8 +55,8 @@ const websiteStyles = [
   },
   { 
     value: 'minimalist', 
-    label: 'Ultra Minimalist', 
-    description: 'Essential elements only',
+    label: 'Ultra Minimalistisch', 
+    description: 'Nur die wesentlichen Elemente',
     preview: {
       bg: 'bg-gray-50',
       accent: 'bg-black',
@@ -66,8 +66,8 @@ const websiteStyles = [
   },
   { 
     value: 'modern', 
-    label: 'Modern & Trendy', 
-    description: 'Contemporary design with latest trends',
+    label: 'Modern & Trendig', 
+    description: 'Zeitgemäßes Design mit neuesten Trends',
     preview: {
       bg: 'bg-gradient-to-r from-blue-500 to-teal-400',
       accent: 'bg-indigo-600',
@@ -77,8 +77,8 @@ const websiteStyles = [
   },
   { 
     value: 'classic', 
-    label: 'Classic & Professional', 
-    description: 'Timeless business-focused design',
+    label: 'Klassisch & Professionell', 
+    description: 'Zeitloses Business-fokussiertes Design',
     preview: {
       bg: 'bg-navy-900',
       accent: 'bg-gold-500',
@@ -90,7 +90,7 @@ const websiteStyles = [
 
 const colorThemes = [
   { 
-    name: 'Ocean Blue', 
+    name: 'Ozean Blau', 
     value: 'ocean-blue',
     primary: '#0EA5E9',
     secondary: '#0284C7',
@@ -98,7 +98,7 @@ const colorThemes = [
     gradient: 'from-blue-500 to-cyan-500'
   },
   { 
-    name: 'Forest Green', 
+    name: 'Wald Grün', 
     value: 'forest-green',
     primary: '#10B981',
     secondary: '#059669',
@@ -106,7 +106,7 @@ const colorThemes = [
     gradient: 'from-emerald-500 to-green-500'
   },
   { 
-    name: 'Sunset Orange', 
+    name: 'Sonnenuntergang Orange', 
     value: 'sunset-orange',
     primary: '#F59E0B',
     secondary: '#D97706',
@@ -114,7 +114,7 @@ const colorThemes = [
     gradient: 'from-orange-500 to-red-500'
   },
   { 
-    name: 'Royal Purple', 
+    name: 'Königliches Lila', 
     value: 'royal-purple',
     primary: '#8B5CF6',
     secondary: '#7C3AED',
@@ -122,7 +122,7 @@ const colorThemes = [
     gradient: 'from-purple-500 to-indigo-500'
   },
   { 
-    name: 'Rose Gold', 
+    name: 'Roségold', 
     value: 'rose-gold',
     primary: '#EC4899',
     secondary: '#DB2777',
@@ -130,7 +130,7 @@ const colorThemes = [
     gradient: 'from-pink-500 to-rose-500'
   },
   { 
-    name: 'Charcoal', 
+    name: 'Anthrazit', 
     value: 'charcoal',
     primary: '#374151',
     secondary: '#1F2937',
@@ -140,16 +140,16 @@ const colorThemes = [
 ]
 
 const pageOptions = [
-  'Home',
-  'About',
-  'Contact',
-  'Services',
+  'Startseite',
+  'Über uns',
+  'Kontakt',
+  'Dienstleistungen',
   'Portfolio',
   'Blog',
-  'Testimonials',
+  'Referenzen',
   'FAQ',
-  'Privacy Policy',
-  'Terms of Service',
+  'Datenschutz',
+  'AGB',
 ]
 
 export default function KickoffPage() {
@@ -249,36 +249,36 @@ export default function KickoffPage() {
   const renderStepContent = () => {
     switch (currentStep) {        case 1:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">What&apos;s your business name?</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Wie heißt dein Business?</h2>
             <input
               type="text"
               value={formData.businessName || ''}
               onChange={(e) => handleFormDataChange('businessName', e.target.value)}
-              placeholder="Enter your business name"
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              placeholder="Name deines Unternehmens"
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
             />
           </div>
         )
 
       case 2:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Tell us about your business</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Erzähl uns über dein Business</h2>
             <textarea
               value={formData.businessDescription || ''}
               onChange={(e) => handleFormDataChange('businessDescription', e.target.value)}
-              placeholder="Describe what your business does, your target audience, and your goals..."
+              placeholder="Beschreibe was dein Business macht, deine Zielgruppe und deine Ziele..."
               rows={6}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
             />
           </div>
         )
 
       case 3:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Choose your preferred website style</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Wähle deinen bevorzugten Website-Stil</h2>
             <div className="grid gap-6">
               {websiteStyles.map((style) => (
                 <motion.button
@@ -288,13 +288,13 @@ export default function KickoffPage() {
                   onClick={() => handleFormDataChange('websiteStyle', style.value)}
                   className={`p-6 border-2 rounded-xl text-left transition-all duration-300 ${
                     formData.websiteStyle === style.value
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-lg'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-700 hover:shadow-md'
+                      ? 'border-teal-400 bg-teal-50 shadow-lg'
+                      : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
                   <div className="flex items-start space-x-4">
                     {/* Style Preview */}
-                    <div className="flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
+                    <div className="flex-shrink-0 w-24 h-16 rounded-lg overflow-hidden border border-gray-200">
                       <div className={`w-full h-full ${style.preview.bg} flex items-center justify-center relative`}>
                         <div className={`w-16 h-2 ${style.preview.accent} rounded-full mb-1`}></div>
                         <div className={`absolute bottom-1 left-1 w-3 h-3 ${style.preview.border} border rounded`}></div>
@@ -304,8 +304,8 @@ export default function KickoffPage() {
                     
                     {/* Style Info */}
                     <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 dark:text-white font-serif text-lg">{style.label}</h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1 font-sans">{style.description}</p>
+                      <h3 className="font-semibold text-gray-900 font-bold text-lg">{style.label}</h3>
+                      <p className="text-sm text-gray-600 mt-1 font-inter">{style.description}</p>
                     </div>
                   </div>
                 </motion.button>
@@ -316,9 +316,9 @@ export default function KickoffPage() {
 
       case 4:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Which pages do you need?</h2>
-            <p className="text-gray-600 dark:text-gray-300">Select all that apply</p>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Welche Seiten brauchst du?</h2>
+            <p className="text-gray-600 font-inter">Wähle alle zutreffenden aus</p>
             <div className="grid grid-cols-2 gap-3">
               {pageOptions.map((page) => (
                 <motion.button
@@ -326,10 +326,10 @@ export default function KickoffPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => handlePageToggle(page)}
-                  className={`p-3 border-2 rounded-lg text-center transition-colors ${
+                  className={`p-3 border-2 rounded-xl text-center transition-all duration-300 font-inter ${
                     selectedPages.includes(page)
-                      ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 dark:border-blue-400'
-                      : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white'
+                      ? 'border-teal-400 bg-teal-50 text-teal-700'
+                      : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50 text-gray-700'
                   }`}
                 >
                   {page}
@@ -342,11 +342,11 @@ export default function KickoffPage() {
       case 5:
         return (
           <div className="space-y-6">
-            <h2 className="text-2xl font-serif font-bold text-gray-900 dark:text-white">Choose your color theme</h2>
+            <h2 className="text-2xl font-bold text-gray-900">Wähle dein Farbthema</h2>
             
             {/* Color Theme Selector */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white font-serif mb-4">Select a color palette</h3>
+              <h3 className="text-lg font-semibold text-gray-900 font-bold mb-4">Wähle eine Farbpalette</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
                 {colorThemes.map((theme) => (
                   <motion.button
@@ -356,18 +356,18 @@ export default function KickoffPage() {
                     onClick={() => handleFormDataChange('colorPreferences', theme.name)}
                     className={`p-4 border-2 rounded-xl transition-all duration-300 ${
                       formData.colorPreferences === theme.name
-                        ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/30 dark:border-blue-400 shadow-lg'
-                        : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 bg-white dark:bg-gray-700'
+                        ? 'border-teal-400 bg-teal-50 shadow-lg'
+                        : 'border-gray-200 bg-white hover:border-gray-300 hover:bg-gray-50'
                     }`}
                   >
                     {/* Color Preview */}
                     <div className="flex space-x-2 mb-3">
                       <div 
-                        className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                        className="w-8 h-8 rounded-full border-2 border-gray-200 shadow-sm"
                         style={{ backgroundColor: theme.primary }}
                       ></div>
                       <div 
-                        className="w-8 h-8 rounded-full border-2 border-white shadow-sm"
+                        className="w-8 h-8 rounded-full border-2 border-gray-200 shadow-sm"
                         style={{ backgroundColor: theme.secondary }}
                       ></div>
                       <div 
@@ -380,7 +380,7 @@ export default function KickoffPage() {
                     <div className={`w-full h-3 rounded-full bg-gradient-to-r ${theme.gradient} mb-3`}></div>
                     
                     {/* Theme Name */}
-                    <p className="text-sm font-medium text-gray-900 dark:text-white font-serif">{theme.name}</p>
+                    <p className="text-sm font-medium text-gray-900 font-bold">{theme.name}</p>
                   </motion.button>
                 ))}
               </div>
@@ -388,13 +388,13 @@ export default function KickoffPage() {
 
             {/* Custom Color Input */}
             <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white font-serif mb-2">Or describe your custom colors</h3>
+              <h3 className="text-lg font-semibold text-gray-900 font-bold mb-2">Oder beschreibe deine eigenen Farben</h3>
               <textarea
                 value={formData.colorPreferences || ''}
                 onChange={(e) => handleFormDataChange('colorPreferences', e.target.value)}
-                placeholder="Describe your preferred colors, brand colors, or any color schemes you like..."
+                placeholder="Beschreibe deine bevorzugten Farben, Markenfarben oder Farbschemata..."
                 rows={4}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors font-sans"
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
             </div>
           </div>
@@ -402,48 +402,59 @@ export default function KickoffPage() {
 
       case 6:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Upload your logo</h2>
-            <p className="text-gray-600 dark:text-gray-300">Upload your logo file (optional)</p>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            />
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Lade dein Logo hoch</h2>
+            <p className="text-gray-600 font-inter">Lade deine Logo-Datei hoch (optional)</p>
+            <div className="relative">
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setLogoFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
+              />
+            </div>
             {logoFile && (
-              <p className="text-sm text-green-600 dark:text-green-400">✓ {logoFile.name} selected</p>
+              <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm text-green-800 font-inter">{logoFile.name} ausgewählt</p>
+              </div>
             )}
           </div>
         )
 
       case 7:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Upload content files</h2>
-            <p className="text-gray-600 dark:text-gray-300">Upload any content files, documents, or images (optional)</p>
-            <input
-              type="file"
-              accept=".zip,.doc,.docx,.pdf,image/*"
-              onChange={(e) => setContentFile(e.target.files?.[0] || null)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900/30 dark:file:text-blue-300 hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-            />
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Inhalte hochladen</h2>
+            <p className="text-gray-600 font-inter">Lade Content-Dateien, Dokumente oder Bilder hoch (optional)</p>
+            <div className="relative">
+              <input
+                type="file"
+                accept=".zip,.doc,.docx,.pdf,image/*"
+                onChange={(e) => setContentFile(e.target.files?.[0] || null)}
+                className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
+              />
+            </div>
             {contentFile && (
-              <p className="text-sm text-green-600 dark:text-green-400">✓ {contentFile.name} selected</p>
+              <div className="flex items-center space-x-2 p-3 bg-green-50 border border-green-200 rounded-xl">
+                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                <p className="text-sm text-green-800 font-inter">{contentFile.name} ausgewählt</p>
+              </div>
             )}
           </div>
         )
 
       case 8:
         return (
-          <div className="space-y-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Any special requests?</h2>
+          <div className="space-y-6">
+            <h2 className="text-2xl font-bold text-gray-900">Besondere Wünsche?</h2>
+            <p className="text-gray-600 font-inter">Erzähle uns über spezielle Features, Funktionen oder Anforderungen</p>
             <textarea
               value={formData.specialRequests || ''}
               onChange={(e) => handleFormDataChange('specialRequests', e.target.value)}
-              placeholder="Tell us about any specific features, functionality, or special requirements..."
+              placeholder="Beschreibe spezielle Features, Funktionen oder besondere Anforderungen..."
               rows={5}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder-gray-500 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
             />
           </div>
         )
@@ -478,7 +489,7 @@ export default function KickoffPage() {
   if (!user) return null
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       {/* Theme Toggle */}
       <div className="absolute top-4 right-4">
         <ThemeToggle />
@@ -488,14 +499,14 @@ export default function KickoffPage() {
         {/* Progress Bar */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Getting Started</h1>
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              Step {currentStep} of {steps.length}
+            <h1 className="text-3xl font-bold text-gray-900">Website Kickoff</h1>
+            <span className="text-sm text-gray-600">
+              Schritt {currentStep} von {steps.length}
             </span>
           </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+          <div className="w-full bg-gray-200 rounded-full h-2">
             <motion.div
-              className="bg-blue-600 dark:bg-blue-500 h-2 rounded-full"
+              className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full"
               initial={{ width: 0 }}
               animate={{ width: `${progress}%` }}
               transition={{ duration: 0.5 }}
@@ -515,15 +526,15 @@ export default function KickoffPage() {
                 <div
                   className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 transition-colors ${
                     isActive
-                      ? 'bg-blue-600 dark:bg-blue-500 text-white'
+                      ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white'
                       : isCompleted
-                      ? 'bg-green-500 dark:bg-green-600 text-white'
-                      : 'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
+                      ? 'bg-green-500 text-white'
+                      : 'bg-gray-200 text-gray-500'
                   }`}
                 >
                   <Icon className="w-6 h-6" />
                 </div>
-                <span className="text-xs text-gray-600 dark:text-gray-400 text-center max-w-16">
+                <span className="text-xs text-gray-600 text-center max-w-16 font-inter">
                   {step.title}
                 </span>
               </div>
@@ -532,7 +543,7 @@ export default function KickoffPage() {
         </div>
 
         {/* Form Content */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 mb-8">
+        <div className="bg-white rounded-3xl shadow-lg p-8 mb-8 border border-gray-200">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentStep}
@@ -553,9 +564,9 @@ export default function KickoffPage() {
             whileTap={{ scale: 0.95 }}
             onClick={prevStep}
             disabled={currentStep === 1}
-            className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-inter shadow-sm"
           >
-            Previous
+            Zurück
           </motion.button>
 
           {currentStep === steps.length ? (
@@ -564,15 +575,15 @@ export default function KickoffPage() {
               whileTap={{ scale: 0.95 }}
               onClick={handleSubmit}
               disabled={isSubmitting || !canProceed()}
-              className="px-8 py-3 bg-green-600 dark:bg-green-500 text-white rounded-lg hover:bg-green-700 dark:hover:bg-green-600 disabled:bg-green-400 disabled:cursor-not-allowed transition-colors"
+              className="px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 disabled:from-green-400 disabled:to-emerald-400 disabled:cursor-not-allowed transition-all duration-300 font-inter font-semibold shadow-md"
             >
               {isSubmitting ? (
                 <div className="flex items-center">
                   <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                  Submitting...
+                  Wird übermittelt...
                 </div>
               ) : (
-                'Complete Setup'
+                'Setup abschließen'
               )}
             </motion.button>
           ) : (
@@ -581,9 +592,9 @@ export default function KickoffPage() {
               whileTap={{ scale: 0.95 }}
               onClick={nextStep}
               disabled={!canProceed()}
-              className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-blue-400 disabled:cursor-not-allowed transition-colors"
+              className="px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:from-teal-600 hover:to-cyan-600 disabled:from-teal-300 disabled:to-cyan-300 disabled:cursor-not-allowed transition-all duration-300 font-inter font-semibold shadow-md"
             >
-              Next
+              Weiter
             </motion.button>
           )}
         </div>

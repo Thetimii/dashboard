@@ -60,242 +60,6 @@ export function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-teal-400 via-cyan-500 to-blue-500 min-h-screen flex items-center justify-center px-4">
-        {/* Animated Background Elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white/10 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute top-40 right-32 w-48 h-48 bg-cyan-300/20 rounded-full blur-2xl animate-bounce" style={{ animationDelay: '1s', animationDuration: '3s' }}></div>
-          <div className="absolute bottom-32 left-40 w-56 h-56 bg-teal-300/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-blue-300/10 rounded-full blur-3xl animate-bounce" style={{ animationDelay: '0.5s', animationDuration: '4s' }}></div>
-          
-          {/* Floating icons */}
-          <div className="absolute top-1/3 left-1/4 text-white/20 animate-bounce" style={{ animationDelay: '3s', animationDuration: '6s' }}>
-            <ComputerDesktopIcon className="w-16 h-16" />
-          </div>
-          <div className="absolute bottom-1/3 right-1/4 text-white/20 animate-bounce" style={{ animationDelay: '1s', animationDuration: '5s' }}>
-            <DevicePhoneMobileIcon className="w-12 h-12" />
-          </div>
-        </div>
-
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
-          {/* Left Content */}
-          <motion.div 
-            variants={fadeInLeft}
-            initial="initial"
-            animate="animate"
-            className="text-white"
-          >
-            {/* Badge */}
-            <motion.div
-              {...scaleIn}
-              transition={{ delay: 0.2 }}
-              className="inline-flex items-center px-6 py-3 bg-white/20 backdrop-blur-lg rounded-full text-sm font-semibold mb-8 border border-white/30"
-            >
-              <SparklesIcon className="w-5 h-5 mr-2 text-yellow-300" />
-              <span className="text-white">Schweizer Qualität • Faire Preise</span>
-            </motion.div>
-
-            {/* Main Headline */}
-            <h1 className="text-5xl lg:text-7xl font-serif font-bold mb-8 leading-[1.1]">
-              Mehr Kunden.{' '}
-              <span className="block text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-white to-yellow-200">
-                Mehr Erfolg.
-              </span>
-            </h1>
-
-            {/* Subheadline */}
-            <p className="text-xl lg:text-2xl mb-10 text-white/90 leading-relaxed font-inter max-w-2xl">
-              Professionelle Website für dein Business –{' '}
-              <span className="font-bold text-yellow-300 bg-white/10 px-2 py-1 rounded-lg">nur 99 CHF/Monat</span>. 
-              <br />Ohne Vorwissen, ohne versteckte Kosten.
-            </p>
-
-            {/* Feature List */}
-            <div className="space-y-4 mb-10">
-              <motion.div 
-                className="flex items-center text-white/95"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.5 }}
-              >
-                <div className="w-6 h-6 mr-4 bg-green-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircleIcon className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg">Du zahlst erst, wenn du dein Design freigibst</span>
-              </motion.div>
-              <motion.div 
-                className="flex items-center text-white/95"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.6 }}
-              >
-                <div className="w-6 h-6 mr-4 bg-blue-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircleIcon className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg">Professionelles Design von Schweizer Experten</span>
-              </motion.div>
-              <motion.div 
-                className="flex items-center text-white/95"
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.7 }}
-              >
-                <div className="w-6 h-6 mr-4 bg-purple-400 rounded-full flex items-center justify-center flex-shrink-0">
-                  <CheckCircleIcon className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-lg">Komplett ohne technisches Wissen</span>
-              </motion.div>
-            </div>
-
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <motion.button
-                onClick={handleGetStarted}
-                whileHover={{ scale: 1.05, y: -2 }}
-                whileTap={{ scale: 0.95 }}
-                className="group relative inline-flex items-center justify-center px-8 py-4 bg-white text-teal-600 text-lg font-bold rounded-2xl shadow-2xl hover:shadow-white/30 transition-all duration-300 font-inter overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-yellow-100 to-white opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <RocketLaunchIcon className="w-6 h-6 mr-3 relative z-10 group-hover:animate-bounce" />
-                <span className="relative z-10">Jetzt kostenlos starten</span>
-                <ArrowRightIcon className="w-5 h-5 ml-2 relative z-10 group-hover:translate-x-1 transition-transform" />
-              </motion.button>
-              
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center justify-center px-6 py-4 border-2 border-white/30 text-white text-lg font-semibold rounded-2xl backdrop-blur-sm hover:bg-white/10 transition-all duration-300 font-inter"
-              >
-                <PhoneIcon className="w-5 h-5 mr-2" />
-                Kostenlose Beratung
-              </motion.button>
-            </div>
-
-            {/* Trust indicators */}
-            <motion.div 
-              className="mt-12 flex items-center space-x-8 text-white/70"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1 }}
-            >
-              <div className="flex items-center">
-                <div className="flex -space-x-2 mr-3">
-                  <div className="w-8 h-8 bg-yellow-400 rounded-full border-2 border-white"></div>
-                  <div className="w-8 h-8 bg-green-400 rounded-full border-2 border-white"></div>
-                  <div className="w-8 h-8 bg-blue-400 rounded-full border-2 border-white"></div>
-                </div>
-                <span className="text-sm font-medium">50+ zufriedene Kunden</span>
-              </div>
-              <div className="flex items-center">
-                <StarIcon className="w-5 h-5 text-yellow-300 fill-current mr-1" />
-                <span className="text-sm font-medium">4.9/5 Bewertung</span>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Right Content - Enhanced Mock Phone */}
-          <motion.div 
-            variants={fadeInRight}
-            initial="initial"
-            animate="animate"
-            className="relative"
-          >
-            <div className="relative mx-auto w-80 h-[640px] bg-slate-800 rounded-[3rem] shadow-2xl transform rotate-3 hover:rotate-0 transition-transform duration-500">
-              {/* Phone Frame Shadow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-black/20 to-transparent rounded-[3rem] blur-xl"></div>
-              
-              {/* Phone Frame */}
-              <div className="absolute inset-2 bg-black rounded-[2.5rem] overflow-hidden">
-                {/* Status Bar */}
-                <div className="h-10 bg-black flex items-center justify-between px-6">
-                  <span className="text-white text-sm font-medium">9:41</span>
-                  <div className="flex items-center space-x-1">
-                    <div className="w-4 h-2 bg-white rounded-sm"></div>
-                    <div className="w-6 h-3 border border-white rounded-sm"></div>
-                  </div>
-                </div>
-                
-                {/* Screen Content */}
-                <div className="bg-gradient-to-br from-gray-50 to-blue-50 h-full">
-                  {/* Header */}
-                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 p-6 text-white">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                        <span className="text-white font-bold text-lg">CF</span>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm opacity-90">Dein Business</div>
-                        <div className="text-xs opacity-70">Online sichtbar</div>
-                      </div>
-                    </div>
-                    <h3 className="font-bold text-lg">Willkommen!</h3>
-                    <p className="text-sm opacity-90">Deine Website ist live</p>
-                  </div>
-                  
-                  {/* Content Cards */}
-                  <div className="p-4 space-y-3">
-                    <motion.div 
-                      className="bg-white rounded-xl p-4 shadow-lg border border-green-100"
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ repeat: Infinity, duration: 3, delay: 0 }}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-green-500 rounded-full mr-3 animate-pulse"></div>
-                        <span className="text-sm text-gray-700 font-medium">Bei Google gefunden werden</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">+25% mehr Sichtbarkeit</div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="bg-white rounded-xl p-4 shadow-lg border border-blue-100"
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ repeat: Infinity, duration: 3, delay: 1 }}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-3 animate-pulse"></div>
-                        <span className="text-sm text-gray-700 font-medium">Neue Kunden gewinnen</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">5 neue Anfragen diese Woche</div>
-                    </motion.div>
-                    
-                    <motion.div 
-                      className="bg-white rounded-xl p-4 shadow-lg border border-purple-100"
-                      animate={{ scale: [1, 1.02, 1] }}
-                      transition={{ repeat: Infinity, duration: 3, delay: 2 }}
-                    >
-                      <div className="flex items-center">
-                        <div className="w-3 h-3 bg-purple-500 rounded-full mr-3 animate-pulse"></div>
-                        <span className="text-sm text-gray-700 font-medium">Vertrauen aufbauen</span>
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">Professioneller Eindruck</div>
-                    </motion.div>
-
-                    {/* Stats Card */}
-                    <div className="bg-gradient-to-r from-orange-100 to-red-100 rounded-xl p-4 border border-orange-200">
-                      <div className="text-xs text-gray-600 mb-1">Heute</div>
-                      <div className="text-lg font-bold text-gray-800">47 Besucher</div>
-                      <div className="text-xs text-green-600">↗ +23% vs. gestern</div>
-                    </div>
-                  </div>
-                  
-                  {/* Bottom CTA */}
-                  <div className="absolute bottom-6 left-4 right-4">
-                    <motion.div 
-                      className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white p-4 rounded-xl text-center shadow-lg"
-                      animate={{ y: [0, -2, 0] }}
-                      transition={{ repeat: Infinity, duration: 2 }}
-                    >
-                      <div className="font-bold text-sm">Jetzt durchstarten!</div>
-                      <div className="text-xs opacity-90">Deine Website wartet</div>
-                    </motion.div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
       {/* Benefits Section */}
       <section className="py-32 px-4 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
@@ -324,10 +88,27 @@ export function LandingPage() {
                 eine Visitenkarte
               </span>
             </h2>
-            <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed">
+            <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
               Sie ist dein digitales Schaufenster, das 24/7 für dich arbeitet, neue Kunden anzieht 
               und dein Business auf das nächste Level bringt.
             </p>
+            
+            {/* CTA Button */}
+            <motion.div
+              {...fadeInUp}
+              transition={{ delay: 0.3 }}
+              className="text-center"
+            >
+              <button
+                onClick={handleGetStarted}
+                className="group relative inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 text-xl font-bold rounded-2xl shadow-2xl hover:shadow-teal-400/25 transition-all duration-300 font-inter overflow-hidden transform hover:scale-105"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-white to-yellow-100 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                <RocketLaunchIcon className="w-7 h-7 mr-3 relative z-10 group-hover:animate-bounce" />
+                <span className="relative z-10">Jetzt kostenlos starten</span>
+                <ArrowRightIcon className="w-6 h-6 ml-3 relative z-10 group-hover:translate-x-2 transition-transform" />
+              </button>
+            </motion.div>
           </motion.div>
 
           <motion.div 
@@ -460,7 +241,7 @@ export function LandingPage() {
           {/* Stats Section */}
           <motion.div
             {...fadeInUp}
-            className="grid md:grid-cols-3 gap-8 text-center"
+            className="grid md:grid-cols-3 gap-8 text-center mb-16"
           >
             <div className="p-8">
               <div className="text-5xl font-bold text-teal-400 mb-2">95%</div>
@@ -474,6 +255,22 @@ export function LandingPage() {
               <div className="text-5xl font-bold text-blue-400 mb-2">+150%</div>
               <div className="text-gray-300 font-inter">mehr Anfragen durch Website</div>
             </div>
+          </motion.div>
+
+          {/* CTA Button */}
+          <motion.div
+            {...fadeInUp}
+            className="text-center"
+          >
+            <button
+              onClick={handleGetStarted}
+              className="group relative inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 text-xl font-bold rounded-2xl shadow-2xl hover:shadow-teal-400/25 transition-all duration-300 font-inter overflow-hidden transform hover:scale-105"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-white to-yellow-100 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+              <RocketLaunchIcon className="w-7 h-7 mr-3 relative z-10 group-hover:animate-bounce" />
+              <span className="relative z-10">Jetzt kostenlos starten</span>
+              <ArrowRightIcon className="w-6 h-6 ml-3 relative z-10 group-hover:translate-x-2 transition-transform" />
+            </button>
           </motion.div>
         </div>
       </section>
@@ -548,20 +345,23 @@ export function LandingPage() {
                 </div>
               </div>
               <div className="order-1 lg:order-2">
-                <div className="bg-white rounded-3xl shadow-2xl shadow-blue-500/10 border border-blue-100 p-8 transform hover:scale-105 transition-transform duration-300">
+                <div 
+                  onClick={handleGetStarted}
+                  className="bg-white rounded-3xl shadow-2xl shadow-blue-500/10 border border-blue-100 p-8 transform hover:scale-105 transition-transform duration-300 cursor-pointer group"
+                >
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mx-auto mb-6 flex items-center justify-center">
+                    <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <span className="text-white text-2xl">👋</span>
                     </div>
-                    <h4 className="text-xl font-bold text-gray-900 mb-4">Willkommen bei Customer Flows!</h4>
+                    <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">Willkommen bei Customer Flows!</h4>
                     <div className="space-y-3">
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <input type="text" placeholder="Dein Name" className="w-full border-0 bg-transparent text-gray-700" readOnly />
+                      <div className="bg-gray-50 rounded-xl p-4 group-hover:bg-blue-50 transition-colors">
+                        <input type="text" placeholder="Dein Name" className="w-full border-0 bg-transparent text-gray-700 pointer-events-none" readOnly />
                       </div>
-                      <div className="bg-gray-50 rounded-xl p-4">
-                        <input type="email" placeholder="E-Mail Adresse" className="w-full border-0 bg-transparent text-gray-700" readOnly />
+                      <div className="bg-gray-50 rounded-xl p-4 group-hover:bg-blue-50 transition-colors">
+                        <input type="email" placeholder="E-Mail Adresse" className="w-full border-0 bg-transparent text-gray-700 pointer-events-none" readOnly />
                       </div>
-                      <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-semibold">
+                      <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-semibold group-hover:from-blue-600 group-hover:to-cyan-600 transition-all duration-300">
                         Jetzt starten 🚀
                       </button>
                     </div>
@@ -716,161 +516,6 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-32 px-4 bg-white relative overflow-hidden">
-        {/* Background Elements */}
-        <div className="absolute inset-0">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-gradient-to-br from-yellow-200/20 to-orange-200/20 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-green-200/20 to-teal-200/20 rounded-full blur-3xl"></div>
-        </div>
-
-        <div className="max-w-7xl mx-auto relative z-10">
-          <motion.div
-            {...fadeInUp}
-            className="text-center mb-20"
-          >
-            <div className="inline-flex items-center px-6 py-3 bg-yellow-100 rounded-full text-sm font-semibold mb-8 border border-yellow-200">
-              <StarIcon className="w-5 h-5 mr-2 text-yellow-600 fill-current" />
-              <span className="text-yellow-700">Was unsere Kunden sagen</span>
-            </div>
-            
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8 leading-tight">
-              Echte Erfolgsgeschichten von{' '}
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">
-                echten Kunden
-              </span>
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-inter">
-              Über 50 zufriedene Unternehmer vertrauen bereits auf Customer Flows für ihren Webauftritt.
-            </p>
-          </motion.div>
-
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-20"
-          >
-            {/* Testimonial 1 */}
-            <motion.div variants={fadeInUp} className="group relative p-8 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl border border-blue-100 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
-              <div className="absolute top-6 right-6 text-4xl opacity-20 group-hover:opacity-30 transition-opacity">💼</div>
-              
-              <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-4">
-                  EM
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">Elias Müller</div>
-                  <div className="text-gray-600 text-sm">Malerbetrieb, Zürich</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              
-              <blockquote className="text-lg text-gray-800 mb-6 font-inter italic leading-relaxed">
-                "Ich habe durch die Website jede Woche neue Anfragen – und das ganz ohne Werbung! 
-                Die Investition hat sich schon nach 2 Monaten ausgezahlt."
-              </blockquote>
-              
-              <div className="text-sm text-gray-600 font-inter">
-                <span className="font-semibold text-green-600">+40% mehr Kunden</span> seit Website-Launch
-              </div>
-            </motion.div>
-
-            {/* Testimonial 2 */}
-            <motion.div variants={fadeInUp} className="group relative p-8 bg-gradient-to-br from-green-50 to-emerald-50 rounded-3xl border border-green-100 hover:shadow-2xl hover:shadow-green-500/10 transition-all duration-500">
-              <div className="absolute top-6 right-6 text-4xl opacity-20 group-hover:opacity-30 transition-opacity">💅</div>
-              
-              <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-4">
-                  AK
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">Aylin Kaya</div>
-                  <div className="text-gray-600 text-sm">Kosmetikstudio, Basel</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              
-              <blockquote className="text-lg text-gray-800 mb-6 font-inter italic leading-relaxed">
-                "Ich war nie online – jetzt habe ich endlich etwas, das ich auch stolz zeigen kann. 
-                Meine Kunden sind begeistert von der professionellen Website!"
-              </blockquote>
-              
-              <div className="text-sm text-gray-600 font-inter">
-                <span className="font-semibold text-green-600">Komplett neue Online-Präsenz</span> in nur 1 Woche
-              </div>
-            </motion.div>
-
-            {/* Testimonial 3 */}
-            <motion.div variants={fadeInUp} className="group relative p-8 bg-gradient-to-br from-purple-50 to-pink-50 rounded-3xl border border-purple-100 hover:shadow-2xl hover:shadow-purple-500/10 transition-all duration-500 md:col-span-2 lg:col-span-1">
-              <div className="absolute top-6 right-6 text-4xl opacity-20 group-hover:opacity-30 transition-opacity">⚡</div>
-              
-              <div className="flex items-center mb-6">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl flex items-center justify-center text-white font-bold text-xl mr-4">
-                  MS
-                </div>
-                <div>
-                  <div className="font-bold text-gray-900">Marco Schneider</div>
-                  <div className="text-gray-600 text-sm">Elektroinstallationen, Bern</div>
-                </div>
-              </div>
-              
-              <div className="flex items-center mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <StarIcon key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                ))}
-              </div>
-              
-              <blockquote className="text-lg text-gray-800 mb-6 font-inter italic leading-relaxed">
-                "Endlich werde ich bei Google gefunden! Die Website sieht super professionell aus 
-                und bringt mir laufend neue Aufträge."
-              </blockquote>
-              
-              <div className="text-sm text-gray-600 font-inter">
-                <span className="font-semibold text-green-600">Top Google-Ranking</span> nach 3 Monaten
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Trust Indicators */}
-          <motion.div
-            {...fadeInUp}
-            className="grid md:grid-cols-4 gap-8 text-center"
-          >
-            <div className="p-6">
-              <div className="text-3xl mb-2">⭐</div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">4.9/5</div>
-              <div className="text-gray-600 font-inter text-sm">Kundenbewertung</div>
-            </div>
-            <div className="p-6">
-              <div className="text-3xl mb-2">🚀</div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">50+</div>
-              <div className="text-gray-600 font-inter text-sm">Zufriedene Kunden</div>
-            </div>
-            <div className="p-6">
-              <div className="text-3xl mb-2">⚡</div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">3-5 Tage</div>
-              <div className="text-gray-600 font-inter text-sm">Bis zur Website</div>
-            </div>
-            <div className="p-6">
-              <div className="text-3xl mb-2">🇨🇭</div>
-              <div className="text-2xl font-bold text-gray-900 mb-1">100%</div>
-              <div className="text-gray-600 font-inter text-sm">Schweizer Qualität</div>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Final CTA Section */}
       <section className="py-32 px-4 bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 relative overflow-hidden">
         {/* Background Elements */}
@@ -904,15 +549,14 @@ export function LandingPage() {
               </span>
             </h2>
             <p className="text-xl text-gray-300 max-w-3xl mx-auto font-inter leading-relaxed mb-12">
-              Schließe dich über 50 erfolgreichen Unternehmern an, die bereits mit Customer Flows 
-              ihre Online-Präsenz auf das nächste Level gebracht haben.
+              Starte noch heute mit deiner professionellen Website und werde online gefunden.
             </p>
           </motion.div>
           
           <motion.div
             {...fadeInUp}
             transition={{ delay: 0.2 }}
-            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+            className="flex justify-center mb-16"
           >
             <button
               onClick={handleGetStarted}
@@ -923,21 +567,6 @@ export function LandingPage() {
               <span className="relative z-10">Jetzt kostenlos starten</span>
               <ArrowRightIcon className="w-6 h-6 ml-3 relative z-10 group-hover:translate-x-2 transition-transform" />
             </button>
-            
-            <div className="flex items-center text-white/80">
-              <div className="flex -space-x-2 mr-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-yellow-400 to-orange-400 rounded-full border-2 border-white"></div>
-                <div className="w-10 h-10 bg-gradient-to-br from-green-400 to-emerald-400 rounded-full border-2 border-white"></div>
-                <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-cyan-400 rounded-full border-2 border-white"></div>
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full border-2 border-white flex items-center justify-center text-white text-sm font-bold">
-                  +47
-                </div>
-              </div>
-              <div className="text-left">
-                <div className="font-semibold">50+ Unternehmer</div>
-                <div className="text-sm text-white/60">sind bereits dabei</div>
-              </div>
-            </div>
           </motion.div>
 
           {/* Final Trust Elements */}
