@@ -18,10 +18,10 @@ import {
 } from '@heroicons/react/24/outline'
 
 const tabs = [
-  { id: 'tracker', label: 'Project Tracker', icon: ChartBarIcon },
+  { id: 'tracker', label: 'Projekt Status', icon: ChartBarIcon },
   { id: 'demos', label: 'Demo Reviews', icon: ComputerDesktopIcon },
-  { id: 'billing', label: 'Billing', icon: CreditCardIcon },
-  { id: 'settings', label: 'Settings', icon: Cog6ToothIcon },
+  { id: 'billing', label: 'Abrechnung', icon: CreditCardIcon },
+  { id: 'settings', label: 'Einstellungen', icon: Cog6ToothIcon },
 ]
 
 interface DashboardLayoutProps {
@@ -44,26 +44,31 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex">
       {/* Sidebar */}
-      <div className="w-64 bg-white dark:bg-gray-800 shadow-xl flex flex-col">
+      <div className="w-64 bg-white/90 backdrop-blur-lg shadow-xl flex flex-col border-r border-gray-200">
         {/* Header */}
-        <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-serif font-bold text-gray-900 dark:text-white">
-              Dashboard
-            </h1>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-xl flex items-center justify-center">
+                <span className="text-slate-900 text-lg font-bold">CF</span>
+              </div>
+              <h1 className="text-xl font-serif font-bold text-gray-900">
+                Customer Flows
+              </h1>
+            </div>
             <ThemeToggle />
           </div>
           
           {/* User Info */}
           <div className="mt-4 flex items-center space-x-3">
-            <UserCircleIcon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <UserCircleIcon className="w-8 h-8 text-gray-500" />
             <div>
-              <p className="text-sm font-medium text-gray-900 dark:text-white font-sans">
+              <p className="text-sm font-medium text-gray-900 font-inter">
                 {user?.email?.split('@')[0] || 'User'}
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+              <p className="text-xs text-gray-600">
                 {user?.email}
               </p>
             </div>
@@ -83,10 +88,10 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => onTabChange(tab.id)}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 font-sans ${
+                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 font-inter ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-lg'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
+                      ? 'bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 shadow-lg'
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
                   <Icon className="w-5 h-5" />
@@ -98,21 +103,21 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
         </div>
 
         {/* Help & Feedback */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200">
           <div className="mb-3">
             <div className="flex items-center space-x-2 mb-2">
-              <QuestionMarkCircleIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 font-sans">
-                Help & Feedback
+              <QuestionMarkCircleIcon className="w-5 h-5 text-gray-500" />
+              <span className="text-sm font-medium text-gray-700 font-inter">
+                Hilfe & Feedback
               </span>
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 font-sans leading-relaxed">
-              Need help or want to give feedback? We'd love to hear from you!
+            <p className="text-xs text-gray-600 mb-3 font-inter leading-relaxed">
+              Brauchst du Hilfe oder möchtest Feedback geben? Wir freuen uns auf deine Nachricht!
             </p>
             <div className="space-y-2">
               <a
                 href="mailto:info@customerflows.ch"
-                className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-xs font-sans"
+                className="inline-flex items-center space-x-2 text-teal-600 hover:text-teal-700 transition-colors text-xs font-inter"
               >
                 <EnvelopeIcon className="w-4 h-4" />
                 <span>info@customerflows.ch</span>
@@ -121,7 +126,7 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
                 href="https://wa.me/41784462524"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors text-xs font-sans"
+                className="inline-flex items-center space-x-2 text-green-600 hover:text-green-700 transition-colors text-xs font-inter"
               >
                 <ChatBubbleLeftRightIcon className="w-4 h-4" />
                 <span>+41 78 446 2524</span>
@@ -131,15 +136,15 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
         </div>
 
         {/* Logout */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-gray-200">
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             onClick={handleSignOut}
-            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors font-sans"
+            className="w-full flex items-center space-x-3 px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 rounded-xl transition-all duration-300 font-inter"
           >
             <ArrowRightOnRectangleIcon className="w-5 h-5" />
-            <span className="font-medium">Sign Out</span>
+            <span className="font-medium">Abmelden</span>
           </motion.button>
         </div>
       </div>
