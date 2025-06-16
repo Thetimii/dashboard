@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { 
   MapPinIcon, 
   BuildingStorefrontIcon, 
-  HandshakeIcon, 
+  HandRaisedIcon, 
   ChatBubbleLeftRightIcon,
   CheckCircleIcon,
   StarIcon
@@ -117,7 +117,7 @@ export function LandingPage() {
             </motion.div>
 
             <motion.div variants={fadeInUp} className="flex items-start space-x-4 p-6 rounded-lg bg-gray-50 dark:bg-gray-800">
-              <HandshakeIcon className="w-8 h-8 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
+              <HandRaisedIcon className="w-8 h-8 text-purple-600 dark:text-purple-400 flex-shrink-0 mt-1" />
               <div>
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2 font-inter">
                   🤝 Du gewinnst Vertrauen.
