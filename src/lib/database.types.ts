@@ -116,6 +116,7 @@ export type Database = {
           id: string
           user_id: string
           stripe_payment_id: string | null
+          stripe_customer_id: string | null
           amount: number | null
           status: 'pending' | 'completed' | 'failed'
           created_at: string
@@ -124,6 +125,7 @@ export type Database = {
           id?: string
           user_id: string
           stripe_payment_id?: string | null
+          stripe_customer_id?: string | null
           amount?: number | null
           status: 'pending' | 'completed' | 'failed'
           created_at?: string
@@ -132,6 +134,7 @@ export type Database = {
           id?: string
           user_id?: string
           stripe_payment_id?: string | null
+          stripe_customer_id?: string | null
           amount?: number | null
           status?: 'pending' | 'completed' | 'failed'
           created_at?: string

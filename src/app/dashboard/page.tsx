@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
+import { createPaymentRecord, getPaymentStatus, redirectToStripePayment, getCustomerDetails, createCustomerPortalSession } from '@/lib/stripe'
 import { motion } from 'framer-motion'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { 
@@ -32,9 +33,11 @@ interface DemoLinks {
 }
 
 export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<'tracker' | 'demos' | 'settings'>('tracker')
+  const [activeTab, setActiveTab] = useState<'tracker' | 'demos' | 'billing' | 'settings'>('tracker')
   const [projectStatus, setProjectStatus] = useState<ProjectStatus | null>(null)
   const [demoLinks, setDemoLinks] = useState<DemoLinks | null>(null)
+  const [paymentStatus, setPaymentStatus] = useState<any>(null)
+  const [customerDetails, setCustomerDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [approving, setApproving] = useState(false)
   const [refreshingTracker, setRefreshingTracker] = useState(false)
@@ -96,6 +99,30 @@ export default function DashboardPage() {
     setDemoLinks(data)
   }, [user, supabase])
 
+  const fetchPaymentStatus = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const payment = await getPaymentStatus(user.id)
+      setPaymentStatus(payment)
+    } catch (error) {
+      console.error('Error fetching payment status:', error)
+      setPaymentStatus(null)
+    }
+  }, [user])
+
+  const fetchCustomerDetails = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const customer = await getCustomerDetails(user.id)
+      setCustomerDetails(customer)
+    } catch (error) {
+      // No customer found, which is expected for users without payments
+      setCustomerDetails(null)
+    }
+  }, [user])
+
   // Refresh handlers with loading simulation
   const handleRefreshTracker = async () => {
     setRefreshingTracker(true)
@@ -121,20 +148,52 @@ export default function DashboardPage() {
     if (!user || !demoLinks) return
 
     setApproving(true)
-    const { error } = await supabase
-      .from('demo_links')
-      .update({ 
-        approved_option: option,
-        approved_at: new Date().toISOString()
-      })
-      .eq('user_id', user.id)
+    
+    try {
+      // First, update the demo approval
+      const { error: demoError } = await supabase
+        .from('demo_links')
+        .update({ 
+          approved_option: option,
+          approved_at: new Date().toISOString()
+        })
+        .eq('user_id', user.id)
 
-    if (error) {
+      if (demoError) {
+        throw demoError
+      }
+
+      // Check if user already has a payment record
+      let existingPayment = paymentStatus
+      if (!existingPayment) {
+        try {
+          existingPayment = await getPaymentStatus(user.id)
+        } catch (error) {
+          // No payment record exists, which is fine
+        }
+      }
+
+      // If no payment exists or previous payment failed, create new payment record
+      if (!existingPayment || existingPayment.status === 'failed') {
+        const paymentRecord = await createPaymentRecord(user.id)
+        setPaymentStatus(paymentRecord)
+        
+        // Redirect to Stripe payment with payment ID for tracking
+        redirectToStripePayment(paymentRecord.id)
+      } else if (existingPayment.status === 'completed') {
+        // Payment already completed, just refresh the demo links
+        await fetchDemoLinks()
+      } else if (existingPayment.status === 'pending') {
+        // Payment is pending, redirect to Stripe again
+        redirectToStripePayment(existingPayment.id)
+      }
+
+    } catch (error) {
       console.error('Error approving demo:', error)
-    } else {
-      await fetchDemoLinks()
+      // Show error to user - you might want to add a toast/notification here
+    } finally {
+      setApproving(false)
     }
-    setApproving(false)
   }
 
   useEffect(() => {
@@ -150,13 +209,15 @@ export default function DashboardPage() {
       await Promise.all([
         checkKickoffCompletion(),
         fetchProjectStatus(),
-        fetchDemoLinks()
+        fetchDemoLinks(),
+        fetchPaymentStatus(),
+        fetchCustomerDetails()
       ])
       setLoading(false)
     }
 
     loadData()
-  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks])
+  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails])
 
   if (loading || authLoading) {
     return (
@@ -203,7 +264,18 @@ export default function DashboardPage() {
   const statusInfo = projectStatus ? getStatusInfo(projectStatus.status) : null
 
   const handleTabChange = (tab: string) => {
-    setActiveTab(tab as 'tracker' | 'demos' | 'settings')
+    setActiveTab(tab as 'tracker' | 'demos' | 'billing' | 'settings')
+  }
+
+  const handleManageSubscription = async () => {
+    if (!customerDetails?.stripe_customer_id) return
+
+    try {
+      await createCustomerPortalSession(customerDetails.stripe_customer_id)
+    } catch (error) {
+      console.error('Error opening customer portal:', error)
+      // You might want to show an error toast here
+    }
   }
 
   const renderTabContent = () => {
@@ -307,6 +379,37 @@ export default function DashboardPage() {
                 </div>
               ) : demoLinks && (demoLinks.option_1_url || demoLinks.option_2_url || demoLinks.option_3_url) ? (
                 <div className="space-y-6">
+                  {/* Payment Status Section */}
+                  {paymentStatus && (
+                    <div className={`p-4 rounded-lg border ${
+                      paymentStatus.status === 'completed' 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        : paymentStatus.status === 'pending'
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    }`}>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-sm font-medium">
+                          Payment Status: 
+                        </span>
+                        <span className={`text-sm font-semibold ${
+                          paymentStatus.status === 'completed' 
+                            ? 'text-green-600 dark:text-green-400'
+                            : paymentStatus.status === 'pending'
+                            ? 'text-yellow-600 dark:text-yellow-400'
+                            : 'text-red-600 dark:text-red-400'
+                        }`}>
+                          {paymentStatus.status.charAt(0).toUpperCase() + paymentStatus.status.slice(1)}
+                        </span>
+                        {paymentStatus.amount && (
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            ({paymentStatus.amount} CHF)
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   <p className="text-gray-700 dark:text-gray-300 font-inter">
                     Review the demo options below and approve your favorite one to proceed with the final project.
                   </p>
@@ -336,7 +439,7 @@ export default function DashboardPage() {
                               disabled={approving}
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-inter"
                             >
-                              {approving ? 'Approving...' : 'Approve This Option'}
+                              {approving ? 'Processing...' : paymentStatus?.status === 'completed' ? 'Approved & Paid' : 'Approve & Pay (99 CHF)'}
                             </button>
                           </div>
                         </div>
@@ -356,6 +459,157 @@ export default function DashboardPage() {
                   </p>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )
+
+      case 'billing':
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
+              <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Billing & Subscription</h2>
+              
+              <div className="space-y-6">
+                {/* Payment Status */}
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Payment Status</h3>
+                  
+                  {paymentStatus ? (
+                    <div className={`p-4 rounded-lg border ${
+                      paymentStatus.status === 'completed' 
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                        : paymentStatus.status === 'pending'
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <CreditCardIcon className={`w-5 h-5 mr-3 ${
+                            paymentStatus.status === 'completed' 
+                              ? 'text-green-600 dark:text-green-400'
+                              : paymentStatus.status === 'pending'
+                              ? 'text-yellow-600 dark:text-yellow-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`} />
+                          <div>
+                            <span className={`font-semibold ${
+                              paymentStatus.status === 'completed' 
+                                ? 'text-green-600 dark:text-green-400'
+                                : paymentStatus.status === 'pending'
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : 'text-red-600 dark:text-red-400'
+                            }`}>
+                              {paymentStatus.status === 'completed' ? 'Payment Completed' : 
+                               paymentStatus.status === 'pending' ? 'Payment Pending' : 'Payment Failed'}
+                            </span>
+                            {paymentStatus.amount && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                Amount: {paymentStatus.amount} CHF
+                              </p>
+                            )}
+                            {paymentStatus.created_at && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400">
+                                {new Date(paymentStatus.created_at).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {paymentStatus.status === 'completed' && (
+                          <div className="flex items-center">
+                            <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center">
+                        <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
+                        <div>
+                          <span className="text-gray-700 dark:text-gray-300 font-inter">No payment yet</span>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            You haven't made any payments yet. Payment will be required when you approve a demo.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Subscription Management */}
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Subscription Management</h3>
+                  
+                  {customerDetails?.stripe_customer_id ? (
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <CreditCardIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
+                          <div>
+                            <span className="text-blue-600 dark:text-blue-400 font-semibold">Active Subscription</span>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              Manage your subscription, update payment methods, and view billing history.
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleManageSubscription}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-inter text-sm"
+                        >
+                          Manage Subscription
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center">
+                        <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
+                        <div>
+                          <span className="text-gray-700 dark:text-gray-300 font-inter">No active subscription</span>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Your subscription will be activated after your first payment is completed.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Billing Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Billing Information</h3>
+                  <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400 font-inter">Monthly Subscription</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">99 CHF</span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-gray-600 dark:text-gray-400 font-inter">Setup Fee</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">0 CHF</span>
+                      </div>
+                      <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-gray-900 dark:text-white font-inter">Total per Month</span>
+                          <span className="font-bold text-lg text-gray-900 dark:text-white">99 CHF</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-sm text-blue-700 dark:text-blue-300 font-inter">
+                      <strong>Note:</strong> You only pay after approving your website design. 
+                      No hidden fees, no long-term contracts. Cancel anytime through the customer portal.
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </motion.div>
         )
@@ -397,21 +651,6 @@ export default function DashboardPage() {
                       <input type="checkbox" defaultChecked className="rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
                       <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Email notifications for demo availability</span>
                     </label>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">Billing</h3>
-                  <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <CreditCardIcon className="w-5 h-5 text-gray-400 mr-3" />
-                        <span className="text-gray-700 dark:text-gray-300 font-inter">Payment Status</span>
-                      </div>
-                      <span className="px-2 py-1 bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400 text-xs font-semibold rounded font-inter">
-                        Paid
-                      </span>
-                    </div>
                   </div>
                 </div>
               </div>

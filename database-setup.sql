@@ -47,6 +47,7 @@ create table payments (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users(id),
   stripe_payment_id text,
+  stripe_customer_id text,
   amount numeric,
   status text check (status in ('pending', 'completed', 'failed')),
   created_at timestamp default now()

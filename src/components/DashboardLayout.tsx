@@ -9,6 +9,7 @@ import {
   ChartBarIcon,
   ComputerDesktopIcon,
   Cog6ToothIcon,
+  CreditCardIcon,
   ArrowRightOnRectangleIcon,
   UserCircleIcon,
   QuestionMarkCircleIcon,
@@ -19,6 +20,7 @@ import {
 const tabs = [
   { id: 'tracker', label: 'Project Tracker', icon: ChartBarIcon },
   { id: 'demos', label: 'Demo Reviews', icon: ComputerDesktopIcon },
+  { id: 'billing', label: 'Billing', icon: CreditCardIcon },
   { id: 'settings', label: 'Settings', icon: Cog6ToothIcon },
 ]
 
