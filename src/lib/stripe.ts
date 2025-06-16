@@ -9,8 +9,10 @@ export const getStripe = () => {
 export const STRIPE_PAYMENT_URL = 'https://buy.stripe.com/cNi00j7ZW5xa9Ln0MG1oI00'
 export const PAYMENT_AMOUNT = 99 // CHF
 
-export async function createPaymentRecord(userId: string, amount: number = PAYMENT_AMOUNT) {
+export async function createPaymentRecord(userId: string, amount: number = PAYMENT_AMOUNT, userEmail?: string) {
   const supabase = createClient()
+  
+  console.log('Creating payment record for user:', { userId, userEmail, amount })
   
   const { data, error } = await supabase
     .from('payments')
@@ -27,6 +29,7 @@ export async function createPaymentRecord(userId: string, amount: number = PAYME
     throw error
   }
   
+  console.log('Payment record created:', data)
   return data
 }
 
@@ -72,11 +75,24 @@ export async function updatePaymentStatus(paymentId: string, status: 'completed'
   return data
 }
 
-export function redirectToStripePayment(paymentId?: string) {
-  // Add payment ID as query parameter for tracking
-  const url = paymentId 
-    ? `${STRIPE_PAYMENT_URL}?client_reference_id=${paymentId}`
-    : STRIPE_PAYMENT_URL
+export function redirectToStripePayment(paymentId?: string, userEmail?: string) {
+  // Add payment ID and email as query parameters for tracking
+  let url = STRIPE_PAYMENT_URL
+  
+  const params = new URLSearchParams()
+  
+  if (paymentId) {
+    params.append('client_reference_id', paymentId)
+  }
+  
+  if (userEmail) {
+    // Pre-fill and lock the email in Stripe checkout
+    params.append('prefilled_email', userEmail)
+  }
+  
+  if (params.toString()) {
+    url += '?' + params.toString()
+  }
   
   window.location.href = url
 }

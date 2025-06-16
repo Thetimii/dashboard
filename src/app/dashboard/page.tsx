@@ -175,17 +175,17 @@ export default function DashboardPage() {
 
       // If no payment exists or previous payment failed, create new payment record
       if (!existingPayment || existingPayment.status === 'failed') {
-        const paymentRecord = await createPaymentRecord(user.id)
+        const paymentRecord = await createPaymentRecord(user.id, 99, user.email)
         setPaymentStatus(paymentRecord)
         
-        // Redirect to Stripe payment with payment ID for tracking
-        redirectToStripePayment(paymentRecord.id)
+        // Redirect to Stripe payment with payment ID and user email
+        redirectToStripePayment(paymentRecord.id, user.email)
       } else if (existingPayment.status === 'completed') {
         // Payment already completed, just refresh the demo links
         await fetchDemoLinks()
       } else if (existingPayment.status === 'pending') {
-        // Payment is pending, redirect to Stripe again
-        redirectToStripePayment(existingPayment.id)
+        // Payment is pending, redirect to Stripe again with email
+        redirectToStripePayment(existingPayment.id, user.email)
       }
 
     } catch (error) {

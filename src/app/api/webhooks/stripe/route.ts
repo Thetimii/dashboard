@@ -69,23 +69,26 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
   console.log('🏦 handleSuccessfulPayment called')
   
   try {
-    // Get the payment ID from client_reference_id if provided
     const paymentId = session.client_reference_id
     const stripePaymentId = session.payment_intent as string
     const stripeCustomerId = session.customer as string
+    const customerEmail = session.customer_details?.email
 
     console.log('📊 Payment details:', {
       paymentId,
       stripePaymentId,
       stripeCustomerId,
+      customerEmail,
       amount: session.amount_total,
       currency: session.currency
     })
 
+    let paymentUpdateResult = null
+
+    // Strategy 1: Try to update by payment ID first (most reliable)
     if (paymentId) {
-      console.log('🔍 Updating payment record:', paymentId)
+      console.log('🔍 Updating payment record by payment ID:', paymentId)
       
-      // Update existing payment record with customer ID
       const { data, error } = await supabaseAdmin
         .from('payments')
         .update({
@@ -97,22 +100,83 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session) {
         .select()
 
       if (error) {
-        console.error('❌ Error updating payment status:', error)
-        console.error('Error details:', JSON.stringify(error, null, 2))
-      } else {
-        console.log('✅ Payment updated successfully:', data)
-        console.log(`💰 Payment ${paymentId} marked as completed with customer ${stripeCustomerId}`)
+        console.error('❌ Error updating payment by ID:', error)
+      } else if (data && data.length > 0) {
+        console.log('✅ Payment updated by ID successfully:', data)
+        paymentUpdateResult = data[0]
       }
+    }
+
+    // Strategy 2: If payment ID didn't work, try to find by email and pending status
+    if (!paymentUpdateResult && customerEmail) {
+      console.log('🔍 Attempting to find pending payment by email:', customerEmail)
+      
+      // Get all users with this email (should be unique)
+      const { data: authUsers, error: authError } = await supabaseAdmin.auth.admin.listUsers()
+      
+      if (authError) {
+        console.error('❌ Error fetching auth users:', authError)
+      } else {
+        const matchingUser = authUsers.users.find(user => user.email === customerEmail)
+        
+        if (matchingUser) {
+          console.log('👤 Found matching user:', matchingUser.id)
+          
+          // Find the most recent pending payment for this user
+          const { data: pendingPayment, error: paymentError } = await supabaseAdmin
+            .from('payments')
+            .select('*')
+            .eq('user_id', matchingUser.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single()
+
+          if (paymentError) {
+            console.error('❌ Error finding pending payment:', paymentError)
+          } else if (pendingPayment) {
+            console.log('💳 Found pending payment:', pendingPayment.id)
+            
+            const { data: updateData, error: updateError } = await supabaseAdmin
+              .from('payments')
+              .update({
+                status: 'completed',
+                stripe_payment_id: stripePaymentId,
+                stripe_customer_id: stripeCustomerId
+              })
+              .eq('id', pendingPayment.id)
+              .select()
+
+            if (updateError) {
+              console.error('❌ Error updating payment by email match:', updateError)
+            } else {
+              console.log('✅ Payment updated by email match successfully:', updateData)
+              paymentUpdateResult = updateData[0]
+            }
+          } else {
+            console.warn('⚠️ No pending payment found for user:', matchingUser.id)
+          }
+        } else {
+          console.warn('⚠️ No user found with email:', customerEmail)
+        }
+      }
+    }
+
+    if (paymentUpdateResult) {
+      console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
     } else {
-      console.warn('⚠️ No client_reference_id found in session - cannot update payment record')
-      console.log('🔍 Available session data:', JSON.stringify({
+      console.warn('❌ Could not find or update any payment record')
+      console.log('🔍 Session debug info:', JSON.stringify({
         id: session.id,
-        metadata: session.metadata,
-        client_reference_id: session.client_reference_id
+        customer_email: customerEmail,
+        client_reference_id: paymentId,
+        customer: stripeCustomerId,
+        payment_intent: stripePaymentId
       }, null, 2))
     }
   } catch (error) {
     console.error('❌ Error handling successful payment:', error)
+    console.error('Error stack:', error)
   }
 }
 
