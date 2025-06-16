@@ -8,28 +8,36 @@ export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
-    if (mounted && !loading) {
-      if (user) {
-        router.push('/dashboard');
-      } else {
-        router.push('/signup');
-      }
-    }
-  }, [user, loading, router, mounted]);
+    if (mounted && !loading && !redirecting) {
+      const timer = setTimeout(() => {
+        setRedirecting(true);
+        if (user) {
+          router.push('/dashboard');
+        } else {
+          router.push('/signup');
+        }
+      }, 100); // Small delay to ensure auth state is stable
 
-  // Show loading while mounting or auth is loading
-  if (!mounted || loading) {
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading, router, mounted, redirecting]);
+
+  // Show loading while mounting, auth is loading, or redirecting
+  if (!mounted || loading || redirecting) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400 mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-300 font-inter text-lg">Loading your dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-300 font-inter text-lg">
+            {redirecting ? 'Redirecting...' : 'Loading your dashboard...'}
+          </p>
         </div>
       </div>
     );

@@ -52,5 +52,49 @@ export const createClient = () => {
     return createMockClient() as any
   }
 
-  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient<Database>(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      get(name: string) {
+        if (typeof window !== 'undefined') {
+          const value = document.cookie
+            .split('; ')
+            .find(row => row.startsWith(`${name}=`))
+            ?.split('=')[1]
+          return value || null
+        }
+        return null
+      },
+      set(name: string, value: string, options: any) {
+        if (typeof window !== 'undefined') {
+          let cookieString = `${name}=${value}`
+          if (options?.maxAge) {
+            cookieString += `; max-age=${options.maxAge}`
+          }
+          if (options?.path) {
+            cookieString += `; path=${options.path}`
+          }
+          if (options?.domain) {
+            cookieString += `; domain=${options.domain}`
+          }
+          if (options?.secure) {
+            cookieString += '; secure'
+          }
+          if (options?.sameSite) {
+            cookieString += `; samesite=${options.sameSite}`
+          }
+          document.cookie = cookieString
+        }
+      },
+      remove(name: string, options: any) {
+        if (typeof window !== 'undefined') {
+          document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=${options?.path || '/'};`
+        }
+      }
+    },
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true
+    }
+  })
 }

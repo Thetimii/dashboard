@@ -14,7 +14,8 @@ import {
   CreditCardIcon,
   UserCircleIcon,
   BellIcon,
-  ComputerDesktopIcon
+  ComputerDesktopIcon,
+  ArrowPathIcon // Added for refresh button
 } from '@heroicons/react/24/outline'
 
 interface ProjectStatus {
@@ -36,7 +37,9 @@ export default function DashboardPage() {
   const [demoLinks, setDemoLinks] = useState<DemoLinks | null>(null)
   const [loading, setLoading] = useState(true)
   const [approving, setApproving] = useState(false)
-  const { user, signOut } = useAuth()
+  const [refreshingTracker, setRefreshingTracker] = useState(false)
+  const [refreshingDemos, setRefreshingDemos] = useState(false)
+  const { user, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
   const supabase = createClient()
 
@@ -93,6 +96,27 @@ export default function DashboardPage() {
     setDemoLinks(data)
   }, [user, supabase])
 
+  // Refresh handlers with loading simulation
+  const handleRefreshTracker = async () => {
+    setRefreshingTracker(true)
+    // Minimum loading time for better UX
+    await Promise.all([
+      fetchProjectStatus(),
+      new Promise(resolve => setTimeout(resolve, 800))
+    ])
+    setRefreshingTracker(false)
+  }
+
+  const handleRefreshDemos = async () => {
+    setRefreshingDemos(true)
+    // Minimum loading time for better UX
+    await Promise.all([
+      fetchDemoLinks(),
+      new Promise(resolve => setTimeout(resolve, 800))
+    ])
+    setRefreshingDemos(false)
+  }
+
   const approveDemo = async (option: string) => {
     if (!user || !demoLinks) return
 
@@ -114,6 +138,9 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
+    // Don't redirect if we're still loading auth state
+    if (authLoading) return
+    
     if (!user) {
       router.push('/signin')
       return
@@ -129,9 +156,9 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [user, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks])
+  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks])
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center">
         <div className="text-center">
@@ -189,7 +216,17 @@ export default function DashboardPage() {
             transition={{ duration: 0.5 }}
           >
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-              <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Project Progress</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white">Project Progress</h2>
+                <button
+                  onClick={handleRefreshTracker}
+                  disabled={refreshingTracker}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Refresh project status"
+                >
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingTracker ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
               
               {statusInfo && (
                 <div className={`${statusInfo.bgColor} rounded-lg p-6 mb-6`}>
@@ -236,7 +273,17 @@ export default function DashboardPage() {
             transition={{ duration: 0.5 }}
           >
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-8">
-              <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white mb-6">Demo Reviews</h2>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-serif font-semibold text-gray-900 dark:text-white">Demo Reviews</h2>
+                <button
+                  onClick={handleRefreshDemos}
+                  disabled={refreshingDemos}
+                  className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-label="Refresh demo links"
+                >
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingDemos ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
               
               {demoLinks?.approved_option ? (
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6">
