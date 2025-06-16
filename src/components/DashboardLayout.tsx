@@ -10,7 +10,10 @@ import {
   ComputerDesktopIcon,
   Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
-  UserCircleIcon
+  UserCircleIcon,
+  QuestionMarkCircleIcon,
+  EnvelopeIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
 const tabs = [
@@ -90,6 +93,39 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
               )
             })}
           </nav>
+        </div>
+
+        {/* Help & Feedback */}
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mb-3">
+            <div className="flex items-center space-x-2 mb-2">
+              <QuestionMarkCircleIcon className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300 font-sans">
+                Help & Feedback
+              </span>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-400 mb-3 font-sans leading-relaxed">
+              Need help or want to give feedback? We'd love to hear from you!
+            </p>
+            <div className="space-y-2">
+              <a
+                href="mailto:info@customerflows.ch"
+                className="inline-flex items-center space-x-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-xs font-sans"
+              >
+                <EnvelopeIcon className="w-4 h-4" />
+                <span>info@customerflows.ch</span>
+              </a>
+              <a
+                href="https://wa.me/41784462524"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-2 text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 transition-colors text-xs font-sans"
+              >
+                <ChatBubbleLeftRightIcon className="w-4 h-4" />
+                <span>+41 78 446 2524</span>
+              </a>
+            </div>
+          </div>
         </div>
 
         {/* Logout */}
