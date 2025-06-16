@@ -304,16 +304,16 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Projekt Fortschritt</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Projekt Fortschritt</h2>
                 <button
                   onClick={handleRefreshTracker}
                   disabled={refreshingTracker}
-                  className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Projektstatus aktualisieren"
                 >
-                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 ${refreshingTracker ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingTracker ? 'animate-spin' : ''}`} />
                 </button>
               </div>
               
@@ -325,11 +325,11 @@ export default function DashboardPage() {
                       {statusInfo.text}
                     </span>
                   </div>
-                  <p className="text-gray-700 font-inter">
+                  <p className="text-gray-700 dark:text-gray-300 font-inter">
                     {statusInfo.description}
                   </p>
                   {projectStatus?.updated_at && (
-                    <p className="text-sm text-gray-500 mt-2 font-inter">
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 font-inter">
                       Zuletzt aktualisiert: {new Date(projectStatus.updated_at).toLocaleDateString()}
                     </p>
                   )}
@@ -337,15 +337,15 @@ export default function DashboardPage() {
               )}
 
               {!statusInfo && (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
                   <div className="flex items-center mb-4">
-                    <ComputerDesktopIcon className="w-6 h-6 text-blue-600 mr-3" />
-                    <span className="font-semibold text-blue-600 font-inter">Erste Schritte</span>
+                    <ComputerDesktopIcon className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
+                    <span className="font-semibold text-blue-600 dark:text-blue-400 font-inter">Erste Schritte</span>
                   </div>
-                  <p className="text-gray-700 mb-4 font-inter">
+                  <p className="text-gray-700 dark:text-gray-300 mb-4 font-inter">
                     Willkommen in deinem Projekt-Dashboard! Sobald wir mit der Arbeit an deinem Projekt beginnen, siehst du hier Fortschritt-Updates.
                   </p>
-                  <p className="text-sm text-gray-500 font-inter">
+                  <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                     Wir senden dir eine E-Mail-Benachrichtigung, wenn die Arbeit beginnt.
                   </p>
                 </div>
@@ -361,31 +361,34 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Demo Reviews</h2>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Demo Reviews</h2>
                 <button
                   onClick={handleRefreshDemos}
                   disabled={refreshingDemos}
-                  className="p-2 rounded-xl hover:bg-gray-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                   aria-label="Demo-Links aktualisieren"
                 >
-                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 ${refreshingDemos ? 'animate-spin' : ''}`} />
+                  <ArrowPathIcon className={`w-5 h-5 text-gray-500 dark:text-gray-400 ${refreshingDemos ? 'animate-spin' : ''}`} />
                 </button>
               </div>
               
               {demoLinks?.approved_option ? (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-6">
                   <div className="flex items-center mb-4">
-                    <CheckCircleIcon className="w-6 h-6 text-green-600 mr-3" />
-                    <span className="font-semibold text-green-600 font-inter">Demo Genehmigt</span>
+                    <CheckCircleIcon className="w-6 h-6 text-green-600 dark:text-green-400 mr-3" />
+                    <span className="font-semibold text-green-600 dark:text-green-400 font-inter">Demo Genehmigt</span>
                   </div>
-                  <p className="text-gray-700 mb-4 font-inter">
+                  <p className="text-gray-700 dark:text-gray-300 mb-4 font-inter">
                     Du hast <strong>Option {demoLinks.approved_option}</strong> am{' '}
                     {demoLinks.approved_at && new Date(demoLinks.approved_at).toLocaleDateString()} genehmigt
                   </p>
                   <a
-                    href={demoLinks[`option_${demoLinks.approved_option}_url` as keyof DemoLinks] as string}
+                    href={(() => {
+                      const rawUrl = demoLinks[`option_${demoLinks.approved_option}_url` as keyof DemoLinks] as string
+                      return rawUrl?.startsWith('http') ? rawUrl : `https://${rawUrl}`
+                    })()}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 font-inter"
@@ -428,18 +431,21 @@ export default function DashboardPage() {
                     </div>
                   )}
                   
-                  <p className="text-gray-700 font-inter">
+                  <p className="text-gray-700 dark:text-gray-300 font-inter">
                     Überprüfe die Demo-Optionen unten und genehmige deine Lieblingsoption, um mit dem finalen Projekt fortzufahren.
                   </p>
                   
                   <div className="grid gap-6">
                     {[1, 2, 3].map((optionNum) => {
-                      const url = demoLinks[`option_${optionNum}_url` as keyof DemoLinks]
-                      if (!url) return null
+                      const rawUrl = demoLinks[`option_${optionNum}_url` as keyof DemoLinks]
+                      if (!rawUrl) return null
+                      
+                      // Ensure URL is complete - if it doesn't start with http, it's probably a domain or fragment
+                      const url = rawUrl.startsWith('http') ? rawUrl : `https://${rawUrl}`
                       
                       return (
-                        <div key={optionNum} className="bg-gray-50 border border-gray-200 rounded-xl p-6">
-                          <h3 className="font-bold text-gray-900 mb-3 text-lg">
+                        <div key={optionNum} className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-6">
+                          <h3 className="font-bold text-gray-900 dark:text-white mb-3 text-lg">
                             Option {optionNum}
                           </h3>
                           <div className="flex items-center justify-between">
@@ -447,7 +453,7 @@ export default function DashboardPage() {
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center text-teal-600 hover:text-teal-700 transition-colors font-inter"
+                              className="inline-flex items-center text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors font-inter"
                             >
                               <EyeIcon className="w-4 h-4 mr-2" />
                               Demo ansehen
@@ -466,12 +472,12 @@ export default function DashboardPage() {
                   </div>
                 </div>
               ) : (
-                <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-6">
                   <div className="flex items-center mb-4">
-                    <ComputerDesktopIcon className="w-6 h-6 text-blue-600 mr-3" />
-                    <span className="font-semibold text-blue-600 font-inter">Demos kommen bald</span>
+                    <ComputerDesktopIcon className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
+                    <span className="font-semibold text-blue-600 dark:text-blue-400 font-inter">Demos kommen bald</span>
                   </div>
-                  <p className="text-gray-700 font-inter">
+                  <p className="text-gray-700 dark:text-gray-300 font-inter">
                     Demo-Optionen werden hier angezeigt, sobald wir erste Versionen deines Projekts vorbereitet haben. 
                     Du kannst dann deine bevorzugte Option überprüfen und genehmigen.
                   </p>
@@ -488,21 +494,21 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Abrechnung & Abonnement</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Abrechnung & Abonnement</h2>
               
               <div className="space-y-6">
                 {/* Payment Status */}
-                <div className="border-b border-gray-200 pb-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Zahlungsstatus</h3>
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Zahlungsstatus</h3>
                   
                   {paymentStatus ? (
                     <div className={`p-4 rounded-xl border ${
                       paymentStatus.status === 'completed' 
-                        ? 'bg-green-50 border-green-200'
+                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
                         : paymentStatus.status === 'pending'
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-red-50 border-red-200'
+                        ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
                     }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
@@ -516,21 +522,21 @@ export default function DashboardPage() {
                           <div>
                             <span className={`font-semibold font-inter ${
                               paymentStatus.status === 'completed' 
-                                ? 'text-green-600'
+                                ? 'text-green-600 dark:text-green-400'
                                 : paymentStatus.status === 'pending'
-                                ? 'text-yellow-600'
-                                : 'text-red-600'
+                                ? 'text-yellow-600 dark:text-yellow-400'
+                                : 'text-red-600 dark:text-red-400'
                             }`}>
                               {paymentStatus.status === 'completed' ? 'Zahlung Abgeschlossen' : 
                                paymentStatus.status === 'pending' ? 'Zahlung Ausstehend' : 'Zahlung Fehlgeschlagen'}
                             </span>
                             {paymentStatus.amount && (
-                              <p className="text-sm text-gray-600 mt-1 font-inter">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-inter">
                                 Betrag: {paymentStatus.amount} CHF
                               </p>
                             )}
                             {paymentStatus.created_at && (
-                              <p className="text-sm text-gray-500 font-inter">
+                              <p className="text-sm text-gray-500 dark:text-gray-400 font-inter">
                                 {new Date(paymentStatus.created_at).toLocaleDateString()}
                               </p>
                             )}
@@ -539,18 +545,18 @@ export default function DashboardPage() {
                         
                         {paymentStatus.status === 'completed' && (
                           <div className="flex items-center">
-                            <CheckCircleIcon className="w-5 h-5 text-green-600" />
+                            <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400" />
                           </div>
                         )}
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                       <div className="flex items-center">
                         <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
                         <div>
-                          <span className="text-gray-700 font-inter">Noch keine Zahlung</span>
-                          <p className="text-sm text-gray-600 mt-1 font-inter">
+                          <span className="text-gray-700 dark:text-gray-300 font-inter">Noch keine Zahlung</span>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-inter">
                             Du hast noch keine Zahlungen getätigt. Eine Zahlung ist erforderlich, wenn du eine Demo genehmigst.
                           </p>
                         </div>
@@ -560,17 +566,17 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Subscription Management */}
-                <div className={`${customerDetails?.stripe_customer_id ? 'border-b border-gray-200 pb-6' : ''}`}>
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Abonnement-Verwaltung</h3>
+                <div className={`${customerDetails?.stripe_customer_id ? 'border-b border-gray-200 dark:border-gray-700 pb-6' : ''}`}>
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Abonnement-Verwaltung</h3>
                   
                   {customerDetails?.stripe_customer_id ? (
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                    <div className="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-800">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
-                          <CreditCardIcon className="w-5 h-5 text-blue-600 mr-3" />
+                          <CreditCardIcon className="w-5 h-5 text-blue-600 dark:text-blue-400 mr-3" />
                           <div>
-                            <span className="text-blue-600 font-semibold font-inter">Aktives Abonnement</span>
-                            <p className="text-sm text-gray-600 mt-1 font-inter">
+                            <span className="text-blue-600 dark:text-blue-400 font-semibold font-inter">Aktives Abonnement</span>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-inter">
                               Verwalte dein Abonnement, aktualisiere Zahlungsmethoden und sieh die Rechnungshistorie ein.
                             </p>
                           </div>
@@ -584,12 +590,12 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                       <div className="flex items-center">
                         <ExclamationCircleIcon className="w-5 h-5 text-gray-400 mr-3" />
                         <div>
-                          <span className="text-gray-700 font-inter">Kein aktives Abonnement</span>
-                          <p className="text-sm text-gray-600 mt-1 font-inter">
+                          <span className="text-gray-700 dark:text-gray-300 font-inter">Kein aktives Abonnement</span>
+                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 font-inter">
                             Dein Abonnement wird nach der ersten abgeschlossenen Zahlung aktiviert.
                           </p>
                         </div>
@@ -601,28 +607,28 @@ export default function DashboardPage() {
                 {/* Billing Information - Only show if customer has active subscription */}
                 {customerDetails?.stripe_customer_id && (
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Rechnungsinformationen</h3>
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Rechnungsinformationen</h3>
+                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 border border-gray-200 dark:border-gray-600">
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-inter">Monatliches Abonnement</span>
-                          <span className="font-semibold text-gray-900">99 CHF</span>
+                          <span className="text-gray-600 dark:text-gray-400 font-inter">Monatliches Abonnement</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">99 CHF</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600 font-inter">Setup-Gebühr</span>
-                          <span className="font-semibold text-gray-900">0 CHF</span>
+                          <span className="text-gray-600 dark:text-gray-400 font-inter">Setup-Gebühr</span>
+                          <span className="font-semibold text-gray-900 dark:text-white">0 CHF</span>
                         </div>
-                        <div className="border-t border-gray-200 pt-3">
+                        <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
                           <div className="flex justify-between items-center">
-                            <span className="font-semibold text-gray-900 font-inter">Gesamt pro Monat</span>
-                            <span className="font-bold text-lg text-gray-900">99 CHF</span>
+                            <span className="font-semibold text-gray-900 dark:text-white font-inter">Gesamt pro Monat</span>
+                            <span className="font-bold text-lg text-gray-900 dark:text-white">99 CHF</span>
                           </div>
                         </div>
                       </div>
                     </div>
                     
-                    <div className="mt-4 p-3 bg-blue-50 rounded-xl border border-blue-200">
-                      <p className="text-sm text-blue-700 font-inter">
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                      <p className="text-sm text-blue-700 dark:text-blue-300 font-inter">
                         <strong>Hinweis:</strong> Du zahlst erst nach der Genehmigung deines Website-Designs. 
                         Keine versteckten Gebühren, keine langfristigen Verträge. Jederzeit über das Kundenportal kündbar.
                       </p>
@@ -641,43 +647,43 @@ export default function DashboardPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Konto-Einstellungen</h2>
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">Konto-Einstellungen</h2>
               
               <div className="space-y-6">
-                <div className="border-b border-gray-200 pb-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Profil-Informationen</h3>
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Profil-Informationen</h3>
                   <div className="flex items-center space-x-4">
-                    <UserCircleIcon className="w-12 h-12 text-gray-400" />
+                    <UserCircleIcon className="w-12 h-12 text-gray-400 dark:text-gray-500" />
                     <div>
-                      <p className="font-semibold text-gray-900 font-inter">
+                      <p className="font-semibold text-gray-900 dark:text-white font-inter">
                         {user?.email}
                       </p>
-                      <p className="text-sm text-gray-600 font-inter">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-inter">
                         Konto erstellt: {user?.created_at && new Date(user.created_at).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="border-b border-gray-200 pb-6">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">Benachrichtigungen</h3>
+                <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Benachrichtigungen</h3>
                   <div className="space-y-3">
                     <label className="flex items-center">
                       <input 
                         type="checkbox" 
                         defaultChecked 
-                        className="rounded border-gray-300 text-teal-500 focus:ring-teal-500 focus:ring-offset-0" 
+                        className="rounded border-gray-300 dark:border-gray-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0 dark:bg-gray-700" 
                       />
-                      <span className="ml-2 text-gray-700 font-inter">E-Mail-Benachrichtigungen für Projekt-Updates</span>
+                      <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">E-Mail-Benachrichtigungen für Projekt-Updates</span>
                     </label>
                     <label className="flex items-center">
                       <input 
                         type="checkbox" 
                         defaultChecked 
-                        className="rounded border-gray-300 text-teal-500 focus:ring-teal-500 focus:ring-offset-0" 
+                        className="rounded border-gray-300 dark:border-gray-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0 dark:bg-gray-700" 
                       />
-                      <span className="ml-2 text-gray-700 font-inter">E-Mail-Benachrichtigungen für Demo-Verfügbarkeit</span>
+                      <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">E-Mail-Benachrichtigungen für Demo-Verfügbarkeit</span>
                     </label>
                   </div>
                 </div>
