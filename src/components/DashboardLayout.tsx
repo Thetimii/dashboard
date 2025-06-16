@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Logo } from '@/components/Logo'
 import { 
   ChartBarIcon,
   ComputerDesktopIcon,
@@ -51,10 +52,8 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-xl flex items-center justify-center">
-                <span className="text-slate-900 text-lg font-bold">CF</span>
-              </div>
-              <h1 className="text-xl font-serif font-bold text-gray-900">
+              <Logo size="md" className="flex-shrink-0" />
+              <h1 className="text-xl font-bold text-gray-900">
                 Customer Flows
               </h1>
             </div>

@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { signUpSchema, type SignUpFormData } from '@/lib/validations'
 import { useAuth } from '@/contexts/AuthContext'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Logo } from '@/components/Logo'
 import { motion } from 'framer-motion'
 
 export default function SignUpPage() {
@@ -52,10 +53,10 @@ export default function SignUpPage() {
       >
         <div className="bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-white/20">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-teal-400 to-cyan-400 rounded-2xl mx-auto mb-6 flex items-center justify-center">
-              <span className="text-white text-2xl font-bold">CF</span>
+            <div className="flex justify-center mb-6">
+              <Logo size="lg" priority className="filter drop-shadow-lg" />
             </div>
-            <h1 className="text-3xl font-serif font-bold text-white mb-2">
+            <h1 className="text-3xl font-bold text-white mb-2">
               Willkommen bei Customer Flows
             </h1>
             <p className="text-white/80 font-inter">

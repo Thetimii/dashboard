@@ -8,6 +8,7 @@ import { createClient } from '@/lib/supabase'
 import { KickoffFormData } from '@/lib/validations'
 import { uploadFile } from '@/lib/utils'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { Logo } from '@/components/Logo'
 import { 
   BuildingOfficeIcon, 
   DocumentTextIcon, 
@@ -490,9 +491,15 @@ export default function KickoffPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      {/* Theme Toggle */}
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
+      {/* Header with Logo */}
+      <div className="p-6 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <Logo size="md" />
+            <h1 className="text-xl font-bold text-gray-900">Customer Flows</h1>
+          </div>
+          <ThemeToggle />
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
