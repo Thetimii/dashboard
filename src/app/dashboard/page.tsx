@@ -16,7 +16,9 @@ import {
   UserCircleIcon,
   BellIcon,
   ComputerDesktopIcon,
-  ArrowPathIcon // Added for refresh button
+  ArrowPathIcon, // Added for refresh button
+  DocumentTextIcon, // Added for billing history
+  CogIcon // Added for subscription management
 } from '@heroicons/react/24/outline'
 
 interface ProjectStatus {
@@ -203,6 +205,21 @@ export default function DashboardPage() {
     if (!user) {
       router.push('/signin')
       return
+    }
+
+    // Handle URL parameters for customer portal returns
+    const urlParams = new URLSearchParams(window.location.search)
+    const updated = urlParams.get('updated')
+    const view = urlParams.get('view')
+    
+    if (updated === 'payment_method') {
+      // You can add a toast notification here
+      console.log('Payment method updated successfully')
+    }
+    
+    if (view === 'subscription' || view === 'invoices') {
+      // Set the billing tab as active
+      setActiveTab('billing')
     }
 
     const loadData = async () => {

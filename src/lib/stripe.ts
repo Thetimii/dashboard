@@ -119,6 +119,8 @@ export async function getCustomerDetails(userId: string) {
 
 export async function createCustomerPortalSession(stripeCustomerId: string) {
   try {
+    console.log('Creating customer portal session for:', stripeCustomerId)
+    
     const response = await fetch('/api/create-portal-session', {
       method: 'POST',
       headers: {
@@ -130,14 +132,53 @@ export async function createCustomerPortalSession(stripeCustomerId: string) {
       }),
     })
 
+    console.log('Portal session response status:', response.status)
+
     if (!response.ok) {
-      throw new Error('Failed to create portal session')
+      const errorData = await response.json()
+      console.error('Portal session error:', errorData)
+      throw new Error(errorData.error || `Failed to create portal session: ${response.status}`)
     }
 
     const { url } = await response.json()
+    console.log('Redirecting to portal:', url)
+    
+    // Redirect to the customer portal
     window.location.href = url
   } catch (error) {
     console.error('Error creating customer portal session:', error)
     throw error
+  }
+}
+
+export async function getSubscriptionDetails(userId: string) {
+  try {
+    // First get the customer details
+    const customerDetails = await getCustomerDetails(userId)
+    
+    if (!customerDetails?.stripe_customer_id) {
+      return null
+    }
+
+    // Make a request to get subscription info via our API
+    const response = await fetch('/api/get-subscription-details', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        customer_id: customerDetails.stripe_customer_id
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch subscription details')
+    }
+
+    const data = await response.json()
+    return data
+  } catch (error) {
+    console.error('Error fetching subscription details:', error)
+    return null
   }
 }
