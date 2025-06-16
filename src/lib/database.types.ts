@@ -117,8 +117,11 @@ export type Database = {
           user_id: string
           stripe_payment_id: string | null
           stripe_customer_id: string | null
+          stripe_subscription_id: string | null
           amount: number | null
-          status: 'pending' | 'completed' | 'failed'
+          status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          cancelled_at: string | null
+          cancellation_scheduled_at: string | null
           created_at: string
         }
         Insert: {
@@ -126,8 +129,11 @@ export type Database = {
           user_id: string
           stripe_payment_id?: string | null
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           amount?: number | null
-          status: 'pending' | 'completed' | 'failed'
+          status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          cancelled_at?: string | null
+          cancellation_scheduled_at?: string | null
           created_at?: string
         }
         Update: {
@@ -135,8 +141,11 @@ export type Database = {
           user_id?: string
           stripe_payment_id?: string | null
           stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
           amount?: number | null
-          status?: 'pending' | 'completed' | 'failed'
+          status?: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          cancelled_at?: string | null
+          cancellation_scheduled_at?: string | null
           created_at?: string
         }
       }
