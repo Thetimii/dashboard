@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { createPaymentRecord, getPaymentStatus, redirectToStripePayment, getCustomerDetails, createCustomerPortalSession } from '@/lib/stripe'
-import { sendDemoApprovalEmail } from '@/lib/email'
 import { motion } from 'framer-motion'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { 
@@ -218,17 +217,26 @@ export default function DashboardPage() {
                       option === '2' ? demoLinks.option_2_url : 
                       option === '3' ? demoLinks.option_3_url : null
 
-      // Send demo approval email to admin
+      // Send demo approval email to admin via API
       try {
-        await sendDemoApprovalEmail({
-          customerName: user.user_metadata?.full_name || user.email?.split('@')[0],
-          customerEmail: user.email || '',
-          businessName: kickoffData?.business_name || '',
-          approvedOption: option,
-          demoUrl: demoUrl || undefined,
-          approvedAt: new Date().toISOString()
+        const response = await fetch('/api/send-demo-approval', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerName: user.user_metadata?.full_name || user.email?.split('@')[0],
+            customerEmail: user.email || '',
+            businessName: kickoffData?.business_name || '',
+            approvedOption: option,
+            demoUrl: demoUrl || undefined,
+            approvedAt: new Date().toISOString()
+          })
         })
-        console.log('Demo approval email sent successfully')
+
+        if (response.ok) {
+          console.log('Demo approval email sent successfully')
+        } else {
+          console.error('Failed to send demo approval email via API:', response.status)
+        }
       } catch (emailError) {
         console.error('Failed to send demo approval email:', emailError)
         // Don't throw - we don't want to break the flow if email fails
