@@ -7,6 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { KickoffFormData } from '@/lib/validations'
 import { uploadFile } from '@/lib/utils'
+import { sendKickoffNotificationEmail } from '@/lib/email'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 import { 
@@ -238,6 +239,26 @@ export default function KickoffPage() {
           user_id: user.id,
           status: 'not_touched',
         })
+
+      // Send email notification to admin
+      try {
+        await sendKickoffNotificationEmail({
+          businessName: formData.businessName,
+          businessDescription: formData.businessDescription,
+          websiteStyle: formData.websiteStyle,
+          desiredPages: selectedPages,
+          colorPreferences: formData.colorPreferences,
+          logoUrl: logoUrl,
+          contentUploadUrl: contentUrl,
+          specialRequests: formData.specialRequests,
+          userEmail: user.email,
+          userName: user.user_metadata?.full_name || user.email,
+        })
+        console.log('Email notification sent successfully')
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError)
+        // Don't fail the entire submission if email fails
+      }
 
       router.push('/dashboard')
     } catch (error) {
