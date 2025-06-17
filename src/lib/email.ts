@@ -147,27 +147,82 @@ export async function sendKickoffNotificationEmail(customerData: CustomerKickoff
   try {
     const { subject, html, text } = generateKickoffCompletionEmail(customerData);
 
-    const response = await fetch('/api/send-email-resend', {
+    // Call the email sending function directly instead of making HTTP requests
+    return await sendEmailViaResend({
+      subject,
+      html,
+      text,
+      customerData,
+    });
+  } catch (error) {
+    console.error('Failed to send kickoff notification email:', error);
+    throw error;
+  }
+}
+
+// Direct email sending function that can be called from server-side code
+export async function sendEmailViaResend({
+  subject,
+  html,
+  text,
+  customerData,
+}: {
+  subject: string;
+  html: string;
+  text: string;
+  customerData?: CustomerKickoffData;
+}) {
+  try {
+    // Get admin email from environment variable, fallback to hardcoded
+    const adminEmail = process.env.ADMIN_EMAIL || 'sagertim02@gmail.com';
+    const resendApiKey = process.env.RESEND_API_KEY;
+    
+    console.log('Admin email:', adminEmail);
+    console.log('Resend API key configured:', !!resendApiKey);
+
+    if (!resendApiKey) {
+      throw new Error('RESEND_API_KEY environment variable is not set');
+    }
+
+    console.log('Sending email via Resend...');
+
+    // Use direct fetch to Resend API
+    const emailData = {
+      from: 'Customer Flows <onboarding@resend.dev>',
+      to: [adminEmail],
+      subject: subject || 'New Customer Kickoff Completed',
+      html: html || '<p>A new customer has completed their kickoff form.</p>',
+      text: text || 'A new customer has completed their kickoff form.',
+    };
+
+    const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
+        'Authorization': `Bearer ${resendApiKey}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        subject,
-        html,
-        text,
-        customerData,
-      }),
+      body: JSON.stringify(emailData),
     });
 
+    console.log('Resend API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`Email API responded with status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Resend API error:', errorText);
+      throw new Error(`Resend API error: ${response.status} - ${errorText}`);
     }
 
     const result = await response.json();
-    return result;
+    console.log('Email sent successfully via Resend:', result);
+
+    return {
+      status: 'OK',
+      message: 'Email sent successfully via Resend',
+      emailId: result.id,
+      result: result
+    };
   } catch (error) {
-    console.error('Failed to send kickoff notification email:', error);
+    console.error('Resend email sending error:', error);
     throw error;
   }
 }

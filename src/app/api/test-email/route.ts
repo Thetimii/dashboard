@@ -4,6 +4,8 @@ import { sendKickoffNotificationEmail } from '@/lib/email';
 
 export async function POST(req: Request) {
   try {
+    console.log('Test email endpoint called');
+    
     // Test data for email verification
     const testCustomerData = {
       businessName: 'Test Business (Resend)',
@@ -12,10 +14,11 @@ export async function POST(req: Request) {
       desiredPages: ['Startseite', 'Über uns', 'Kontakt'],
       colorPreferences: 'ocean-blue',
       specialRequests: 'This is a test email to verify Resend email functionality - no DNS required!',
-      userEmail: 'test@example.com',
+      userEmail: 'sagertim02@gmail.com',
       userName: 'Test User',
     };
 
+    console.log('Calling sendKickoffNotificationEmail with test data...');
     const result = await sendKickoffNotificationEmail(testCustomerData);
 
     return new Response(JSON.stringify({
