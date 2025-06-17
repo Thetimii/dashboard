@@ -253,24 +253,24 @@ export default function DashboardPage() {
         return {
           icon: ExclamationCircleIcon,
           text: 'Noch nicht begonnen',
-          color: 'text-gray-600',
-          bgColor: 'bg-gray-50 border border-gray-200',
+          color: 'text-gray-600 dark:text-gray-400',
+          bgColor: 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700',
           description: 'Dein Projekt wurde noch nicht gestartet. Wir beginnen bald mit der Arbeit!'
         }
       case 'in_progress':
         return {
           icon: ClockIcon,
           text: 'In Bearbeitung',
-          color: 'text-yellow-600',
-          bgColor: 'bg-yellow-50 border border-yellow-200',
+          color: 'text-yellow-600 dark:text-yellow-400',
+          bgColor: 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800',
           description: 'Großartig! Die Arbeit an deinem Projekt ist im Gange.'
         }
       case 'complete':
         return {
           icon: CheckCircleIcon,
           text: 'Abgeschlossen',
-          color: 'text-green-600',
-          bgColor: 'bg-green-50 border border-green-200',
+          color: 'text-green-600 dark:text-green-400',
+          bgColor: 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800',
           description: 'Glückwunsch! Dein Projekt wurde erfolgreich abgeschlossen.'
         }
       default:
