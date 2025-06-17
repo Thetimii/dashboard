@@ -13,7 +13,7 @@ export async function POST(req: Request) {
 
     await Email.send({
       to: to || adminEmail,
-      from: 'mail@customerflows.ch', // must be a domain you own and have DNS configured for
+      from: 'info@customerflows.ch', // must be a domain you own and have DNS configured for
       subject: subject || 'New Customer Kickoff Completed',
       html: html || '<strong>Default HTML content</strong>',
       text: text || 'Default plain text content',
