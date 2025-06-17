@@ -38,24 +38,28 @@ The system is already configured! Just push to GitHub and Vercel will auto-deplo
 ## ✅ Testing the Setup
 
 ### Test API Health
+
 ```bash
 curl https://app.customerflows.ch/api/send-email-resend
 # Should return: {"status":"OK","hasApiKey":true}
 ```
 
 ### Test Email Sending
+
 ```bash
 curl -X POST https://app.customerflows.ch/api/test-email
 # Should send a test email to sagertim02@gmail.com
 ```
 
 ### Test Full Flow
+
 1. Complete the kickoff form on your website
 2. Check sagertim02@gmail.com for notification email
 
 ## 📧 Email Features
 
 When a customer completes the kickoff form, you'll receive an email with:
+
 - ✅ Customer information (name, email)
 - ✅ Business details (name, description)
 - ✅ Website preferences (style, colors)
@@ -68,7 +72,7 @@ When a customer completes the kickoff form, you'll receive an email with:
 ## 🔧 How It Works
 
 1. Customer completes 8-step kickoff form
-2. Data saves to Supabase database  
+2. Data saves to Supabase database
 3. `sendKickoffNotificationEmail()` function called
 4. Email sent via Resend API (`/api/send-email-resend`)
 5. You receive notification at `sagertim02@gmail.com`
@@ -77,17 +81,20 @@ When a customer completes the kickoff form, you'll receive an email with:
 ## 📋 Troubleshooting
 
 ### Email Not Received
+
 1. Check spam/junk folder
 2. Verify `RESEND_API_KEY` is set in Vercel
 3. Check Vercel Functions logs for errors
 4. Test API health endpoint first
 
 ### API Key Issues
+
 - Make sure the API key starts with `re_`
 - Verify it's added to ALL Vercel environments
 - Check the key has permission to send emails
 
 ### Vercel Environment Variables
+
 - Go to Vercel Dashboard → Project → Settings → Environment Variables
 - Make sure variables are added to Production, Preview, AND Development
 - Redeploy after adding environment variables
@@ -95,6 +102,7 @@ When a customer completes the kickoff form, you'll receive an email with:
 ## 🎯 Next Steps
 
 After setup:
+
 1. ✅ Add `RESEND_API_KEY` to Vercel environment variables
 2. ✅ Add `ADMIN_EMAIL=sagertim02@gmail.com` to Vercel
 3. ✅ Deploy (automatic via GitHub push)
