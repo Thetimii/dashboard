@@ -226,3 +226,45 @@ export async function sendEmailViaResend({
     throw error;
   }
 }
+
+export async function sendKickoffNotificationEmailViaVercel(customerData: CustomerKickoffData) {
+  try {
+    const { subject, html, text } = generateKickoffCompletionEmail(customerData);
+
+    // Get the current origin for absolute URL
+    const baseUrl = typeof window !== 'undefined' 
+      ? window.location.origin 
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : 'http://localhost:3001';
+
+    // Use the new vercel-email API route
+    const response = await fetch(`${baseUrl}/api/send`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        to: 'sagertim02@gmail.com', // Admin email - can be overridden by environment variable in API route
+        subject,
+        html,
+        text,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(`Email API error: ${response.status} - ${errorData.message}`);
+    }
+
+    const result = await response.json();
+    console.log('Email sent successfully via vercel-email:', result);
+
+    return {
+      status: 'OK',
+      message: 'Email sent successfully via vercel-email',
+      result: result
+    };
+  } catch (error) {
+    console.error('Failed to send kickoff notification email via vercel-email:', error);
+    throw error;
+  }
+}
