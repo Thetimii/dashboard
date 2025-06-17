@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { sendPaymentCompletionEmail } from '@/lib/email'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-05-28.basil',
@@ -173,10 +174,57 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
           console.warn('⚠️ No user found with email:', customerEmail)
         }
       }
-    }
-
-    if (paymentUpdateResult) {
+    }    if (paymentUpdateResult) {
       console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
+      
+      // Send admin email notification about the completed payment
+      try {
+        // Fetch additional customer and business data for the email
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(paymentUpdateResult.user_id)
+        
+        let businessData = null
+        if (!userError && userData?.user) {
+          // Fetch kickoff form data for business information
+          const { data: kickoffData, error: kickoffError } = await supabaseAdmin
+            .from('kickoff_forms')
+            .select('business_name')
+            .eq('user_id', userData.user.id)
+            .single()
+          
+          if (!kickoffError && kickoffData) {
+            businessData = kickoffData
+          }
+        }
+
+        // Fetch demo approval data
+        let approvedOption = null
+        let approvedAt = null
+        const { data: demoData, error: demoError } = await supabaseAdmin
+          .from('demo_links')
+          .select('approved_option, approved_at')
+          .eq('user_id', paymentUpdateResult.user_id)
+          .single()
+        
+        if (!demoError && demoData) {
+          approvedOption = demoData.approved_option
+          approvedAt = demoData.approved_at
+        }        // Send payment completion email
+        await sendPaymentCompletionEmail({
+          userEmail: customerEmail || userData?.user?.email,
+          userName: userData?.user?.user_metadata?.full_name || userData?.user?.email,
+          businessName: businessData?.business_name,
+          approvedOption: approvedOption,
+          paymentAmount: session.amount_total ? session.amount_total / 100 : 99, // Convert from cents
+          stripePaymentId: stripePaymentId,
+          stripeCustomerId: stripeCustomerId,
+          approvedAt: approvedAt,
+        })
+        
+        console.log('📧 Payment completion email sent successfully')
+      } catch (emailError) {
+        console.error('❌ Failed to send payment completion email:', emailError)
+        // Don't fail the webhook if email fails
+      }
     } else {
       console.warn('❌ Could not find or update any payment record')
       console.log('🔍 Session debug info:', JSON.stringify({
