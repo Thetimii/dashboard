@@ -35,7 +35,7 @@ export async function POST(req: Request) {
         },
       ],
       from: {
-        email: 'noreply@customerflows.com',
+        email: 'noreply@customerflows.ch',
         name: 'Customer Flows'
       },
       subject: subject || 'New Customer Kickoff Completed',
