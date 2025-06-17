@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { createPaymentRecord, getPaymentStatus, redirectToStripePayment, getCustomerDetails, createCustomerPortalSession } from '@/lib/stripe'
+import { sendDemoApprovalEmail } from '@/lib/email'
 import { motion } from 'framer-motion'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { 
@@ -163,6 +164,34 @@ export default function DashboardPage() {
 
       if (demoError) {
         throw demoError
+      }
+
+      // Get customer kickoff data for email
+      const { data: kickoffData } = await supabase
+        .from('kickoff_submissions')
+        .select('business_name, business_description')
+        .eq('user_id', user.id)
+        .single()
+
+      // Get the demo URL for the approved option
+      const demoUrl = option === '1' ? demoLinks.option_1_url : 
+                      option === '2' ? demoLinks.option_2_url : 
+                      option === '3' ? demoLinks.option_3_url : null
+
+      // Send demo approval email to admin
+      try {
+        await sendDemoApprovalEmail({
+          customerName: user.user_metadata?.full_name || user.email?.split('@')[0],
+          customerEmail: user.email || '',
+          businessName: kickoffData?.business_name || '',
+          approvedOption: option,
+          demoUrl: demoUrl || undefined,
+          approvedAt: new Date().toISOString()
+        })
+        console.log('Demo approval email sent successfully')
+      } catch (emailError) {
+        console.error('Failed to send demo approval email:', emailError)
+        // Don't throw - we don't want to break the flow if email fails
       }
 
       // Check if user already has a payment record

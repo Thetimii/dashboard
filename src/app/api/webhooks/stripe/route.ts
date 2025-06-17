@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createClient } from '@supabase/supabase-js'
+import { sendPaymentCompletionEmail } from '@/lib/email'
 import Stripe from 'stripe'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -173,10 +174,59 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
           console.warn('⚠️ No user found with email:', customerEmail)
         }
       }
-    }
-
-    if (paymentUpdateResult) {
+    }    if (paymentUpdateResult) {
       console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
+      
+      // Send payment completion email to admin
+      try {
+        // Get customer details from the payment record
+        const { data: customerData, error: customerError } = await supabaseAdmin
+          .from('payments')
+          .select(`
+            user_id,
+            amount,
+            users (
+              email,
+              raw_user_meta_data
+            )
+          `)
+          .eq('id', paymentUpdateResult.id)
+          .single()
+
+        if (customerError) {
+          console.error('Error fetching customer data for email:', customerError)
+        } else {
+          // Get kickoff data for business name
+          const { data: kickoffData } = await supabaseAdmin
+            .from('kickoff_submissions')
+            .select('business_name')
+            .eq('user_id', customerData.user_id)
+            .single()
+
+          // Get demo approval data
+          const { data: demoData } = await supabaseAdmin
+            .from('demo_links')
+            .select('approved_option')
+            .eq('user_id', customerData.user_id)
+            .single()
+
+          await sendPaymentCompletionEmail({
+            customerName: customerData.users?.raw_user_meta_data?.full_name || customerData.users?.email?.split('@')[0],
+            customerEmail: customerData.users?.email || customerEmail || '',
+            businessName: kickoffData?.business_name || '',
+            approvedOption: demoData?.approved_option || undefined,
+            amount: session.amount_total || customerData.amount,
+            currency: session.currency || 'usd',
+            paymentId: paymentUpdateResult.id,
+            completedAt: new Date().toISOString()
+          })
+          
+          console.log('Payment completion email sent successfully')
+        }
+      } catch (emailError) {
+        console.error('Failed to send payment completion email:', emailError)
+        // Don't throw - we don't want to break the webhook if email fails
+      }
     } else {
       console.warn('❌ Could not find or update any payment record')
       console.log('🔍 Session debug info:', JSON.stringify({
