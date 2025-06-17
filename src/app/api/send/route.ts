@@ -9,10 +9,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { to, subject, html, text } = body
 
-    // Get admin email from environment variable, fallback to hardcoded
-    const adminEmail = process.env.ADMIN_EMAIL || 'sagertim02@gmail.com'
+    // Determine recipient - if 'to' is provided, use it (for customer emails)
+    // Otherwise, use admin email (for admin notifications)
+    const recipientEmail = to || process.env.ADMIN_EMAIL || 'sagertim02@gmail.com'
 
-    console.log('Sending email to admin:', adminEmail)
+    console.log('Sending email to:', recipientEmail)
     console.log('Email subject:', subject)
 
     if (!process.env.RESEND_API_KEY) {
@@ -26,10 +27,10 @@ export async function POST(request: NextRequest) {
     // Send email using Resend
     const emailData = await resend.emails.send({
       from: 'Customer Flows <info@customerflows.ch>',
-      to: [adminEmail], // Always send to admin email
-      subject: subject || 'New Customer Kickoff Completed',
-      html: html || '<p>A new customer has completed their kickoff form.</p>',
-      text: text || 'A new customer has completed their kickoff form.',
+      to: [recipientEmail],
+      subject: subject || 'Notification from Customer Flows',
+      html: html || '<p>You have a new notification.</p>',
+      text: text || 'You have a new notification.',
     })
 
     console.log('Email sent successfully:', emailData)
@@ -38,6 +39,7 @@ export async function POST(request: NextRequest) {
       success: true,
       message: 'Email sent successfully',
       emailId: emailData.data?.id,
+      sentTo: recipientEmail,
     })
   } catch (error) {
     console.error('Error sending email:', error)

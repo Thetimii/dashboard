@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { sendKickoffNotificationEmailViaVercel } from '@/lib/email'
+import { sendKickoffNotificationEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
     console.log('Sending test email with data:', testData)
 
-    const result = await sendKickoffNotificationEmailViaVercel(testData)
+    const result = await sendKickoffNotificationEmail(testData)
 
     console.log('Test email sent successfully:', result)
 

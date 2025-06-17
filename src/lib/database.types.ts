@@ -68,18 +68,24 @@ export type Database = {
           user_id: string
           status: 'not_touched' | 'in_progress' | 'complete'
           updated_at: string
+          website_is_live: boolean | null
+          final_url: string | null
         }
         Insert: {
           id?: string
           user_id: string
           status: 'not_touched' | 'in_progress' | 'complete'
           updated_at?: string
+          website_is_live?: boolean | null
+          final_url?: string | null
         }
         Update: {
           id?: string
           user_id?: string
           status?: 'not_touched' | 'in_progress' | 'complete'
           updated_at?: string
+          website_is_live?: boolean | null
+          final_url?: string | null
         }
       }
       demo_links: {
