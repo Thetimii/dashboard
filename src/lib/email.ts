@@ -365,7 +365,7 @@ export async function sendEmailViaResend({
 
     // Use direct fetch to Resend API
     const emailData = {
-      from: 'Customer Flows <notifications@customerflows.ch>',
+      from: 'Customer Flows <info@customerflows.ch>',
       to: [adminEmail],
       subject: subject || 'New Customer Kickoff Completed',
       html: html || '<p>A new customer has completed their kickoff form.</p>',

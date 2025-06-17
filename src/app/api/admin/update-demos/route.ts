@@ -165,7 +165,7 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    message: 'Admin demo update endpoint',
+    message: ' demo update endpoint',
     usage: 'POST with { userEmail: "email", option1: "url", option2: "url", option3: "url" } to update demos and notify customer',
     example: {
       userEmail: 'customer@example.com',
