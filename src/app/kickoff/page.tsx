@@ -7,7 +7,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { KickoffFormData } from '@/lib/validations'
 import { uploadFile } from '@/lib/utils'
-import { sendKickoffNotificationEmailViaVercel } from '@/lib/email'
+import { sendKickoffNotificationEmail } from '@/lib/email'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 import { 
@@ -242,7 +242,7 @@ export default function KickoffPage() {
 
       // Send email notification to admin
       try {
-        await sendKickoffNotificationEmailViaVercel({
+        await sendKickoffNotificationEmail({
           businessName: formData.businessName,
           businessDescription: formData.businessDescription,
           websiteStyle: formData.websiteStyle,
