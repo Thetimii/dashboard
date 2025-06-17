@@ -236,14 +236,17 @@ export async function sendKickoffNotificationEmailViaVercel(customerData: Custom
       ? window.location.origin 
       : process.env.VERCEL_URL 
         ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3001';
+        : 'http://localhost:3000';
 
-    // Use the new vercel-email API route
+    console.log('Sending email notification to admin via API route...');
+    console.log('Base URL:', baseUrl);
+
+    // Use the API route for sending emails
     const response = await fetch(`${baseUrl}/api/send`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: 'sagertim02@gmail.com', // Admin email - can be overridden by environment variable in API route
+        to: process.env.ADMIN_EMAIL || 'sagertim02@gmail.com', // Will be overridden by admin email in API route
         subject,
         html,
         text,
@@ -251,20 +254,32 @@ export async function sendKickoffNotificationEmailViaVercel(customerData: Custom
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(`Email API error: ${response.status} - ${errorData.message}`);
+      const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+      console.error(`Email API error: ${response.status}`, errorData);
+      
+      // Fallback to direct Resend call if API route fails
+      console.log('API route failed, trying direct Resend fallback...');
+      return await sendEmailViaResend({ subject, html, text, customerData });
     }
 
     const result = await response.json();
-    console.log('Email sent successfully via vercel-email:', result);
+    console.log('Email sent successfully via API route:', result);
 
     return {
       status: 'OK',
-      message: 'Email sent successfully via vercel-email',
+      message: 'Email sent successfully via API route',
       result: result
     };
   } catch (error) {
-    console.error('Failed to send kickoff notification email via vercel-email:', error);
-    throw error;
+    console.error('Failed to send kickoff notification email via API route:', error);
+    
+    // Fallback to direct Resend call
+    try {
+      console.log('Attempting direct Resend fallback...');
+      return await sendEmailViaResend({ subject: '', html: '', text: '', customerData });
+    } catch (fallbackError) {
+      console.error('Fallback email method also failed:', fallbackError);
+      throw new Error(`All email methods failed. Primary: ${error instanceof Error ? error.message : 'Unknown'}, Fallback: ${fallbackError instanceof Error ? fallbackError.message : 'Unknown'}`);
+    }
   }
 }
