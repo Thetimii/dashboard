@@ -6,21 +6,22 @@ export async function POST(req: Request) {
   try {
     // Test data for email verification
     const testCustomerData = {
-      businessName: 'Test Business',
-      businessDescription: 'This is a test business for email verification',
+      businessName: 'Test Business (Resend)',
+      businessDescription: 'This is a test business for Resend email verification',
       websiteStyle: 'modern',
       desiredPages: ['Startseite', 'Über uns', 'Kontakt'],
       colorPreferences: 'ocean-blue',
-      specialRequests: 'This is a test email to verify the email sending functionality',
+      specialRequests: 'This is a test email to verify Resend email functionality - no DNS required!',
       userEmail: 'test@example.com',
       userName: 'Test User',
     };
 
-    await sendKickoffNotificationEmail(testCustomerData);
+    const result = await sendKickoffNotificationEmail(testCustomerData);
 
     return new Response(JSON.stringify({
       status: 'OK',
-      message: 'Test email sent successfully',
+      message: 'Test email sent successfully via Resend',
+      result
     }), {
       status: 200,
       headers: {
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
     console.error('Test email error:', error);
     return new Response(JSON.stringify({
       status: 'ERROR',
-      message: 'Failed to send test email',
+      message: 'Failed to send test email via Resend',
       error: error instanceof Error ? error.message : 'Unknown error',
     }), {
       status: 500,

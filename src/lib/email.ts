@@ -147,7 +147,7 @@ export async function sendKickoffNotificationEmail(customerData: CustomerKickoff
   try {
     const { subject, html, text } = generateKickoffCompletionEmail(customerData);
 
-    const response = await fetch('/api/send-email', {
+    const response = await fetch('/api/send-email-resend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
