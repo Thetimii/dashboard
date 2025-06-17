@@ -125,6 +125,46 @@ export default function DashboardPage() {
     }
   }, [user])
 
+  // Check if demos are ready and send notification email
+  const checkAndNotifyDemosReady = useCallback(async () => {
+    if (!user || !demoLinks) return
+
+    // Check if all three demo options are available
+    const allDemosReady = demoLinks.option_1_url && demoLinks.option_2_url && demoLinks.option_3_url
+    
+    // Check if customer hasn't approved an option yet
+    const notApproved = !demoLinks.approved_option
+    
+    // Check if we've already sent notification (using localStorage to track)
+    const notificationKey = `demos_notification_sent_${user.id}`
+    const alreadyNotified = localStorage.getItem(notificationKey)
+
+    if (allDemosReady && notApproved && !alreadyNotified) {
+      console.log('🎨 All demos ready, sending notification to customer...')
+      
+      try {
+        // Send notification email to customer
+        const response = await fetch('/api/notify-demo-ready', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: user.id
+          }),
+        })
+
+        if (response.ok) {
+          console.log('✅ Demo ready notification sent to customer')
+          // Mark as notified in localStorage
+          localStorage.setItem(notificationKey, 'true')
+        } else {
+          console.error('❌ Failed to send demo ready notification')
+        }
+      } catch (error) {
+        console.error('❌ Error sending demo ready notification:', error)
+      }
+    }
+  }, [user, demoLinks, supabase])
+
   // Refresh handlers with loading simulation
   const handleRefreshTracker = async () => {
     setRefreshingTracker(true)
@@ -235,6 +275,13 @@ export default function DashboardPage() {
 
     loadData()
   }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails])
+
+  // Separate useEffect to check for demo notifications when demoLinks change
+  useEffect(() => {
+    if (demoLinks && user && !loading) {
+      checkAndNotifyDemosReady()
+    }
+  }, [demoLinks, user, loading, checkAndNotifyDemosReady])
 
   if (loading || authLoading) {
     return (
