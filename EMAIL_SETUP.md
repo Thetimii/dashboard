@@ -31,6 +31,7 @@ This is also included in `.env.example` for reference.
 For the emails to be delivered properly, you need to configure DNS records for your domain:
 
 #### SPF Record (Required)
+
 Add this TXT record to your domain's DNS:
 
 ```
@@ -39,6 +40,7 @@ Value: v=spf1 a mx include:relay.mailchannels.net ~all
 ```
 
 #### DKIM Record (Optional but Recommended)
+
 Follow MailChannels documentation to add DKIM records for better deliverability.
 
 ### 3. Domain Configuration
@@ -64,6 +66,7 @@ src/
 ## 🎨 Email Template
 
 The email includes:
+
 - **Customer Information**: Name and email
 - **Business Details**: Name, description, style preferences
 - **Color Preferences**: Selected color scheme
@@ -82,28 +85,33 @@ The email includes:
 ## 🧪 Testing
 
 ### Local Testing
+
 ```bash
 npm run dev
 # Complete a kickoff form to test email sending
 ```
 
 ### Production Testing
+
 After deploying to Vercel with proper DNS configuration, complete a kickoff form to receive the email notification.
 
 ## 📋 Troubleshooting
 
 ### Email Not Received
+
 1. Check spam/junk folder
 2. Verify DNS SPF record is configured
 3. Check Vercel function logs for errors
 4. Ensure `ADMIN_EMAIL` environment variable is set
 
 ### Domain Issues
+
 - Make sure you're using a custom domain (not vercel.app)
 - Configure SPF and DKIM records properly
 - Use a proper "from" email address with your domain
 
 ### Local Development
+
 - Emails work in local development but may have delivery issues
 - For testing, check the browser console for API responses
 - Deploy to Vercel for full email functionality
@@ -118,6 +126,7 @@ After deploying to Vercel with proper DNS configuration, complete a kickoff form
 ## 📈 Future Enhancements
 
 Possible improvements:
+
 - Multiple admin email recipients
 - Different email templates based on business type
 - Email confirmation to customers
