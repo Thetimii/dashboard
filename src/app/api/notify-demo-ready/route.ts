@@ -38,12 +38,20 @@ export async function POST(request: NextRequest) {
       .from('demo_links')
       .select('option_1_url, option_2_url, option_3_url')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
     if (demoError) {
       console.error('Error fetching demo links:', demoError)
       return NextResponse.json(
-        { error: 'Demo links not found' },
+        { error: 'Database error fetching demo links' },
+        { status: 500 }
+      )
+    }
+
+    if (!demoData) {
+      console.log('No demo links found for user:', userId)
+      return NextResponse.json(
+        { error: 'No demo links found for this user' },
         { status: 404 }
       )
     }
@@ -67,7 +75,7 @@ export async function POST(request: NextRequest) {
       .from('kickoff_forms')
       .select('business_name')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
     
     if (!kickoffError && kickoffData) {
       businessName = kickoffData.business_name

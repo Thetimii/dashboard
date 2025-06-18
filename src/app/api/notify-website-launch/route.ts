@@ -38,12 +38,20 @@ export async function POST(request: NextRequest) {
       .from('project_status')
       .select('status, final_url')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
     if (projectError) {
       console.error('Error fetching project status:', projectError)
       return NextResponse.json(
-        { error: 'Project status not found' },
+        { error: 'Database error fetching project status' },
+        { status: 500 }
+      )
+    }
+
+    if (!projectData) {
+      console.log('No project status found for user:', userId)
+      return NextResponse.json(
+        { error: 'No project status found for this user' },
         { status: 404 }
       )
     }
@@ -70,7 +78,7 @@ export async function POST(request: NextRequest) {
       .from('kickoff_forms')
       .select('business_name')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
     
     if (!kickoffError && kickoffData) {
       businessName = kickoffData.business_name
