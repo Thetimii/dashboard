@@ -826,7 +826,20 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
           ? `https://${process.env.VERCEL_URL}` 
           : 'http://localhost:3000';
 
+      console.log('🚀 DEMO EMAIL DEBUG - Base URL determined:', baseUrl);
+      console.log('🚀 DEMO EMAIL DEBUG - Environment check:', {
+        isClient: typeof window !== 'undefined',
+        vercelUrl: process.env.VERCEL_URL,
+        finalBaseUrl: baseUrl
+      });
+
       console.log('Attempting to send email via API route:', `${baseUrl}/api/send`);
+      console.log('Email data being sent:', {
+        to: data.customerEmail,
+        subject: subject,
+        hasHtml: !!html,
+        hasText: !!text
+      });
 
       const response = await fetch(`${baseUrl}/api/send`, {
         method: 'POST',
@@ -844,7 +857,8 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
         console.error('API route response error:', {
           status: response.status,
           statusText: response.statusText,
-          body: errorText
+          body: errorText,
+          url: `${baseUrl}/api/send`
         });
         throw new Error(`API route failed: ${response.status} - ${errorText}`);
       }
