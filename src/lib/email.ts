@@ -658,7 +658,9 @@ export async function sendKickoffNotificationEmailViaVercel(customerData: Custom
       ? window.location.origin 
       : process.env.VERCEL_URL 
         ? `https://${process.env.VERCEL_URL}` 
-        : 'http://localhost:3001';
+        : process.env.NODE_ENV === 'production'
+          ? 'https://app.customerflows.ch'
+          : 'http://localhost:3001';
 
     console.log('Sending email notification to admin via API route...');
     console.log('Base URL:', baseUrl);
@@ -718,7 +720,9 @@ export async function sendDemoApprovalEmail(data: DemoApprovalData) {
         ? window.location.origin 
         : process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3001';
+          : process.env.NODE_ENV === 'production'
+            ? 'https://app.customerflows.ch'
+            : 'http://localhost:3001';
 
       const response = await fetch(`${baseUrl}/api/send`, {
         method: 'POST',
@@ -767,7 +771,9 @@ export async function sendPaymentCompletionEmail(data: PaymentCompletionData) {
         ? window.location.origin 
         : process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3000';
+          : process.env.NODE_ENV === 'production'
+            ? 'https://app.customerflows.ch'
+            : 'http://localhost:3000';
 
       const response = await fetch(`${baseUrl}/api/send`, {
         method: 'POST',
@@ -820,16 +826,20 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
 
     // Try API route first
     try {
+      // Use the correct production URL for API calls
       const baseUrl = typeof window !== 'undefined' 
         ? window.location.origin 
         : process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3000';
+          : process.env.NODE_ENV === 'production'
+            ? 'https://app.customerflows.ch'
+            : 'http://localhost:3000';
 
       console.log('🚀 DEMO EMAIL DEBUG - Base URL determined:', baseUrl);
       console.log('🚀 DEMO EMAIL DEBUG - Environment check:', {
         isClient: typeof window !== 'undefined',
         vercelUrl: process.env.VERCEL_URL,
+        nodeEnv: process.env.NODE_ENV,
         finalBaseUrl: baseUrl
       });
 
@@ -893,11 +903,14 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
 
     // Try API route first
     try {
+      // Use the correct production URL for API calls
       const baseUrl = typeof window !== 'undefined' 
         ? window.location.origin 
         : process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
-          : 'http://localhost:3000';
+          : process.env.NODE_ENV === 'production'
+            ? 'https://app.customerflows.ch'
+            : 'http://localhost:3000';
 
       const response = await fetch(`${baseUrl}/api/send`, {
         method: 'POST',
