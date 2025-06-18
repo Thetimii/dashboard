@@ -585,18 +585,21 @@ export async function sendEmailViaResend({
   html,
   text,
   customerData,
+  recipientEmail,
 }: {
   subject: string;
   html: string;
   text: string;
   customerData?: CustomerKickoffData;
+  recipientEmail?: string;
 }) {
   try {
-    // Get admin email from environment variable, fallback to hardcoded
+    // Use provided recipient email, or fallback to admin email for admin notifications
     const adminEmail = process.env.ADMIN_EMAIL || 'sagertim02@gmail.com';
+    const toEmail = recipientEmail || adminEmail;
     const resendApiKey = process.env.RESEND_API_KEY;
     
-    console.log('Admin email:', adminEmail);
+    console.log('Sending email to:', toEmail);
     console.log('Resend API key configured:', !!resendApiKey);
 
     if (!resendApiKey) {
@@ -608,7 +611,7 @@ export async function sendEmailViaResend({
     // Use direct fetch to Resend API
     const emailData = {
       from: 'Customer Flows <info@customerflows.ch>',
-      to: [adminEmail],
+      to: [toEmail],
       subject: subject || 'New Customer Kickoff Completed',
       html: html || '<p>A new customer has completed their kickoff form.</p>',
       text: text || 'A new customer has completed their kickoff form.',
@@ -858,7 +861,8 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
         subject, 
         html, 
         text, 
-        customerData: {} // Empty object since we don't need customer data here
+        customerData: {},
+        recipientEmail: data.customerEmail // Send to customer, not admin!
       });
     }
   } catch (error) {
@@ -907,7 +911,8 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
         subject, 
         html, 
         text, 
-        customerData: {} // Empty object since we don't need customer data here
+        customerData: {},
+        recipientEmail: data.customerEmail // Send to customer, not admin!
       });
     }
   } catch (error) {
