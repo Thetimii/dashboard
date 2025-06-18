@@ -178,14 +178,13 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
       console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
       
       // Send payment completion email to admin
-      try {
-        // Get customer details from the payment record
+      try {        // Get customer details from the payment record
         const { data: customerData, error: customerError } = await supabaseAdmin
           .from('payments')
           .select(`
             user_id,
             amount,
-            users (
+            users!inner (
               email,
               raw_user_meta_data
             )
@@ -195,10 +194,9 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
 
         if (customerError) {
           console.error('Error fetching customer data for email:', customerError)
-        } else {
-          // Get kickoff data for business name
+        } else {          // Get kickoff data for business name
           const { data: kickoffData } = await supabaseAdmin
-            .from('kickoff_submissions')
+            .from('kickoff_forms')
             .select('business_name')
             .eq('user_id', customerData.user_id)
             .single()
