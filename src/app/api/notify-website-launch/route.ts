@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
       final_url: projectData.final_url ? 'PRESENT' : 'MISSING'
     })
 
-    // Check if website status is 'live'
+    // Check if website status is 'live' (not complete, not in_progress)
     if (projectData.status !== 'live') {
       console.log('❌ Status not live:', projectData.status)
       return NextResponse.json(
