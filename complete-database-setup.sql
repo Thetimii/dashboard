@@ -3,11 +3,35 @@
 -- Run this in your Supabase SQL Editor
 
 -- =============================================================================
--- 1. ENABLE REQUIRED EXTENSIONS
+-- 1. ENABLE REQUIRED EXTENSIONS AND CREATE ENUMS
 -- =============================================================================
 
 -- Enable HTTP extension for database triggers to make API calls
 CREATE EXTENSION IF NOT EXISTS http;
+
+-- Create enum types for better type safety
+DO $$ BEGIN
+    CREATE TYPE project_status_enum AS ENUM (
+        'not_touched',
+        'in_progress', 
+        'complete',
+        'live'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE payment_status_enum AS ENUM (
+        'pending',
+        'completed', 
+        'failed',
+        'cancelled',
+        'scheduled_for_cancellation'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- =============================================================================
 -- 2. CREATE TABLES (IF NOT EXISTS - PRESERVES EXISTING DATA)
@@ -26,21 +50,11 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
 CREATE TABLE IF NOT EXISTS public.project_status (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     user_id uuid NULL,
-    status text NULL,
+    status project_status_enum NULL DEFAULT 'not_touched',
     updated_at timestamp without time zone NULL DEFAULT now(),
     final_url text NULL,
     CONSTRAINT project_status_pkey PRIMARY KEY (id),
-    CONSTRAINT project_status_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id),
-    CONSTRAINT project_status_status_check CHECK (
-        status = ANY (
-            ARRAY[
-                'not_touched'::text,
-                'in_progress'::text,
-                'complete'::text,
-                'live'::text
-            ]
-        )
-    )
+    CONSTRAINT project_status_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 ) TABLESPACE pg_default;
 
 -- Payments table
@@ -49,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     user_id uuid NULL,
     stripe_payment_id text NULL,
     amount numeric NULL,
-    status text NULL,
+    status payment_status_enum NULL DEFAULT 'pending',
     created_at timestamp without time zone NULL DEFAULT now(),
     stripe_customer_id text NULL,
     subscription_id text NULL,
@@ -58,16 +72,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     canceled_at timestamp with time zone NULL,
     cancellation_reason text NULL,
     CONSTRAINT payments_pkey PRIMARY KEY (id),
-    CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id),
-    CONSTRAINT payments_status_check CHECK (
-        status = ANY (
-            ARRAY[
-                'pending'::text,
-                'completed'::text,
-                'failed'::text
-            ]
-        )
-    )
+    CONSTRAINT payments_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 ) TABLESPACE pg_default;
 
 -- Kickoff forms table
@@ -349,14 +354,40 @@ CREATE TRIGGER website_launch_notification_trigger
   EXECUTE FUNCTION notify_website_launch();
 
 -- =============================================================================
--- 9. GRANT PERMISSIONS
+-- 9. GRANT PERMISSIONS AND CREATE HELPER FUNCTIONS
 -- =============================================================================
+
+-- Function to get all possible project status values
+CREATE OR REPLACE FUNCTION get_project_status_values()
+RETURNS TEXT[] AS $$
+BEGIN
+    RETURN ARRAY['not_touched', 'in_progress', 'complete', 'live'];
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to get all possible payment status values  
+CREATE OR REPLACE FUNCTION get_payment_status_values()
+RETURNS TEXT[] AS $$
+BEGIN
+    RETURN ARRAY['pending', 'completed', 'failed', 'cancelled', 'scheduled_for_cancellation'];
+END;
+$$ LANGUAGE plpgsql;
 
 -- Grant execute permissions on functions
 GRANT EXECUTE ON FUNCTION notify_demo_ready() TO authenticated;
 GRANT EXECUTE ON FUNCTION notify_demo_ready() TO service_role;
 GRANT EXECUTE ON FUNCTION notify_website_launch() TO authenticated;
 GRANT EXECUTE ON FUNCTION notify_website_launch() TO service_role;
+GRANT EXECUTE ON FUNCTION get_project_status_values() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_project_status_values() TO service_role;
+GRANT EXECUTE ON FUNCTION get_payment_status_values() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_payment_status_values() TO service_role;
+
+-- Grant usage on enum types
+GRANT USAGE ON TYPE project_status_enum TO authenticated;
+GRANT USAGE ON TYPE project_status_enum TO service_role;
+GRANT USAGE ON TYPE payment_status_enum TO authenticated;
+GRANT USAGE ON TYPE payment_status_enum TO service_role;
 
 -- Grant usage on all tables to authenticated users
 GRANT USAGE ON SCHEMA public TO authenticated;
@@ -380,11 +411,17 @@ SELECT set_config('app.base_url', 'https://app.customerflows.ch', false);
 
 -- The database is now configured with:
 -- ✅ All existing tables preserved with their current structure
+-- ✅ PostgreSQL ENUM types for status fields (better type safety)
 -- ✅ Automatic demo ready notifications when all 3 URLs are filled
 -- ✅ Automatic website launch notifications when status becomes 'live'
 -- ✅ Proper RLS policies for security
 -- ✅ Service role access for admin operations and webhooks
 -- ✅ HTTP extension enabled for API calls from triggers
+-- ✅ Helper functions to get valid enum values
+
+-- ENUM VALUES:
+-- Project Status: 'not_touched', 'in_progress', 'complete', 'live'
+-- Payment Status: 'pending', 'completed', 'failed', 'cancelled', 'scheduled_for_cancellation'
 
 -- IMPORTANT NOTES:
 -- 1. This script is idempotent - safe to run multiple times
@@ -392,8 +429,16 @@ SELECT set_config('app.base_url', 'https://app.customerflows.ch', false);
 -- 3. Triggers will automatically call your API endpoints
 -- 4. Make sure your RESEND_API_KEY is set in Vercel environment variables
 -- 5. Verify the base URL matches your production domain
+-- 6. Status values are enforced at the database level (no invalid values allowed)
 
 -- To verify the setup worked:
--- 1. Check that triggers exist: \d+ demo_links (should show triggers)
--- 2. Test by updating demo URLs and checking logs
--- 3. Monitor the API endpoint logs in Vercel
+-- 1. Check enum types: SELECT typname FROM pg_type WHERE typname LIKE '%_enum';
+-- 2. Test status options: SELECT * FROM get_project_status_values();
+-- 3. Check triggers: \d+ demo_links (should show triggers)
+-- 4. Test by updating demo URLs and checking logs
+-- 5. Monitor the API endpoint logs in Vercel
+
+-- For frontend usage:
+-- You can now create dropdowns with the exact enum values
+-- Invalid status values will be rejected by the database
+-- Use the helper functions to get valid options: SELECT * FROM get_project_status_values();
