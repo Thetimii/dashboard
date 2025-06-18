@@ -33,10 +33,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Fetch project status to get final_url
+    // Fetch project status to get final_url and check if status is 'live'
     const { data: projectData, error: projectError } = await supabaseAdmin
       .from('project_status')
-      .select('website_is_live, final_url')
+      .select('status, final_url')
       .eq('user_id', userId)
       .single()
 
@@ -48,10 +48,10 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if website is actually live
-    if (!projectData.website_is_live) {
+    // Check if website status is 'live'
+    if (projectData.status !== 'live') {
       return NextResponse.json(
-        { error: 'Website is not marked as live yet' },
+        { error: 'Website status is not set to live yet' },
         { status: 400 }
       )
     }
