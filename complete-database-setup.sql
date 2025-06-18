@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
 CREATE TABLE IF NOT EXISTS public.project_status (
     id uuid NOT NULL DEFAULT gen_random_uuid(),
     user_id uuid NULL,
-    status project_status_enum NULL DEFAULT 'not_touched',
+    status text NULL DEFAULT 'not_touched', -- Will be migrated to enum later
     updated_at timestamp without time zone NULL DEFAULT now(),
     final_url text NULL,
     CONSTRAINT project_status_pkey PRIMARY KEY (id),
@@ -63,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.payments (
     user_id uuid NULL,
     stripe_payment_id text NULL,
     amount numeric NULL,
-    status payment_status_enum NULL DEFAULT 'pending',
+    status text NULL DEFAULT 'pending', -- Will be migrated to enum later
     created_at timestamp without time zone NULL DEFAULT now(),
     stripe_customer_id text NULL,
     subscription_id text NULL,
@@ -105,6 +105,66 @@ CREATE TABLE IF NOT EXISTS public.demo_links (
     CONSTRAINT demo_links_pkey PRIMARY KEY (id),
     CONSTRAINT demo_links_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 ) TABLESPACE pg_default;
+
+-- =============================================================================
+-- 2.5. MIGRATE STATUS COLUMNS TO ENUMS
+-- =============================================================================
+
+-- Migrate project_status.status to enum type
+DO $$ 
+BEGIN
+    -- Check if the column is already using the enum type
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'project_status' 
+        AND column_name = 'status' 
+        AND udt_name = 'project_status_enum'
+    ) THEN
+        -- Drop existing check constraints
+        ALTER TABLE public.project_status DROP CONSTRAINT IF EXISTS project_status_status_check;
+        
+        -- Migrate to enum type
+        ALTER TABLE public.project_status 
+        ALTER COLUMN status TYPE project_status_enum 
+        USING status::project_status_enum;
+        
+        -- Set default
+        ALTER TABLE public.project_status 
+        ALTER COLUMN status SET DEFAULT 'not_touched'::project_status_enum;
+        
+        RAISE NOTICE 'Migrated project_status.status to enum type';
+    ELSE
+        RAISE NOTICE 'project_status.status already using enum type';
+    END IF;
+END $$;
+
+-- Migrate payments.status to enum type
+DO $$ 
+BEGIN
+    -- Check if the column is already using the enum type
+    IF NOT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'payments' 
+        AND column_name = 'status' 
+        AND udt_name = 'payment_status_enum'
+    ) THEN
+        -- Drop existing check constraints
+        ALTER TABLE public.payments DROP CONSTRAINT IF EXISTS payments_status_check;
+        
+        -- Migrate to enum type
+        ALTER TABLE public.payments 
+        ALTER COLUMN status TYPE payment_status_enum 
+        USING status::payment_status_enum;
+        
+        -- Set default
+        ALTER TABLE public.payments 
+        ALTER COLUMN status SET DEFAULT 'pending'::payment_status_enum;
+        
+        RAISE NOTICE 'Migrated payments.status to enum type';
+    ELSE
+        RAISE NOTICE 'payments.status already using enum type';
+    END IF;
+END $$;
 
 -- =============================================================================
 -- 3. WEBSITE LAUNCH QUEUE TABLE (IF NEEDED)
@@ -189,6 +249,14 @@ CREATE POLICY "Users can insert own launch queue" ON public.website_launch_queue
 -- =============================================================================
 -- 5. ADMIN POLICIES (SERVICE ROLE ACCESS)
 -- =============================================================================
+
+-- Drop existing service role policies if they exist (to avoid conflicts)
+DROP POLICY IF EXISTS "Service role can access all user_profiles" ON public.user_profiles;
+DROP POLICY IF EXISTS "Service role can access all kickoff_forms" ON public.kickoff_forms;
+DROP POLICY IF EXISTS "Service role can access all project_status" ON public.project_status;
+DROP POLICY IF EXISTS "Service role can access all demo_links" ON public.demo_links;
+DROP POLICY IF EXISTS "Service role can access all payments" ON public.payments;
+DROP POLICY IF EXISTS "Service role can access all website_launch_queue" ON public.website_launch_queue;
 
 -- Allow service role to access all tables for admin operations and webhooks
 CREATE POLICY "Service role can access all user_profiles" ON public.user_profiles FOR ALL USING (auth.role() = 'service_role');
