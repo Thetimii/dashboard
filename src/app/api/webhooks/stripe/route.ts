@@ -173,28 +173,43 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
         } else {
           console.warn('⚠️ No user found with email:', customerEmail)
         }
-      }
-    }    if (paymentUpdateResult) {
+      }    }
+    
+    if (paymentUpdateResult) {
       console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
       
       // Send payment completion email to admin
-      try {        // Get customer details from the payment record
-        const { data: customerData, error: customerError } = await supabaseAdmin
+      try {
+        // Get customer details from the payment record and user data separately
+        const { data: paymentData, error: paymentError } = await supabaseAdmin
           .from('payments')
-          .select(`
-            user_id,
-            amount,
-            users!inner (
-              email,
-              raw_user_meta_data
-            )
-          `)
+          .select('user_id, amount')
           .eq('id', paymentUpdateResult.id)
           .single()
 
+        if (paymentError) {
+          console.error('Error fetching payment data:', paymentError)
+          return
+        }
+
+        // Get user data from auth.users
+        const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(paymentData.user_id)
+        
+        const customerData = {
+          user_id: paymentData.user_id,
+          amount: paymentData.amount,
+          users: userData?.user ? {
+            email: userData.user.email,
+            raw_user_meta_data: userData.user.user_metadata
+          } : null
+        }
+
+        const customerError = userError
+
         if (customerError) {
           console.error('Error fetching customer data for email:', customerError)
-        } else {          // Get kickoff data for business name
+        } else {
+          // Get kickoff data for business name
           const { data: kickoffData } = await supabaseAdmin
             .from('kickoff_forms')
             .select('business_name')

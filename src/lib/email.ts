@@ -806,6 +806,14 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
     const { subject, html, text } = generateDemoReadyEmail(data);
 
     console.log('Sending demo ready notification to customer...');
+    console.log('Demo ready email data:', {
+      customerEmail: data.customerEmail,
+      customerName: data.customerName,
+      businessName: data.businessName,
+      hasOption1: !!data.option1Url,
+      hasOption2: !!data.option2Url,
+      hasOption3: !!data.option3Url
+    });
 
     // Try API route first
     try {
@@ -814,6 +822,8 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
         : process.env.VERCEL_URL 
           ? `https://${process.env.VERCEL_URL}` 
           : 'http://localhost:3000';
+
+      console.log('Attempting to send email via API route:', `${baseUrl}/api/send`);
 
       const response = await fetch(`${baseUrl}/api/send`, {
         method: 'POST',
@@ -827,14 +837,21 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
       });
 
       if (!response.ok) {
-        throw new Error(`API route failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('API route response error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`API route failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
       console.log('Demo ready email sent successfully via API route:', result);
       return { status: 'OK', message: 'Email sent successfully', result };
     } catch (apiError) {
-      console.log('API route failed, trying direct Resend fallback...');
+      console.error('API route failed with error:', apiError);
+      console.log('Trying direct Resend fallback...');
       
       // Fallback to direct Resend call
       return await sendEmailViaResend({ 
