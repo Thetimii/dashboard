@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
       // Get customer kickoff data for email
       const { data: kickoffData } = await supabase
-        .from('kickoff_submissions')
+        .from('kickoff_forms')
         .select('business_name, business_description')
         .eq('user_id', user.id)
         .single()

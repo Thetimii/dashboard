@@ -805,7 +805,7 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
   try {
     const { subject, html, text } = generateDemoReadyEmail(data);
 
-    console.log('Sending demo ready notification to admin...');
+    console.log('Sending demo ready notification to customer...');
 
     // Try API route first
     try {
@@ -819,7 +819,7 @@ export async function sendDemoReadyEmail(data: DemoReadyData) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: process.env.ADMIN_EMAIL || 'sagertim02@gmail.com',
+          to: data.customerEmail, // Send to customer, not admin
           subject,
           html,
           text,
@@ -854,7 +854,7 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
   try {
     const { subject, html, text } = generateWebsiteLaunchEmail(data);
 
-    console.log('Sending website launch notification to admin...');
+    console.log('Sending website launch notification to customer...');
 
     // Try API route first
     try {
@@ -868,7 +868,7 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: process.env.ADMIN_EMAIL || 'sagertim02@gmail.com',
+          to: data.customerEmail, // Send to customer, not admin
           subject,
           html,
           text,
@@ -878,6 +878,26 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
       if (!response.ok) {
         throw new Error(`API route failed: ${response.status}`);
       }
+
+      const result = await response.json();
+      console.log('Website launch email sent successfully via API route:', result);
+      return { status: 'OK', message: 'Email sent successfully', result };
+    } catch (apiError) {
+      console.log('API route failed, trying direct Resend fallback...');
+      
+      // Fallback to direct Resend call
+      return await sendEmailViaResend({ 
+        subject, 
+        html, 
+        text, 
+        customerData: {} // Empty object since we don't need customer data here
+      });
+    }
+  } catch (error) {
+    console.error('Failed to send website launch email:', error);
+    throw error;
+  }
+}
 
       const result = await response.json();
       console.log('Website launch email sent successfully via API route:', result);
