@@ -20,91 +20,87 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Processing website launch notification for user:', userId)
+    console.log('🚀 Starting website launch check for user:', userId)
 
     // Fetch user details
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
     
     if (userError || !userData?.user) {
-      console.error('Error fetching user:', userError)
+      console.error('❌ User not found:', userError)
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    // Fetch project status to get final_url and check if status is 'live'
+    console.log('✅ User found:', userData.user.email)
+
+    // Fetch project status
     const { data: projectData, error: projectError } = await supabaseAdmin
       .from('project_status')
-      .select('status, final_url')
+      .select('*')
       .eq('user_id', userId)
-      .maybeSingle()
+      .single()
 
     if (projectError) {
-      console.error('Error fetching project status:', projectError)
+      console.error('❌ Project status error:', projectError.message)
       return NextResponse.json(
-        { error: 'Database error fetching project status' },
-        { status: 500 }
-      )
-    }
-
-    if (!projectData) {
-      console.log('No project status found for user:', userId)
-      return NextResponse.json(
-        { error: 'No project status found for this user' },
+        { error: 'Project status not found: ' + projectError.message },
         { status: 404 }
       )
     }
 
+    console.log('✅ Project data found:', {
+      status: projectData.status,
+      final_url: projectData.final_url ? 'PRESENT' : 'MISSING'
+    })
+
     // Check if website status is 'live'
     if (projectData.status !== 'live') {
+      console.log('❌ Status not live:', projectData.status)
       return NextResponse.json(
-        { error: 'Website status is not set to live yet' },
+        { error: 'Website status is not set to live yet: ' + projectData.status },
         { status: 400 }
       )
     }
 
     // Check if final_url is provided
     if (!projectData.final_url) {
+      console.log('❌ Final URL missing')
       return NextResponse.json(
         { error: 'Final URL is not set' },
         { status: 400 }
       )
     }
 
-    // Fetch business name from kickoff form
-    let businessName = null
-    const { data: kickoffData, error: kickoffError } = await supabaseAdmin
+    console.log('✅ All checks passed, sending email...')
+
+    // Get business name
+    const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
       .select('business_name')
       .eq('user_id', userId)
       .maybeSingle()
-    
-    if (!kickoffError && kickoffData) {
-      businessName = kickoffData.business_name
-    }
 
     // Send email to customer
     const emailResult = await sendWebsiteLaunchEmail({
       customerEmail: userData.user.email,
       customerName: userData.user.user_metadata?.full_name || userData.user.email,
-      businessName: businessName,
+      businessName: kickoffData?.business_name || null,
       websiteUrl: projectData.final_url,
       launchedAt: new Date().toISOString(),
     })
 
-    console.log('Website launch email sent successfully to customer')
+    console.log('✅ Website launch email sent successfully!')
 
     return NextResponse.json({
       success: true,
       message: 'Website launch notification sent to customer',
       customerEmail: userData.user.email,
-      businessName: businessName,
-      finalUrl: projectData.final_url,
       emailResult: emailResult,
     })
   } catch (error) {
-    console.error('Error sending website launch notification:', error)
+    console.error('💥 CRITICAL ERROR:', error)
     return NextResponse.json(
       { 
         error: 'Failed to send website launch notification', 
