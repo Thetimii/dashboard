@@ -898,23 +898,3 @@ export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
     throw error;
   }
 }
-
-      const result = await response.json();
-      console.log('Website launch email sent successfully via API route:', result);
-      return { status: 'OK', message: 'Email sent successfully', result };
-    } catch (apiError) {
-      console.log('API route failed, trying direct Resend fallback...');
-      
-      // Fallback to direct Resend call
-      return await sendEmailViaResend({ 
-        subject, 
-        html, 
-        text, 
-        customerData: {} // Empty object since we don't need customer data here
-      });
-    }
-  } catch (error) {
-    console.error('Failed to send website launch email:', error);
-    throw error;
-  }
-}
