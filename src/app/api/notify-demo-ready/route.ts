@@ -20,95 +20,89 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('Checking demo links for user:', userId)
+    console.log('🔍 Starting demo ready check for user:', userId)
 
     // Fetch user details
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
     
     if (userError || !userData?.user) {
-      console.error('Error fetching user:', userError)
+      console.error('❌ User not found:', userError)
       return NextResponse.json(
         { error: 'User not found' },
         { status: 404 }
       )
     }
 
-    // Fetch demo links
+    console.log('✅ User found:', userData.user.email)
+
+    // Fetch demo links with simple query
     const { data: demoData, error: demoError } = await supabaseAdmin
       .from('demo_links')
-      .select('option_1_url, option_2_url, option_3_url')
+      .select('*')
       .eq('user_id', userId)
-      .maybeSingle()
+      .single()
 
     if (demoError) {
-      console.error('Error fetching demo links:', demoError)
+      console.error('❌ Demo links error:', demoError.message)
       return NextResponse.json(
-        { error: 'Database error fetching demo links' },
-        { status: 500 }
-      )
-    }
-
-    if (!demoData) {
-      console.log('No demo links found for user:', userId)
-      return NextResponse.json(
-        { error: 'No demo links found for this user' },
+        { error: 'Demo links not found: ' + demoError.message },
         { status: 404 }
       )
     }
+
+    console.log('✅ Demo data found:', {
+      option1: demoData.option_1_url ? 'PRESENT' : 'MISSING',
+      option2: demoData.option_2_url ? 'PRESENT' : 'MISSING', 
+      option3: demoData.option_3_url ? 'PRESENT' : 'MISSING'
+    })
 
     // Check if all 3 demo options are available
     const allDemosReady = demoData.option_1_url && demoData.option_2_url && demoData.option_3_url
 
     if (!allDemosReady) {
+      console.log('❌ Not all demos ready')
       return NextResponse.json(
         { 
           error: 'Not all demo options are ready yet',
-          readyCount: [demoData.option_1_url, demoData.option_2_url, demoData.option_3_url].filter(Boolean).length
+          demos: {
+            option1: !!demoData.option_1_url,
+            option2: !!demoData.option_2_url,
+            option3: !!demoData.option_3_url
+          }
         },
         { status: 400 }
       )
     }
 
-    // Fetch business name from kickoff form
-    let businessName = null
-    const { data: kickoffData, error: kickoffError } = await supabaseAdmin
+    console.log('✅ All demos ready, sending email...')
+
+    // Get business name
+    const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
       .select('business_name')
       .eq('user_id', userId)
       .maybeSingle()
-    
-    if (!kickoffError && kickoffData) {
-      businessName = kickoffData.business_name
-    }
-
-    // Get current domain for dashboard URL
-    const dashboardUrl = typeof window !== 'undefined' 
-      ? `${window.location.origin}/dashboard`
-      : process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}/dashboard`
-        : 'http://localhost:3000/dashboard'
 
     // Send email to customer
     const emailResult = await sendDemoReadyEmail({
       customerEmail: userData.user.email,
       customerName: userData.user.user_metadata?.full_name || userData.user.email,
-      businessName: businessName,
+      businessName: kickoffData?.business_name || null,
       option1Url: demoData.option_1_url,
       option2Url: demoData.option_2_url,
       option3Url: demoData.option_3_url,
     })
 
-    console.log('Demo ready email sent successfully to customer')
+    console.log('✅ Email sent successfully!')
 
     return NextResponse.json({
       success: true,
       message: 'Demo ready notification sent to customer',
       customerEmail: userData.user.email,
-      businessName: businessName,
       emailResult: emailResult,
     })
   } catch (error) {
-    console.error('Error sending demo ready notification:', error)
+    console.error('💥 CRITICAL ERROR:', error)
     return NextResponse.json(
       { 
         error: 'Failed to send demo ready notification', 
