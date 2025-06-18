@@ -55,6 +55,10 @@ export async function POST(request: NextRequest) {
       final_url: projectData.final_url ? 'PRESENT' : 'MISSING'
     })
 
+    // The trigger already verified that the status is 'live' and final_url is present.
+    // We proceed directly to sending the email.
+    // The checks below are removed to prevent race conditions.
+    /*
     // Check if website status is 'live' (not complete, not in_progress)
     if (projectData.status !== 'live') {
       console.log('❌ Status not live:', projectData.status)
@@ -69,8 +73,9 @@ export async function POST(request: NextRequest) {
       console.log('⚠️  Final URL missing, but continuing anyway')
       // Don't return error, just use a default or skip URL
     }
+    */
 
-    console.log('✅ All checks passed, sending email...')
+    console.log('✅ Trigger confirmed website is live, sending email...')
 
     // Get business name
     const { data: kickoffData } = await supabaseAdmin

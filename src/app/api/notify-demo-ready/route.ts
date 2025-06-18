@@ -59,7 +59,10 @@ export async function POST(request: NextRequest) {
       option3: demoData.option_3_url ? 'PRESENT' : 'MISSING'
     })
 
-    // Check if all 3 demo options are available
+    // The trigger already verified that all demos are ready.
+    // We proceed directly to sending the email.
+    // The check below is removed to prevent race conditions.
+    /*
     const allDemosReady = demoData.option_1_url && demoData.option_2_url && demoData.option_3_url
 
     if (!allDemosReady) {
@@ -76,8 +79,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+    */
 
-    console.log('✅ All demos ready, sending email...')
+    console.log('✅ Trigger confirmed demos are ready, sending email...')
 
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
