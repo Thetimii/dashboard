@@ -129,8 +129,8 @@ export async function POST(request: NextRequest) {
     // Send email to customer
     const { sendDemoReadyEmail } = await import('@/lib/email')
     const emailResult = await sendDemoReadyEmail({
-      userEmail: user.email,
-      userName: user.user_metadata?.full_name || user.email,
+      customerEmail: user.email,
+      customerName: user.user_metadata?.full_name || user.email,
       businessName: businessName,
       option1Url: option1,
       option2Url: option2,

@@ -33,6 +33,23 @@ export interface PaymentCompletionData {
   completedAt: string;
 }
 
+export interface DemoReadyData {
+  customerName?: string;
+  customerEmail?: string;
+  businessName?: string;
+  option1Url?: string;
+  option2Url?: string;
+  option3Url?: string;
+}
+
+export interface WebsiteLaunchData {
+  customerName?: string;
+  customerEmail?: string;
+  businessName?: string;
+  websiteUrl?: string;
+  launchedAt: string;
+}
+
 export function generateKickoffCompletionEmail(customerData: CustomerKickoffData) {
   const subject = `🚀 New Customer Kickoff: ${customerData.businessName || 'Unknown Business'}`;
   
@@ -320,6 +337,231 @@ The project can now move forward to development phase.
   return { subject, html, text };
 }
 
+export function generateDemoReadyEmail(data: DemoReadyData) {
+  const subject = `🎨 Your Website Demos Are Ready! - ${data.businessName || 'Your Project'}`;
+  
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your Website Demos Are Ready</title>
+      <style>
+        body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .content { background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .section { margin-bottom: 25px; }
+        .label { font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block; }
+        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #8B5CF6; }
+        .demo-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin: 20px 0; }
+        .demo-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; text-align: center; }
+        .demo-button { background: #8B5CF6; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 500; }
+        .demo-button:hover { background: #7C3AED; text-decoration: none; color: white; }
+        .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1 style="margin: 0; font-size: 28px;">🎨 Your Website Demos Are Ready!</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">We've created three beautiful design options for your review</p>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <span class="label">👋 Hello ${data.customerName || 'there'}!</span>
+          <div class="value">
+            Great news! We've completed the initial design concepts for <strong>${data.businessName || 'your project'}</strong>. 
+            We've created three different design options for you to choose from, each tailored to your specific requirements and preferences.
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="label">🎨 Available Design Options</span>
+          <div class="demo-grid">
+            ${data.option1Url ? `
+            <div class="demo-card">
+              <h4>Option 1</h4>
+              <p>Modern and clean design approach</p>
+              <a href="${data.option1Url}" class="demo-button" target="_blank">View Option 1</a>
+            </div>
+            ` : ''}
+            
+            ${data.option2Url ? `
+            <div class="demo-card">
+              <h4>Option 2</h4>
+              <p>Professional and business-focused</p>
+              <a href="${data.option2Url}" class="demo-button" target="_blank">View Option 2</a>
+            </div>
+            ` : ''}
+            
+            ${data.option3Url ? `
+            <div class="demo-card">
+              <h4>Option 3</h4>
+              <p>Creative and visually striking</p>
+              <a href="${data.option3Url}" class="demo-button" target="_blank">View Option 3</a>
+            </div>
+            ` : ''}
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="label">📝 What's Next?</span>
+          <div class="value">
+            <ol style="margin: 0; padding-left: 20px;">
+              <li>Review each design option carefully</li>
+              <li>Consider how well each aligns with your brand and goals</li>
+              <li>Select your preferred option in the dashboard</li>
+              <li>Complete the payment to proceed with development</li>
+              <li>We'll begin building your final website based on the chosen design</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Questions? Reply to this email or contact us through your dashboard.</p>
+        <p>Customer Flows Dashboard • ${new Date().toLocaleDateString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+Your Website Demos Are Ready!
+
+Hello ${data.customerName || 'there'}!
+
+Great news! We've completed the initial design concepts for ${data.businessName || 'your project'}. 
+We've created three different design options for you to choose from.
+
+Available Design Options:
+${data.option1Url ? `- Option 1: ${data.option1Url}` : ''}
+${data.option2Url ? `- Option 2: ${data.option2Url}` : ''}
+${data.option3Url ? `- Option 3: ${data.option3Url}` : ''}
+
+What's Next?
+1. Review each design option carefully
+2. Consider how well each aligns with your brand and goals  
+3. Select your preferred option in the dashboard
+4. Complete the payment to proceed with development
+5. We'll begin building your final website based on the chosen design
+
+Questions? Reply to this email or contact us through your dashboard.
+
+Generated on: ${new Date().toLocaleString()}
+  `;
+
+  return { subject, html, text };
+}
+
+export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
+  const subject = `🚀 Your Website is Live! - ${data.businessName || 'Your Project'}`;
+  
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Your Website is Live!</title>
+      <style>
+        body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .content { background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
+        .section { margin-bottom: 25px; }
+        .label { font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block; }
+        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #059669; }
+        .website-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .website-url { font-size: 18px; font-weight: 600; color: #059669; margin: 15px 0; word-break: break-all; }
+        .launch-button { background: #059669; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; font-size: 16px; margin: 15px 0; }
+        .launch-button:hover { background: #047857; text-decoration: none; color: white; }
+        .celebration { font-size: 48px; margin: 20px 0; }
+        .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <div class="celebration">🎉🚀🎉</div>
+        <h1 style="margin: 0; font-size: 28px;">Your Website is Live!</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Congratulations! Your new website is now online and ready for the world to see</p>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <span class="label">🎊 Congratulations ${data.customerName || 'there'}!</span>
+          <div class="value">
+            We're thrilled to announce that your website for <strong>${data.businessName || 'your business'}</strong> is now live and accessible to the world! 
+            After all the planning, designing, and development, your digital presence is ready to make an impact.
+          </div>
+        </div>
+
+        <div class="website-card">
+          <h3 style="margin: 0 0 15px 0; color: #1f2937;">🌟 Your Live Website</h3>
+          <p style="margin: 0 0 10px 0; color: #6b7280;">Your website is now accessible at:</p>
+          <div class="website-url">${data.websiteUrl}</div>
+          <a href="${data.websiteUrl}" class="launch-button" target="_blank">Visit Your Website</a>
+          <p style="margin: 15px 0 0 0; font-size: 14px; color: #6b7280;">Share this URL with your customers, partners, and social networks!</p>
+        </div>
+
+        <div class="section">
+          <span class="label">📈 What's Next?</span>
+          <div class="value">
+            <ol style="margin: 0; padding-left: 20px;">
+              <li><strong>Share your website:</strong> Spread the word on social media and with your network</li>
+              <li><strong>Monitor performance:</strong> Keep track of visitors and engagement</li>
+              <li><strong>Update content:</strong> Keep your website fresh with regular updates</li>
+              <li><strong>SEO optimization:</strong> Continue to improve your search engine visibility</li>
+              <li><strong>Backup & maintenance:</strong> Regular updates and security checks</li>
+            </ol>
+          </div>
+        </div>
+
+        <div class="section">
+          <span class="label">🛠️ Need Help?</span>
+          <div class="value">
+            If you need any assistance with your website, have questions about updates, or want to discuss additional features, 
+            don't hesitate to reach out. We're here to support your online success!
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>Congratulations again on your new website launch! 🎉</p>
+        <p>Customer Flows Dashboard • ${new Date().toLocaleDateString()}</p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const text = `
+🚀 Your Website is Live!
+
+Congratulations ${data.customerName || 'there'}!
+
+We're thrilled to announce that your website for ${data.businessName || 'your business'} is now live and accessible to the world!
+
+Your Live Website:
+${data.websiteUrl}
+
+What's Next:
+1. Share your website: Spread the word on social media and with your network
+2. Monitor performance: Keep track of visitors and engagement  
+3. Update content: Keep your website fresh with regular updates
+4. SEO optimization: Continue to improve your search engine visibility
+5. Backup & maintenance: Regular updates and security checks
+
+Need Help?
+If you need any assistance with your website, have questions about updates, or want to discuss additional features, don't hesitate to reach out. We're here to support your online success!
+
+Congratulations again on your new website launch! 🎉
+
+Generated on: ${new Date().toLocaleString()}
+  `;
+
+  return { subject, html, text };
+}
+
 export async function sendKickoffNotificationEmail(customerData: CustomerKickoffData) {
   try {
     const { subject, html, text } = generateKickoffCompletionEmail(customerData);
@@ -555,6 +797,104 @@ export async function sendPaymentCompletionEmail(data: PaymentCompletionData) {
     }
   } catch (error) {
     console.error('Failed to send payment completion email:', error);
+    throw error;
+  }
+}
+
+export async function sendDemoReadyEmail(data: DemoReadyData) {
+  try {
+    const { subject, html, text } = generateDemoReadyEmail(data);
+
+    console.log('Sending demo ready notification to admin...');
+
+    // Try API route first
+    try {
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:3000';
+
+      const response = await fetch(`${baseUrl}/api/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: process.env.ADMIN_EMAIL || 'sagertim02@gmail.com',
+          subject,
+          html,
+          text,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API route failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Demo ready email sent successfully via API route:', result);
+      return { status: 'OK', message: 'Email sent successfully', result };
+    } catch (apiError) {
+      console.log('API route failed, trying direct Resend fallback...');
+      
+      // Fallback to direct Resend call
+      return await sendEmailViaResend({ 
+        subject, 
+        html, 
+        text, 
+        customerData: {} // Empty object since we don't need customer data here
+      });
+    }
+  } catch (error) {
+    console.error('Failed to send demo ready email:', error);
+    throw error;
+  }
+}
+
+export async function sendWebsiteLaunchEmail(data: WebsiteLaunchData) {
+  try {
+    const { subject, html, text } = generateWebsiteLaunchEmail(data);
+
+    console.log('Sending website launch notification to admin...');
+
+    // Try API route first
+    try {
+      const baseUrl = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.VERCEL_URL 
+          ? `https://${process.env.VERCEL_URL}` 
+          : 'http://localhost:3000';
+
+      const response = await fetch(`${baseUrl}/api/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: process.env.ADMIN_EMAIL || 'sagertim02@gmail.com',
+          subject,
+          html,
+          text,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`API route failed: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('Website launch email sent successfully via API route:', result);
+      return { status: 'OK', message: 'Email sent successfully', result };
+    } catch (apiError) {
+      console.log('API route failed, trying direct Resend fallback...');
+      
+      // Fallback to direct Resend call
+      return await sendEmailViaResend({ 
+        subject, 
+        html, 
+        text, 
+        customerData: {} // Empty object since we don't need customer data here
+      });
+    }
+  } catch (error) {
+    console.error('Failed to send website launch email:', error);
     throw error;
   }
 }

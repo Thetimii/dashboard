@@ -82,8 +82,8 @@ export async function POST(request: NextRequest) {
 
     // Send email to customer
     const emailResult = await sendDemoReadyEmail({
-      userEmail: userData.user.email,
-      userName: userData.user.user_metadata?.full_name || userData.user.email,
+      customerEmail: userData.user.email,
+      customerName: userData.user.user_metadata?.full_name || userData.user.email,
       businessName: businessName,
       option1Url: demoData.option_1_url,
       option2Url: demoData.option_2_url,
