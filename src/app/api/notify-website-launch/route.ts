@@ -78,10 +78,11 @@ export async function POST(request: NextRequest) {
 
     // Send email to customer
     const emailResult = await sendWebsiteLaunchEmail({
-      userEmail: userData.user.email,
-      userName: userData.user.user_metadata?.full_name || userData.user.email,
+      customerEmail: userData.user.email,
+      customerName: userData.user.user_metadata?.full_name || userData.user.email,
       businessName: businessName,
-      finalUrl: projectData.final_url,
+      websiteUrl: projectData.final_url,
+      launchedAt: new Date().toISOString(),
     })
 
     console.log('Website launch email sent successfully to customer')
