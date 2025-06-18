@@ -1,5 +1,9 @@
 export type Database = {
   public: {
+    Enums: {
+      project_status_enum: 'not_touched' | 'in_progress' | 'complete' | 'live'
+      payment_status_enum: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+    }
     Tables: {
       user_profiles: {
         Row: {
@@ -66,21 +70,21 @@ export type Database = {
         Row: {
           id: string
           user_id: string
-          status: 'not_touched' | 'in_progress' | 'complete' | 'live'
+          status: Database['public']['Enums']['project_status_enum']
           updated_at: string
           final_url: string | null
         }
         Insert: {
           id?: string
           user_id: string
-          status: 'not_touched' | 'in_progress' | 'complete' | 'live'
+          status?: Database['public']['Enums']['project_status_enum']
           updated_at?: string
           final_url?: string | null
         }
         Update: {
           id?: string
           user_id?: string
-          status?: 'not_touched' | 'in_progress' | 'complete' | 'live'
+          status?: Database['public']['Enums']['project_status_enum']
           updated_at?: string
           final_url?: string | null
         }
@@ -122,7 +126,7 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           amount: number | null
-          status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          status: Database['public']['Enums']['payment_status_enum']
           cancelled_at: string | null
           cancellation_scheduled_at: string | null
           created_at: string
@@ -134,7 +138,7 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           amount?: number | null
-          status: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          status: Database['public']['Enums']['payment_status_enum']
           cancelled_at?: string | null
           cancellation_scheduled_at?: string | null
           created_at?: string
@@ -146,7 +150,7 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           amount?: number | null
-          status?: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+          status?: Database['public']['Enums']['payment_status_enum']
           cancelled_at?: string | null
           cancellation_scheduled_at?: string | null
           created_at?: string
@@ -157,9 +161,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
-    }
-    Enums: {
       [_ in never]: never
     }
   }
