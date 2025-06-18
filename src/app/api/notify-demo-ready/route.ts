@@ -35,20 +35,23 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ User found:', userData.user.email)
 
-    // Fetch demo links with simple query
-    const { data: demoData, error: demoError } = await supabaseAdmin
+    // Fetch demo links - get the most recent one if multiple exist
+    const { data: demoDataArray, error: demoError } = await supabaseAdmin
       .from('demo_links')
       .select('*')
       .eq('user_id', userId)
-      .single()
+      .order('id', { ascending: false })
+      .limit(1)
 
-    if (demoError) {
-      console.error('❌ Demo links error:', demoError.message)
+    if (demoError || !demoDataArray || demoDataArray.length === 0) {
+      console.error('❌ Demo links error:', demoError?.message || 'No demo links found')
       return NextResponse.json(
-        { error: 'Demo links not found: ' + demoError.message },
+        { error: 'Demo links not found: ' + (demoError?.message || 'No demo links found') },
         { status: 404 }
       )
     }
+
+    const demoData = demoDataArray[0]
 
     console.log('✅ Demo data found:', {
       option1: demoData.option_1_url ? 'PRESENT' : 'MISSING',
