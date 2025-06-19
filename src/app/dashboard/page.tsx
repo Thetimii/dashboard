@@ -40,6 +40,7 @@ export default function DashboardPage() {
   const [demoLinks, setDemoLinks] = useState<DemoLinks | null>(null)
   const [paymentStatus, setPaymentStatus] = useState<any>(null)
   const [customerDetails, setCustomerDetails] = useState<any>(null)
+  const [questionnaireStatus, setQuestionnaireStatus] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [approving, setApproving] = useState(false)
   const [refreshingTracker, setRefreshingTracker] = useState(false)
@@ -125,6 +126,28 @@ export default function DashboardPage() {
     }
   }, [user])
 
+  const fetchQuestionnaireStatus = useCallback(async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from('followup_questionnaires')
+        .select('completed, created_at')
+        .eq('user_id', user.id)
+        .single()
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching questionnaire status:', error)
+        return
+      }
+
+      setQuestionnaireStatus(data)
+    } catch (error) {
+      console.error('Error fetching questionnaire status:', error)
+      setQuestionnaireStatus(null)
+    }
+  }, [user, supabase])
+
   // NOTE: Demo ready emails are now handled by database triggers
   // when demo URLs are actually added, not when users visit the page
 
@@ -134,6 +157,7 @@ export default function DashboardPage() {
     // Minimum loading time for better UX
     await Promise.all([
       fetchProjectStatus(),
+      fetchQuestionnaireStatus(),
       new Promise(resolve => setTimeout(resolve, 800))
     ])
     setRefreshingTracker(false)
@@ -221,13 +245,13 @@ export default function DashboardPage() {
         setPaymentStatus(paymentRecord)
         
         // Redirect to Stripe payment with payment ID and user email
-        redirectToStripePayment(paymentRecord.id, user.email)
+        await redirectToStripePayment(paymentRecord.id, user.email)
       } else if (existingPayment.status === 'completed') {
         // Payment already completed, just refresh the demo links
         await fetchDemoLinks()
       } else if (existingPayment.status === 'pending') {
         // Payment is pending, redirect to Stripe again with email
-        redirectToStripePayment(existingPayment.id, user.email)
+        await redirectToStripePayment(existingPayment.id, user.email)
       }
 
     } catch (error) {
@@ -268,13 +292,21 @@ export default function DashboardPage() {
         fetchProjectStatus(),
         fetchDemoLinks(),
         fetchPaymentStatus(),
-        fetchCustomerDetails()
+        fetchCustomerDetails(),
+        fetchQuestionnaireStatus()
       ])
       setLoading(false)
     }
 
-    loadData()
-  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails])
+    loadData().then(() => {
+      // Check if user has paid but hasn't completed questionnaire
+      if (paymentStatus?.status === 'completed' && !questionnaireStatus?.completed) {
+        console.log('Payment completed but questionnaire not filled, redirecting to questionnaire...')
+        router.push('/followupquestions')
+        return
+      }
+    })
+  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails, fetchQuestionnaireStatus, paymentStatus, questionnaireStatus])
 
   if (loading || authLoading) {
     return (
@@ -390,6 +422,68 @@ export default function DashboardPage() {
                   </p>
                 </div>
               )}
+
+              {/* Questionnaire Status Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">
+                  Nachfrage-Fragebogen
+                </h3>
+                
+                {paymentStatus?.status === 'completed' ? (
+                  questionnaireStatus?.completed ? (
+                    <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4">
+                      <div className="flex items-center mb-2">
+                        <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+                        <span className="font-semibold text-green-600 dark:text-green-400 font-inter">
+                          Abgeschlossen
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">
+                        Du hast den Nachfrage-Fragebogen erfolgreich ausgefüllt.
+                      </p>
+                      {questionnaireStatus.created_at && (
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-inter">
+                          Ausgefüllt am: {new Date(questionnaireStatus.created_at).toLocaleDateString('de-DE')}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="flex items-center mb-2">
+                            <ClockIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+                            <span className="font-semibold text-yellow-600 dark:text-yellow-400 font-inter">
+                              Ausstehend
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">
+                            Bitte fülle den Nachfrage-Fragebogen aus, um uns zusätzliche Details zu deinem Projekt zu geben.
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => router.push('/followupquestions')}
+                          className="ml-4 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-xl hover:from-yellow-600 hover:to-orange-600 transition-all duration-300 font-inter font-semibold whitespace-nowrap"
+                        >
+                          Jetzt ausfüllen
+                        </button>
+                      </div>
+                    </div>
+                  )
+                ) : (
+                  <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <ExclamationCircleIcon className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
+                      <span className="font-semibold text-gray-600 dark:text-gray-400 font-inter">
+                        Nicht verfügbar
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">
+                      Der Nachfrage-Fragebogen wird nach erfolgreichem Abschluss der Zahlung verfügbar.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           </motion.div>
         )

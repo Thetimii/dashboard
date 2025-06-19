@@ -160,6 +160,134 @@ export type Database = {
           created_at?: string
         }
       }
+      followup_questionnaires: {
+        Row: {
+          id: string
+          user_id: string
+          created_at: string
+          updated_at: string
+          completed: boolean
+          core_business: string | null
+          revenue_generation: string | null
+          secondary_revenue: string | null
+          long_term_revenue: string | null
+          unique_selling_points: string | null
+          customer_choice_reasons: string | null
+          problems_solved: string | null
+          trust_building: string | null
+          potential_objections: string | null
+          main_competitors: string | null
+          competitor_strengths: string | null
+          target_group_demographics: string | null
+          target_group_needs: string | null
+          service_subpages: boolean
+          service_subpages_details: string | null
+          existing_content: boolean
+          existing_content_details: string | null
+          required_functions: string[] | null
+          ecommerce_needed: boolean
+          blog_needed: boolean
+          newsletter_needed: boolean
+          member_area_needed: boolean
+          social_media_needed: boolean
+          whatsapp_chat_needed: boolean
+          appointment_booking: boolean
+          appointment_tool: string | null
+          existing_seo_keywords: string | null
+          google_analytics_needed: boolean
+          desired_domain: string | null
+          privacy_policy_exists: boolean
+          privacy_policy_creation_needed: boolean
+          company_address: string | null
+          company_phone: string | null
+          company_email: string | null
+          vat_id: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          created_at?: string
+          updated_at?: string
+          completed?: boolean
+          core_business?: string | null
+          revenue_generation?: string | null
+          secondary_revenue?: string | null
+          long_term_revenue?: string | null
+          unique_selling_points?: string | null
+          customer_choice_reasons?: string | null
+          problems_solved?: string | null
+          trust_building?: string | null
+          potential_objections?: string | null
+          main_competitors?: string | null
+          competitor_strengths?: string | null
+          target_group_demographics?: string | null
+          target_group_needs?: string | null
+          service_subpages?: boolean
+          service_subpages_details?: string | null
+          existing_content?: boolean
+          existing_content_details?: string | null
+          required_functions?: string[] | null
+          ecommerce_needed?: boolean
+          blog_needed?: boolean
+          newsletter_needed?: boolean
+          member_area_needed?: boolean
+          social_media_needed?: boolean
+          whatsapp_chat_needed?: boolean
+          appointment_booking?: boolean
+          appointment_tool?: string | null
+          existing_seo_keywords?: string | null
+          google_analytics_needed?: boolean
+          desired_domain?: string | null
+          privacy_policy_exists?: boolean
+          privacy_policy_creation_needed?: boolean
+          company_address?: string | null
+          company_phone?: string | null
+          company_email?: string | null
+          vat_id?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+          completed?: boolean
+          core_business?: string | null
+          revenue_generation?: string | null
+          secondary_revenue?: string | null
+          long_term_revenue?: string | null
+          unique_selling_points?: string | null
+          customer_choice_reasons?: string | null
+          problems_solved?: string | null
+          trust_building?: string | null
+          potential_objections?: string | null
+          main_competitors?: string | null
+          competitor_strengths?: string | null
+          target_group_demographics?: string | null
+          target_group_needs?: string | null
+          service_subpages?: boolean
+          service_subpages_details?: string | null
+          existing_content?: boolean
+          existing_content_details?: string | null
+          required_functions?: string[] | null
+          ecommerce_needed?: boolean
+          blog_needed?: boolean
+          newsletter_needed?: boolean
+          member_area_needed?: boolean
+          social_media_needed?: boolean
+          whatsapp_chat_needed?: boolean
+          appointment_booking?: boolean
+          appointment_tool?: string | null
+          existing_seo_keywords?: string | null
+          google_analytics_needed?: boolean
+          desired_domain?: string | null
+          privacy_policy_exists?: boolean
+          privacy_policy_creation_needed?: boolean
+          company_address?: string | null
+          company_phone?: string | null
+          company_email?: string | null
+          vat_id?: string | null
+        }
+      }
     }
     Views: {
       [_ in never]: never

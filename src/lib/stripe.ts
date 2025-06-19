@@ -75,26 +75,59 @@ export async function updatePaymentStatus(paymentId: string, status: 'completed'
   return data
 }
 
-export function redirectToStripePayment(paymentId?: string, userEmail?: string) {
-  // Add payment ID and email as query parameters for tracking
-  let url = STRIPE_PAYMENT_URL
-  
-  const params = new URLSearchParams()
-  
-  if (paymentId) {
-    params.append('client_reference_id', paymentId)
+export async function redirectToStripePayment(paymentId?: string, userEmail?: string) {
+  try {
+    console.log('Creating checkout session for payment:', { paymentId, userEmail })
+    
+    const response = await fetch('/api/create-checkout-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        payment_id: paymentId,
+        user_email: userEmail,
+        success_url: `${window.location.origin}/followupquestions`,
+        cancel_url: `${window.location.origin}/dashboard`
+      }),
+    })
+
+    console.log('Checkout session response status:', response.status)
+
+    if (!response.ok) {
+      const errorData = await response.json()
+      console.error('Checkout session error:', errorData)
+      throw new Error(errorData.error || `Failed to create checkout session: ${response.status}`)
+    }
+
+    const { url } = await response.json()
+    console.log('Redirecting to checkout:', url)
+    
+    // Redirect to the Stripe checkout
+    window.location.href = url
+  } catch (error) {
+    console.error('Error creating checkout session:', error)
+    
+    // Fallback to the old payment link if checkout session creation fails
+    console.log('Falling back to direct payment link')
+    let fallbackUrl = STRIPE_PAYMENT_URL
+    
+    const params = new URLSearchParams()
+    
+    if (paymentId) {
+      params.append('client_reference_id', paymentId)
+    }
+    
+    if (userEmail) {
+      params.append('prefilled_email', userEmail)
+    }
+    
+    if (params.toString()) {
+      fallbackUrl += '?' + params.toString()
+    }
+    
+    window.location.href = fallbackUrl
   }
-  
-  if (userEmail) {
-    // Pre-fill and lock the email in Stripe checkout
-    params.append('prefilled_email', userEmail)
-  }
-  
-  if (params.toString()) {
-    url += '?' + params.toString()
-  }
-  
-  window.location.href = url
 }
 
 export async function getCustomerDetails(userId: string) {
