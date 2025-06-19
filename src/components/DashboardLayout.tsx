@@ -136,6 +136,15 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
               <ChatBubbleLeftRightIcon className="w-4 h-4" />
               <span>+41 78 446 2524</span>
             </a>
+            {process.env.NODE_ENV === 'development' && (
+              <a
+                href="/database-debug"
+                className="inline-flex items-center space-x-2 text-blue-600 hover:text-blue-700 transition-colors text-xs font-inter"
+              >
+                <Cog6ToothIcon className="w-4 h-4" />
+                <span>Database Debug</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

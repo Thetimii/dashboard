@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { CheckCircleIcon, ArrowLeftIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { followupQuestionnaireSchema, type FollowupQuestionnaireData } from '@/lib/validations'
@@ -80,15 +80,27 @@ export default function FollowupQuestionsPage() {
       }
 
       // Check if questionnaire already completed
-      const { data: existingQuestionnaire, error: questionnaireError } = await supabase
-        .from('followup_questionnaires')
-        .select('id, completed')
-        .eq('user_id', user.id)
-        .single()
+      try {
+        const { data: existingQuestionnaire, error: questionnaireError } = await supabase
+          .from('followup_questionnaires')
+          .select('id, completed')
+          .eq('user_id', user.id)
+          .single()
 
-      if (existingQuestionnaire?.completed) {
-        setSubmitted(true)
-        return
+        if (questionnaireError) {
+          // If table doesn't exist (406 error), log it but continue
+          if (questionnaireError.code === 'PGRST116' || questionnaireError.message?.includes('relation') || questionnaireError.message?.includes('table')) {
+            console.warn('Questionnaire table not found - this may be expected in development:', questionnaireError)
+          } else {
+            console.error('Error checking questionnaire status:', questionnaireError)
+          }
+        } else if (existingQuestionnaire?.completed) {
+          setSubmitted(true)
+          return
+        }
+      } catch (error) {
+        console.error('Error accessing questionnaire table:', error)
+        // Continue with the flow even if we can't check existing questionnaire
       }
 
       // Fetch kickoff data for prefilling
@@ -166,31 +178,57 @@ export default function FollowupQuestionsPage() {
       }
 
       // Check if questionnaire exists and update, otherwise insert
-      const { data: existingQuestionnaire } = await supabase
-        .from('followup_questionnaires')
-        .select('id')
-        .eq('user_id', user.id)
-        .single()
-
-      if (existingQuestionnaire) {
-        const { error } = await supabase
+      try {
+        const { data: existingQuestionnaire } = await supabase
           .from('followup_questionnaires')
-          .update(questionnaireData)
-          .eq('id', existingQuestionnaire.id)
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
 
-        if (error) throw error
-      } else {
-        const { error } = await supabase
-          .from('followup_questionnaires')
-          .insert([questionnaireData])
+        if (existingQuestionnaire) {
+          const { error } = await supabase
+            .from('followup_questionnaires')
+            .update(questionnaireData)
+            .eq('id', existingQuestionnaire.id)
 
-        if (error) throw error
+          if (error) throw error
+        } else {
+          const { error } = await supabase
+            .from('followup_questionnaires')
+            .insert([questionnaireData])
+
+          if (error) throw error
+        }
+
+        setSubmitted(true)
+        
+        // Redirect to dashboard after successful submission
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 2000)
+        
+      } catch (dbError: any) {
+        console.error('Database error:', dbError)
+        
+        // Check if it's a table not found error (406/relation error)
+        if (dbError.message?.includes('relation') || dbError.message?.includes('table') || dbError.code === 'PGRST116') {
+          setError('Die Datenbank-Tabelle wurde noch nicht erstellt. Bitte kontaktiere den Support.')
+        } else {
+          throw dbError
+        }
       }
 
-      setSubmitted(true)
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error saving questionnaire:', error)
-      setError('Fehler beim Speichern des Fragebogens. Bitte versuche es erneut.')
+      
+      // Provide specific error messages
+      if (error.message?.includes('relation') || error.message?.includes('table')) {
+        setError('Die Datenbank-Tabelle für Fragebögen ist noch nicht verfügbar. Bitte kontaktiere den Support.')
+      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
+        setError('Netzwerkfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.')
+      } else {
+        setError('Fehler beim Speichern des Fragebogens. Bitte versuche es erneut oder kontaktiere den Support.')
+      }
     } finally {
       setLoading(false)
     }
@@ -263,6 +301,53 @@ export default function FollowupQuestionsPage() {
             >
               Zurück zum Dashboard
             </button>
+          </div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  // Show error message if there's a database issue
+  if (error && error.includes('Datenbank-Tabelle')) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+        <div className="absolute top-4 right-4">
+          <ThemeToggle />
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md text-center"
+        >
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+              <ExclamationCircleIcon className="w-8 h-8 text-red-600 dark:text-red-400" />
+            </div>
+            
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              Setup in Bearbeitung
+            </h1>
+            
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Die Datenbank-Tabelle für den Nachfrage-Fragebogen wird gerade eingerichtet. Bitte versuche es in einigen Minuten erneut oder kontaktiere den Support.
+            </p>
+            
+            <div className="space-y-3">
+              <button
+                onClick={() => window.location.reload()}
+                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 font-semibold"
+              >
+                Erneut versuchen
+              </button>
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="w-full px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold"
+              >
+                Zurück zum Dashboard
+              </button>
+            </div>
           </div>
         </motion.div>
       </div>

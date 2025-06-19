@@ -34,49 +34,58 @@ export default function ProjectDetailPage() {
     const fetchProject = async () => {
       if (!params.id) return;
 
-      // Fetch kickoff form data
-      const { data: kickoffData, error: kickoffError } = await supabase
-        .from('kickoff_forms')
-        .select(`
-          *,
-          user_profiles!inner(full_name)
-        `)
-        .eq('id', params.id)
-        .single();
+      try {
+        // Fetch kickoff form data first
+        const { data: kickoffData, error: kickoffError } = await supabase
+          .from('kickoff_forms')
+          .select('*')
+          .eq('id', params.id)
+          .single();
 
-      if (kickoffError) {
-        console.error('Error fetching kickoff form:', kickoffError);
+        if (kickoffError) {
+          console.error('Error fetching kickoff form:', kickoffError);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch user profile separately to avoid relationship issues
+        const { data: userProfile } = await supabase
+          .from('user_profiles')
+          .select('full_name')
+          .eq('id', kickoffData.user_id)
+          .single();
+
+        // Fetch project status
+        const { data: statusData } = await supabase
+          .from('project_status')
+          .select('status, final_url')
+          .eq('user_id', kickoffData.user_id)
+          .single();
+
+        // Fetch demo links
+        const { data: demoData } = await supabase
+          .from('demo_links')
+          .select('option_1_url, option_2_url, option_3_url, approved_option')
+          .eq('user_id', kickoffData.user_id)
+          .single();
+
+        const projectDetails: ProjectDetails = {
+          ...kickoffData,
+          full_name: userProfile?.full_name || null,
+          project_status: statusData?.status || null,
+          final_url: statusData?.final_url || null,
+          option_1_url: demoData?.option_1_url || null,
+          option_2_url: demoData?.option_2_url || null,
+          option_3_url: demoData?.option_3_url || null,
+          approved_option: demoData?.approved_option || null,
+        };
+
+        setProject(projectDetails);
+      } catch (error) {
+        console.error('Error fetching project details:', error);
+      } finally {
         setLoading(false);
-        return;
       }
-
-      // Fetch project status
-      const { data: statusData } = await supabase
-        .from('project_status')
-        .select('status, final_url')
-        .eq('user_id', kickoffData.user_id)
-        .single();
-
-      // Fetch demo links
-      const { data: demoData } = await supabase
-        .from('demo_links')
-        .select('option_1_url, option_2_url, option_3_url, approved_option')
-        .eq('user_id', kickoffData.user_id)
-        .single();
-
-      const projectDetails: ProjectDetails = {
-        ...kickoffData,
-        full_name: kickoffData.user_profiles?.full_name || null,
-        project_status: statusData?.status || null,
-        final_url: statusData?.final_url || null,
-        option_1_url: demoData?.option_1_url || null,
-        option_2_url: demoData?.option_2_url || null,
-        option_3_url: demoData?.option_3_url || null,
-        approved_option: demoData?.approved_option || null,
-      };
-
-      setProject(projectDetails);
-      setLoading(false);
     };
 
     fetchProject();
@@ -96,20 +105,30 @@ export default function ProjectDetailPage() {
   if (!project) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <div className="text-red-500 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 18.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project Not Found</h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">The project you're looking for doesn't exist or you don't have permission to view it.</p>
-          <a
-            href="/admin/projects"
-            className="inline-flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
-          >
-            ← Back to Projects
-          </a>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Project Not Found</h1>
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            The project with ID "{params.id}" could not be found or you don't have permission to view it.
+          </p>
+          <div className="space-y-2">
+            <button 
+              onClick={() => window.history.back()}
+              className="w-full px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+            >
+              Go Back
+            </button>
+            <a 
+              href="/database-debug"
+              className="block w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors"
+            >
+              Debug Database
+            </a>
+          </div>
         </div>
       </div>
     );

@@ -136,8 +136,22 @@ export default function DashboardPage() {
         .eq('user_id', user.id)
         .single()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
+        // If table doesn't exist or no record found, that's expected
+        if (error.code === 'PGRST116') {
+          setQuestionnaireStatus(null)
+          return
+        }
+        
+        // Log other errors but don't throw
+        if (error.message?.includes('relation') || error.message?.includes('table')) {
+          console.warn('Questionnaire table not found - this may be expected:', error)
+          setQuestionnaireStatus(null)
+          return
+        }
+        
         console.error('Error fetching questionnaire status:', error)
+        setQuestionnaireStatus(null)
         return
       }
 
@@ -299,8 +313,8 @@ export default function DashboardPage() {
     }
 
     loadData().then(() => {
-      // Check if user has paid but hasn't completed questionnaire
-      if (paymentStatus?.status === 'completed' && !questionnaireStatus?.completed) {
+      // Only check questionnaire redirect if we have valid payment and questionnaire status data
+      if (paymentStatus?.status === 'completed' && questionnaireStatus !== undefined && !questionnaireStatus?.completed) {
         console.log('Payment completed but questionnaire not filled, redirecting to questionnaire...')
         router.push('/followupquestions')
         return
@@ -423,6 +437,83 @@ export default function DashboardPage() {
                 </div>
               )}
 
+              {/* Payment Status Section */}
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">
+                  Zahlungsstatus
+                </h3>
+                
+                {paymentStatus ? (
+                  <div className={`p-4 rounded-xl border ${
+                    paymentStatus.status === 'completed' 
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                      : paymentStatus.status === 'pending'
+                      ? 'bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800'
+                      : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center mb-2">
+                          {paymentStatus.status === 'completed' ? (
+                            <CheckCircleIcon className="w-5 h-5 text-green-600 dark:text-green-400 mr-2" />
+                          ) : paymentStatus.status === 'pending' ? (
+                            <ClockIcon className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mr-2" />
+                          ) : (
+                            <ExclamationCircleIcon className="w-5 h-5 text-red-600 dark:text-red-400 mr-2" />
+                          )}
+                          <span className={`font-semibold ${
+                            paymentStatus.status === 'completed' 
+                              ? 'text-green-600 dark:text-green-400'
+                              : paymentStatus.status === 'pending'
+                              ? 'text-yellow-600 dark:text-yellow-400'
+                              : 'text-red-600 dark:text-red-400'
+                          } font-inter`}>
+                            {paymentStatus.status === 'completed' ? 'Bezahlt' :
+                             paymentStatus.status === 'pending' ? 'Ausstehend' : 'Fehlgeschlagen'}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">
+                          {paymentStatus.status === 'completed' 
+                            ? 'Deine Zahlung wurde erfolgreich verarbeitet.'
+                            : paymentStatus.status === 'pending'
+                            ? 'Deine Zahlung wird noch verarbeitet.'
+                            : 'Bei deiner Zahlung ist ein Fehler aufgetreten.'
+                          }
+                          {paymentStatus.amount && (
+                            <span className="ml-1">({paymentStatus.amount} CHF)</span>
+                          )}
+                        </p>
+                      </div>
+                      {(paymentStatus.status === 'pending' || paymentStatus.status === 'failed') && (
+                        <button
+                          onClick={async () => {
+                            if (user?.email) {
+                              await redirectToStripePayment(paymentStatus.id, user.email)
+                            }
+                          }}
+                          disabled={approving}
+                          className="ml-4 px-4 py-2 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 font-inter font-semibold whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {approving ? 'Wird verarbeitet...' : 'Zahlung fortsetzen'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl p-4">
+                    <div className="flex items-center mb-2">
+                      <ExclamationCircleIcon className="w-5 h-5 text-gray-600 dark:text-gray-400 mr-2" />
+                      <span className="font-semibold text-gray-600 dark:text-gray-400 font-inter">
+                        Keine Zahlung erforderlich
+                      </span>
+                    </div>
+                    <p className="text-sm text-gray-700 dark:text-gray-300 font-inter">
+                      Bitte wähle eine Demo aus, um mit der Zahlung fortzufahren.
+                    </p>
+                  </div>
+                )}
+              </div>
+
               {/* Questionnaire Status Section */}
               <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 font-inter">
@@ -533,38 +624,6 @@ export default function DashboardPage() {
                 </div>
               ) : demoLinks && (demoLinks.option_1_url || demoLinks.option_2_url || demoLinks.option_3_url) ? (
                 <div className="space-y-6">
-                  {/* Payment Status Section */}
-                  {paymentStatus && (
-                    <div className={`p-4 rounded-xl border ${
-                      paymentStatus.status === 'completed' 
-                        ? 'bg-green-50 border-green-200'
-                        : paymentStatus.status === 'pending'
-                        ? 'bg-yellow-50 border-yellow-200'
-                        : 'bg-red-50 border-red-200'
-                    }`}>
-                      <div className="flex items-center space-x-2">
-                        <span className="text-sm font-medium text-gray-700 font-inter">
-                          Zahlungsstatus: 
-                        </span>
-                        <span className={`text-sm font-semibold ${
-                          paymentStatus.status === 'completed' 
-                            ? 'text-green-600'
-                            : paymentStatus.status === 'pending'
-                            ? 'text-yellow-600'
-                            : 'text-red-600'
-                        }`}>
-                          {paymentStatus.status === 'completed' ? 'Abgeschlossen' :
-                           paymentStatus.status === 'pending' ? 'Ausstehend' : 'Fehlgeschlagen'}
-                        </span>
-                        {paymentStatus.amount && (
-                          <span className="text-sm text-gray-600 font-inter">
-                            ({paymentStatus.amount} CHF)
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
                   <p className="text-gray-700 dark:text-gray-300 font-inter">
                     Überprüfe die Demo-Optionen unten und genehmige deine Lieblingsoption, um mit dem finalen Projekt fortzufahren.
                   </p>
