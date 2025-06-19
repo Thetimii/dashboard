@@ -97,6 +97,7 @@ export default function FollowupQuestionsPage() {
           // If table doesn't exist (406 error), log it but continue
           if (questionnaireError.code === 'PGRST116' || questionnaireError.message?.includes('relation') || questionnaireError.message?.includes('table') || questionnaireError.status === 406) {
             console.warn('Questionnaire table not found - this may be expected in development:', questionnaireError)
+            // Table doesn't exist, continue to allow form submission
           } else {
             console.error('Error checking questionnaire status:', questionnaireError)
           }
@@ -110,15 +111,16 @@ export default function FollowupQuestionsPage() {
       }
 
       // Fetch kickoff data for prefilling
-      const { data: kickoffData, error: kickoffError } = await supabase
-        .from('kickoff_forms')
-        .select('business_name, business_description, special_requests')
-        .eq('user_id', user.id)
-        .single()
+      try {
+        const { data: kickoffData, error: kickoffError } = await supabase
+          .from('kickoff_forms')
+          .select('business_name, business_description, special_requests')
+          .eq('user_id', user.id)
+          .single()
 
-      if (!kickoffError && kickoffData) {
-        // Prefill form with kickoff data
-        if (kickoffData.business_description) {
+        if (!kickoffError && kickoffData) {
+          // Prefill form with kickoff data
+          if (kickoffData.business_description) {
           setValue('coreBusiness', kickoffData.business_description)
         }
         

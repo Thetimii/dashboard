@@ -304,39 +304,43 @@ export default function DashboardPage() {
     }
 
     const loadData = async () => {
-      await Promise.all([
-        checkKickoffCompletion(),
-        fetchProjectStatus(),
-        fetchDemoLinks(),
-        fetchPaymentStatus(),
-        fetchCustomerDetails(),
-        fetchQuestionnaireStatus()
-      ])
-      setLoading(false)
+      try {
+        await Promise.all([
+          checkKickoffCompletion(),
+          fetchProjectStatus(),
+          fetchDemoLinks(),
+          fetchPaymentStatus(),
+          fetchCustomerDetails(),
+          fetchQuestionnaireStatus()
+        ])
+      } catch (error) {
+        console.error('Error loading dashboard data:', error)
+        // Continue loading even if some data fails
+      } finally {
+        setLoading(false)
+      }
     }
 
-    loadData().then(() => {
-      // More robust access control logic
-      const hasCompletedPayment = paymentStatus?.status === 'completed'
-      const hasCompletedQuestionnaire = questionnaireStatus?.completed === true
-      
-      // Allow access if:
-      // 1. No payment required yet (user hasn't started payment flow)
-      // 2. Payment completed AND questionnaire completed
-      // 3. User is in the middle of the flow (let them access dashboard to see status)
-      
-      // Only redirect to questionnaire if payment is definitely completed but questionnaire is definitely not completed
-      if (hasCompletedPayment && questionnaireStatus !== null && questionnaireStatus !== undefined && !hasCompletedQuestionnaire) {
-        console.log('Payment completed but questionnaire not filled, redirecting to questionnaire...')
-        router.push('/followupquestions')
-        return
-      }
-      
-      // If we can't determine status due to API errors, allow dashboard access
-      // This prevents users from being locked out due to 406 errors
-      console.log('Dashboard access granted - Payment status:', paymentStatus?.status, 'Questionnaire completed:', questionnaireStatus?.completed)
-    })
-  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails, fetchQuestionnaireStatus, paymentStatus, questionnaireStatus])
+    loadData()
+  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails, fetchQuestionnaireStatus])
+
+  // Separate useEffect for handling redirect logic to prevent infinite loops
+  useEffect(() => {
+    if (loading || authLoading || !user) return
+    
+    // Only check redirect logic after initial data load is complete
+    const hasCompletedPayment = paymentStatus?.status === 'completed'
+    const hasCompletedQuestionnaire = questionnaireStatus?.completed === true
+    
+    // Only redirect to questionnaire if payment is definitely completed but questionnaire is definitely not completed
+    if (hasCompletedPayment && questionnaireStatus !== null && questionnaireStatus !== undefined && !hasCompletedQuestionnaire) {
+      console.log('Payment completed but questionnaire not filled, redirecting to questionnaire...')
+      router.push('/followupquestions')
+      return
+    }
+    
+    console.log('Dashboard access granted - Payment status:', paymentStatus?.status, 'Questionnaire completed:', questionnaireStatus?.completed)
+  }, [loading, authLoading, user, paymentStatus?.status, questionnaireStatus?.completed, router])
 
   if (loading || authLoading) {
     return (
