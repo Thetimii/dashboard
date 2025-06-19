@@ -142,7 +142,7 @@ const ProjectList = ({ filters }: Props) => {
           </thead>
           <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
             {projects.map((project) => (
-              <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-750">
+              <tr key={project.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 {/* Client Info */}
                 <td className="px-4 py-4">
                   <div className="space-y-1">
