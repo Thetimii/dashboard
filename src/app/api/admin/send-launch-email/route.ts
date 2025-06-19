@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase'
+import { createClient } from '@supabase/supabase-js'
 import { sendWebsiteLaunchEmail } from '@/lib/email'
 
-const supabaseAdmin = createClient()
+// Use service role for server-side operations
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function GET(request: NextRequest) {
   try {
@@ -54,9 +58,19 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Manual website launch email trigger called')
     
-    const { userId } = await request.json()
+    // Add basic authentication check
+    const authHeader = request.headers.get('authorization')
+    if (authHeader) {
+      console.log('Auth header present:', authHeader?.substring(0, 20) + '...')
+    } else {
+      console.log('⚠️ No auth header - proceeding without auth check')
+    }
+    
+    const body = await request.json()
+    const { userId } = body
 
     if (!userId) {
+      console.log('❌ Missing userId in request body')
       return NextResponse.json(
         { error: 'User ID is required' },
         { status: 400 }
@@ -64,6 +78,29 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('🚀 Processing website launch email for user:', userId)
+
+    // Test Supabase connection first
+    try {
+      const { data: testData, error: testError } = await supabaseAdmin
+        .from('project_status')
+        .select('id')
+        .limit(1)
+      
+      if (testError) {
+        console.error('❌ Supabase connection test failed:', testError)
+        return NextResponse.json(
+          { error: 'Database connection failed', details: testError.message },
+          { status: 500 }
+        )
+      }
+      console.log('✅ Supabase connection test passed')
+    } catch (dbError) {
+      console.error('❌ Database connection error:', dbError)
+      return NextResponse.json(
+        { error: 'Database error', details: dbError instanceof Error ? dbError.message : 'Unknown' },
+        { status: 500 }
+      )
+    }
 
     // Get user data
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
