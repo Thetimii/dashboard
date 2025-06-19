@@ -19,26 +19,6 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Processing manual demo ready email for user:', userId)
 
-    // Check if email can be sent
-    const { data: canSend, error: checkError } = await supabaseAdmin
-      .rpc('can_send_demo_email', { target_user_id: userId })
-
-    if (checkError) {
-      console.error('❌ Error checking email eligibility:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check email eligibility: ' + checkError.message },
-        { status: 500 }
-      )
-    }
-
-    if (!canSend) {
-      console.log('⚠️ Email cannot be sent - conditions not met')
-      return NextResponse.json(
-        { error: 'Email cannot be sent. Either demos are not ready or email was already sent for current demo URLs.' },
-        { status: 400 }
-      )
-    }
-
     // Get user data
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
     
@@ -71,6 +51,26 @@ export async function POST(request: NextRequest) {
       option3: demoData.option_3_url ? 'PRESENT' : 'MISSING'
     })
 
+    // Check if all demos are ready
+    const allDemosReady = demoData.option_1_url && demoData.option_2_url && demoData.option_3_url
+
+    if (!allDemosReady) {
+      console.log('⚠️ Not all demo URLs are ready')
+      return NextResponse.json(
+        { 
+          error: 'Not all demo URLs are ready. All 3 demo options must be filled before sending email.',
+          demos: {
+            option1: !!demoData.option_1_url,
+            option2: !!demoData.option_2_url,
+            option3: !!demoData.option_3_url
+          }
+        },
+        { status: 400 }
+      )
+    }
+
+    console.log('✅ All demos ready, proceeding to send email')
+
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
@@ -83,11 +83,9 @@ export async function POST(request: NextRequest) {
       customerEmail: userData.user.email,
       customerName: userData.user.user_metadata?.full_name || userData.user.email,
       businessName: kickoffData?.business_name || null,
-      demoUrls: {
-        option1: demoData.option_1_url,
-        option2: demoData.option_2_url,
-        option3: demoData.option_3_url,
-      },
+      option1Url: demoData.option_1_url,
+      option2Url: demoData.option_2_url,
+      option3Url: demoData.option_3_url,
     })
 
     console.log('📧 Email send result:', emailResult)
