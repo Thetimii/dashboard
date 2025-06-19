@@ -130,6 +130,10 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
           amount: number | null
+          original_amount: number | null
+          discount_amount: number | null
+          promo_code: string | null
+          promo_code_id: string | null
           status: Database['public']['Enums']['payment_status_enum']
           cancelled_at: string | null
           cancellation_scheduled_at: string | null
@@ -142,6 +146,10 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           amount?: number | null
+          original_amount?: number | null
+          discount_amount?: number | null
+          promo_code?: string | null
+          promo_code_id?: string | null
           status: Database['public']['Enums']['payment_status_enum']
           cancelled_at?: string | null
           cancellation_scheduled_at?: string | null
@@ -154,10 +162,61 @@ export type Database = {
           stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           amount?: number | null
+          original_amount?: number | null
+          discount_amount?: number | null
+          promo_code?: string | null
+          promo_code_id?: string | null
           status?: Database['public']['Enums']['payment_status_enum']
           cancelled_at?: string | null
           cancellation_scheduled_at?: string | null
           created_at?: string
+        }
+      }
+      promo_codes: {
+        Row: {
+          id: string
+          code: string
+          description: string | null
+          discount_type: 'percentage' | 'fixed_amount'
+          discount_value: number
+          max_uses: number | null
+          used_count: number
+          valid_from: string
+          valid_until: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+          created_by: string | null
+        }
+        Insert: {
+          id?: string
+          code: string
+          description?: string | null
+          discount_type: 'percentage' | 'fixed_amount'
+          discount_value: number
+          max_uses?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
+        }
+        Update: {
+          id?: string
+          code?: string
+          description?: string | null
+          discount_type?: 'percentage' | 'fixed_amount'
+          discount_value?: number
+          max_uses?: number | null
+          used_count?: number
+          valid_from?: string
+          valid_until?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+          created_by?: string | null
         }
       }
       followup_questionnaires: {

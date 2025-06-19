@@ -61,12 +61,20 @@ export async function POST(request: NextRequest) {
       automatic_tax: {
         enabled: false,
       },
+      // Enable Stripe's native promo code functionality
+      allow_promotion_codes: true,
+      // Add metadata for tracking
+      metadata: {
+        payment_id: payment_id
+      }
     })
 
     console.log('✅ Checkout session created successfully:', {
       sessionId: session.id,
       url: session.url,
-      client_reference_id: session.client_reference_id
+      client_reference_id: session.client_reference_id,
+      amount: '99 CHF',
+      promo_codes_enabled: true
     })
 
     return NextResponse.json({ 

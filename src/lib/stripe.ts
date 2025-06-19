@@ -9,18 +9,43 @@ export const getStripe = () => {
 export const STRIPE_PAYMENT_URL = 'https://buy.stripe.com/cNi00j7ZW5xa9Ln0MG1oI00'
 export const PAYMENT_AMOUNT = 99 // CHF
 
-export async function createPaymentRecord(userId: string, amount: number = PAYMENT_AMOUNT, userEmail?: string) {
+export async function createPaymentRecord(
+  userId: string, 
+  amount: number = PAYMENT_AMOUNT, 
+  userEmail?: string,
+  promoCodeData?: {
+    promoCode: string
+    originalAmount: number
+    discountAmount: number
+    promoCodeId: string
+  }
+) {
   const supabase = createClient()
   
-  console.log('Creating payment record for user:', { userId, userEmail, amount })
+  console.log('Creating payment record for user:', { 
+    userId, 
+    userEmail, 
+    amount, 
+    promoCodeData 
+  })
+  
+  const insertData: any = {
+    user_id: userId,
+    amount: amount,
+    status: 'pending'
+  }
+
+  // Add promo code information if provided
+  if (promoCodeData) {
+    insertData.promo_code = promoCodeData.promoCode
+    insertData.original_amount = promoCodeData.originalAmount
+    insertData.discount_amount = promoCodeData.discountAmount
+    insertData.promo_code_id = promoCodeData.promoCodeId
+  }
   
   const { data, error } = await supabase
     .from('payments')
-    .insert({
-      user_id: userId,
-      amount: amount,
-      status: 'pending'
-    })
+    .insert(insertData)
     .select()
     .single()
   
@@ -75,21 +100,42 @@ export async function updatePaymentStatus(paymentId: string, status: 'completed'
   return data
 }
 
-export async function redirectToStripePayment(paymentId?: string, userEmail?: string) {
+export async function redirectToStripePayment(
+  paymentId?: string, 
+  userEmail?: string,
+  promoCodeData?: {
+    promoCode: string
+    originalAmount: number
+    discountAmount: number
+  }
+) {
   try {
-    console.log('Creating checkout session for payment:', { paymentId, userEmail })
+    console.log('Creating checkout session for payment:', { 
+      paymentId, 
+      userEmail, 
+      promoCodeData 
+    })
+    
+    const requestBody: any = {
+      payment_id: paymentId,
+      user_email: userEmail,
+      success_url: `${window.location.origin}/followupquestions`,
+      cancel_url: `${window.location.origin}/dashboard`
+    }
+
+    // Add promo code data if provided
+    if (promoCodeData) {
+      requestBody.promo_code = promoCodeData.promoCode
+      requestBody.original_amount = promoCodeData.originalAmount
+      requestBody.discount_amount = promoCodeData.discountAmount
+    }
     
     const response = await fetch('/api/create-checkout-session', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        payment_id: paymentId,
-        user_email: userEmail,
-        success_url: `${window.location.origin}/followupquestions`,
-        cancel_url: `${window.location.origin}/dashboard`
-      }),
+      body: JSON.stringify(requestBody),
     })
 
     console.log('Checkout session response status:', response.status)
