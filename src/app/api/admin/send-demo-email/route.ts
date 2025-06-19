@@ -144,6 +144,46 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for duplicate sends - only send if data has changed
+    console.log('🔄 Checking for previous email sends...')
+    const { data: lastEmailSend } = await supabaseAdmin
+      .from('manual_email_sends')
+      .select('trigger_values, sent_at')
+      .eq('user_id', userId)
+      .eq('email_type', 'demo_ready')
+      .order('sent_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (lastEmailSend) {
+      const lastValues = lastEmailSend.trigger_values
+      const currentValues = {
+        option_1_url: demoData.option_1_url,
+        option_2_url: demoData.option_2_url,
+        option_3_url: demoData.option_3_url
+      }
+
+      const hasChanged = (
+        lastValues?.option_1_url !== currentValues.option_1_url ||
+        lastValues?.option_2_url !== currentValues.option_2_url ||
+        lastValues?.option_3_url !== currentValues.option_3_url
+      )
+
+      if (!hasChanged) {
+        console.log('⏸️ Email not sent - demo URLs unchanged since last send')
+        return NextResponse.json({
+          success: false,
+          message: 'Email not sent - demo URLs have not changed since last send',
+          lastSent: lastEmailSend.sent_at,
+          reason: 'No changes detected'
+        }, { status: 400 })
+      }
+
+      console.log('✅ Demo URLs have changed since last send, proceeding...')
+    } else {
+      console.log('✅ No previous email found, proceeding with first send...')
+    }
+
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
@@ -160,6 +200,31 @@ export async function POST(request: NextRequest) {
       option2Url: demoData.option_2_url,
       option3Url: demoData.option_3_url,
     })
+
+    // Record the email send in tracking table to prevent duplicates
+    try {
+      const { error: trackingError } = await supabaseAdmin
+        .from('manual_email_sends')
+        .insert({
+          user_id: userId,
+          email_type: 'demo_ready',
+          sent_by: null, // Could be enhanced to track admin user
+          trigger_values: {
+            option_1_url: demoData.option_1_url,
+            option_2_url: demoData.option_2_url,
+            option_3_url: demoData.option_3_url
+          }
+        })
+      
+      if (trackingError) {
+        console.warn('⚠️ Failed to record email send for tracking:', trackingError)
+        // Don't fail the request, just log the warning
+      } else {
+        console.log('✅ Email send recorded for duplicate prevention')
+      }
+    } catch (trackingError) {
+      console.warn('⚠️ Error recording email send:', trackingError)
+    }
 
     // Simple log
     console.log(`✅ Demo email sent to ${userData.user.email} for ${kickoffData?.business_name || 'project'}`)

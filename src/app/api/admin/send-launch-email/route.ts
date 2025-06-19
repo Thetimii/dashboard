@@ -136,6 +136,44 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check for duplicate sends - only send if data has changed
+    console.log('🔄 Checking for previous launch email sends...')
+    const { data: lastEmailSend } = await supabaseAdmin
+      .from('manual_email_sends')
+      .select('trigger_values, sent_at')
+      .eq('user_id', userId)
+      .eq('email_type', 'website_launch')
+      .order('sent_at', { ascending: false })
+      .limit(1)
+      .single()
+
+    if (lastEmailSend) {
+      const lastValues = lastEmailSend.trigger_values
+      const currentValues = {
+        status: projectData.status,
+        final_url: projectData.final_url || ''
+      }
+
+      const hasChanged = (
+        lastValues?.status !== currentValues.status ||
+        lastValues?.final_url !== currentValues.final_url
+      )
+
+      if (!hasChanged) {
+        console.log('⏸️ Email not sent - project status/URL unchanged since last send')
+        return NextResponse.json({
+          success: false,
+          message: 'Email not sent - project status and URL have not changed since last send',
+          lastSent: lastEmailSend.sent_at,
+          reason: 'No changes detected'
+        }, { status: 400 })
+      }
+
+      console.log('✅ Project data has changed since last send, proceeding...')
+    } else {
+      console.log('✅ No previous launch email found, proceeding with first send...')
+    }
+
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
@@ -151,6 +189,30 @@ export async function POST(request: NextRequest) {
       websiteUrl: projectData.final_url || 'https://yourwebsite.com',
       launchedAt: new Date().toISOString(),
     })
+
+    // Record the email send in tracking table to prevent duplicates
+    try {
+      const { error: trackingError } = await supabaseAdmin
+        .from('manual_email_sends')
+        .insert({
+          user_id: userId,
+          email_type: 'website_launch',
+          sent_by: null, // Could be enhanced to track admin user
+          trigger_values: {
+            status: projectData.status,
+            final_url: projectData.final_url || ''
+          }
+        })
+      
+      if (trackingError) {
+        console.warn('⚠️ Failed to record email send for tracking:', trackingError)
+        // Don't fail the request, just log the warning
+      } else {
+        console.log('✅ Email send recorded for duplicate prevention')
+      }
+    } catch (trackingError) {
+      console.warn('⚠️ Error recording email send:', trackingError)
+    }
 
     // Simple log
     console.log(`✅ Launch email sent to ${userData.user.email} for ${kickoffData?.business_name || 'project'}`)

@@ -33,36 +33,7 @@ export function ManualEmailTrigger({ userId, emailType, projectData }: EmailTrig
     try {
       setLoading(true)
       
-      // Temporary: Check eligibility directly using projectData until database functions are ready
-      if (emailType === 'demo_ready') {
-        const allDemosReady = projectData?.option_1_url && projectData?.option_2_url && projectData?.option_3_url
-        setEligibility({
-          canSend: allDemosReady || false,
-          reason: allDemosReady ? 'All demo URLs are ready' : 'Not all demo URLs are filled',
-          currentData: {
-            option_1_url: projectData?.option_1_url,
-            option_2_url: projectData?.option_2_url,
-            option_3_url: projectData?.option_3_url
-          },
-          lastSent: null,
-          emailType
-        })
-      } else if (emailType === 'website_launch') {
-        const isLive = projectData?.project_status === 'live'
-        setEligibility({
-          canSend: isLive || false,
-          reason: isLive ? 'Project is live' : 'Project status is not set to live',
-          currentData: {
-            status: projectData?.project_status,
-            final_url: projectData?.final_url
-          },
-          lastSent: null,
-          emailType
-        })
-      }
-      
-      // Fallback to API when database functions are ready
-      /*
+      // Use the proper API to check eligibility including duplicate prevention
       const response = await fetch('/api/admin/check-email-eligibility', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -73,9 +44,36 @@ export function ManualEmailTrigger({ userId, emailType, projectData }: EmailTrig
         const data = await response.json()
         setEligibility(data)
       } else {
-        console.error('Failed to check email eligibility')
+        console.error('Failed to check email eligibility, falling back to simple check')
+        
+        // Fallback to simple check if API fails
+        if (emailType === 'demo_ready') {
+          const allDemosReady = projectData?.option_1_url && projectData?.option_2_url && projectData?.option_3_url
+          setEligibility({
+            canSend: allDemosReady || false,
+            reason: allDemosReady ? 'All demo URLs are ready' : 'Not all demo URLs are filled',
+            currentData: {
+              option_1_url: projectData?.option_1_url,
+              option_2_url: projectData?.option_2_url,
+              option_3_url: projectData?.option_3_url
+            },
+            lastSent: null,
+            emailType
+          })
+        } else if (emailType === 'website_launch') {
+          const isLive = projectData?.project_status === 'live'
+          setEligibility({
+            canSend: isLive || false,
+            reason: isLive ? 'Project is live' : 'Project status is not set to live',
+            currentData: {
+              status: projectData?.project_status,
+              final_url: projectData?.final_url
+            },
+            lastSent: null,
+            emailType
+          })
+        }
       }
-      */
     } catch (error) {
       console.error('Error checking email eligibility:', error)
     } finally {
