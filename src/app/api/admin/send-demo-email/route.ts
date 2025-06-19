@@ -4,6 +4,55 @@ import { sendDemoReadyEmail } from '@/lib/email'
 
 const supabaseAdmin = createClient()
 
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url)
+    const userId = url.searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required as query parameter' },
+        { status: 400 }
+      )
+    }
+
+    // Just check demo status without sending email
+    const { data: demoData, error: demoError } = await supabaseAdmin
+      .from('demo_links')
+      .select('option_1_url, option_2_url, option_3_url')
+      .eq('user_id', userId)
+      .single()
+
+    if (demoError || !demoData) {
+      return NextResponse.json({
+        success: false,
+        error: 'Demo links not found',
+        userId
+      })
+    }
+
+    const allDemosReady = demoData.option_1_url && demoData.option_2_url && demoData.option_3_url
+
+    return NextResponse.json({
+      success: true,
+      message: 'Demo email API accessible via GET',
+      userId,
+      allDemosReady,
+      demoUrls: {
+        option1: !!demoData.option_1_url,
+        option2: !!demoData.option_2_url,
+        option3: !!demoData.option_3_url
+      }
+    })
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'API Error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Manual demo ready email trigger called')

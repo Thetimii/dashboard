@@ -4,6 +4,52 @@ import { sendWebsiteLaunchEmail } from '@/lib/email'
 
 const supabaseAdmin = createClient()
 
+export async function GET(request: NextRequest) {
+  try {
+    const url = new URL(request.url)
+    const userId = url.searchParams.get('userId')
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'User ID is required as query parameter' },
+        { status: 400 }
+      )
+    }
+
+    // Just check project status without sending email
+    const { data: projectData, error: projectError } = await supabaseAdmin
+      .from('projects')
+      .select('status, website_url')
+      .eq('user_id', userId)
+      .single()
+
+    if (projectError || !projectData) {
+      return NextResponse.json({
+        success: false,
+        error: 'Project not found',
+        userId
+      })
+    }
+
+    const isLive = projectData.status === 'live'
+
+    return NextResponse.json({
+      success: true,
+      message: 'Launch email API accessible via GET',
+      userId,
+      isLive,
+      status: projectData.status,
+      hasWebsiteUrl: !!projectData.website_url
+    })
+
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'API Error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Manual website launch email trigger called')
