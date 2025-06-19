@@ -58,7 +58,7 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
               Customer Flows
             </h1>
           </div>
-          <div className="lg:hidden">
+          <div className="md:hidden">
             <ThemeToggle />
           </div>
         </div>
@@ -158,7 +158,7 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-900 dark:to-slate-900 flex">
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-xl flex-col border-r border-gray-200 dark:border-gray-700 fixed h-screen z-30">
+      <div className="hidden md:flex w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-xl flex-col border-r border-gray-200 dark:border-gray-700 fixed h-screen z-30">
         <SidebarContent />
       </div>
 
@@ -167,22 +167,22 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
         initial={{ x: '-100%' }}
         animate={{ x: isMenuOpen ? 0 : '-100%' }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 h-full w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-xl flex flex-col border-r border-gray-200 dark:border-gray-700 z-50 lg:hidden"
+        className="fixed top-0 left-0 h-full w-64 bg-white/90 dark:bg-gray-800/90 backdrop-blur-lg shadow-xl flex flex-col border-r border-gray-200 dark:border-gray-700 z-50 md:hidden"
       >
         <SidebarContent />
       </motion.div>
 
       {isMenuOpen && (
         <div 
-          className="fixed inset-0 bg-black/30 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/30 z-40 md:hidden"
           onClick={() => setIsMenuOpen(false)}
         ></div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden lg:ml-64">
+      <div className="flex-1 flex flex-col overflow-hidden md:ml-64">
         {/* Mobile Header */}
-        <div className="lg:hidden p-4 flex items-center justify-between bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20">
+        <div className="md:hidden p-4 flex items-center justify-between bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm sticky top-0 z-20">
           <button onClick={() => setIsMenuOpen(true)} className="p-2">
             <Bars3Icon className="w-6 h-6 text-gray-800 dark:text-white" />
           </button>
