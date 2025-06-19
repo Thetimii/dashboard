@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { ManualEmailTrigger } from '@/components/admin/ManualEmailTrigger';
 
 type ProjectDetails = {
   id: string;
@@ -233,6 +234,23 @@ export default function ProjectDetailPage() {
                   )}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Manual Email Triggers Section */}
+          <div className="mt-8">
+            <h2 className="text-2xl font-semibold mb-6 text-gray-900 dark:text-white">Email Notifications</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ManualEmailTrigger
+                userId={project.user_id}
+                emailType="demo_ready"
+                projectData={project}
+              />
+              <ManualEmailTrigger
+                userId={project.user_id}
+                emailType="website_launch"
+                projectData={project}
+              />
             </div>
           </div>
         </div>
