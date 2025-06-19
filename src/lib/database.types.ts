@@ -3,6 +3,7 @@ export type Database = {
     Enums: {
       project_status_enum: 'not_touched' | 'in_progress' | 'complete' | 'live'
       payment_status_enum: 'pending' | 'completed' | 'failed' | 'cancelled' | 'scheduled_for_cancellation'
+      user_role_enum: 'user' | 'admin'
     }
     Tables: {
       user_profiles: {
@@ -10,16 +11,19 @@ export type Database = {
           id: string
           full_name: string | null
           created_at: string
+          role: Database['public']['Enums']['user_role_enum']
         }
         Insert: {
           id: string
           full_name?: string | null
           created_at?: string
+          role?: Database['public']['Enums']['user_role_enum']
         }
         Update: {
           id?: string
           full_name?: string | null
           created_at?: string
+          role?: Database['public']['Enums']['user_role_enum']
         }
       }
       kickoff_forms: {

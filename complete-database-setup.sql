@@ -33,6 +33,13 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
+-- NEW: User role enum
+DO $$ BEGIN
+    CREATE TYPE user_role_enum AS ENUM ('user', 'admin');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
 -- =============================================================================
 -- 2. CREATE TABLES (IF NOT EXISTS - PRESERVES EXISTING DATA)
 -- =============================================================================
@@ -42,6 +49,8 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
     id uuid NOT NULL,
     full_name text NULL,
     created_at timestamp without time zone NULL DEFAULT now(),
+    -- NEW: Add role to user_profiles
+    role user_role_enum NOT NULL DEFAULT 'user',
     CONSTRAINT user_profiles_pkey PRIMARY KEY (id),
     CONSTRAINT user_profiles_id_fkey FOREIGN KEY (id) REFERENCES auth.users (id)
 ) TABLESPACE pg_default;
@@ -105,6 +114,18 @@ CREATE TABLE IF NOT EXISTS public.demo_links (
     CONSTRAINT demo_links_pkey PRIMARY KEY (id),
     CONSTRAINT demo_links_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users (id)
 ) TABLESPACE pg_default;
+
+-- NEW: Client assignments table
+CREATE TABLE IF NOT EXISTS public.client_assignments (
+    id uuid NOT NULL DEFAULT gen_random_uuid(),
+    admin_id uuid NOT NULL,
+    client_id uuid NOT NULL,
+    created_at timestamp with time zone NOT NULL DEFAULT now(),
+    CONSTRAINT client_assignments_pkey PRIMARY KEY (id),
+    CONSTRAINT client_assignments_admin_id_fkey FOREIGN KEY (admin_id) REFERENCES public.user_profiles(id),
+    CONSTRAINT client_assignments_client_id_fkey FOREIGN KEY (client_id) REFERENCES public.user_profiles(id)
+);
+
 
 -- =============================================================================
 -- 2.5. MIGRATE STATUS COLUMNS TO ENUMS
@@ -192,6 +213,8 @@ ALTER TABLE public.project_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.demo_links ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.website_launch_queue ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_assignments ENABLE ROW LEVEL SECURITY;
+
 
 -- Drop existing policies if they exist (to avoid conflicts)
 DROP POLICY IF EXISTS "Users can view own profile" ON public.user_profiles;
@@ -217,34 +240,72 @@ DROP POLICY IF EXISTS "Users can update own payments" ON public.payments;
 DROP POLICY IF EXISTS "Users can view own launch queue" ON public.website_launch_queue;
 DROP POLICY IF EXISTS "Users can insert own launch queue" ON public.website_launch_queue;
 
+-- NEW: Drop admin policies
+DROP POLICY IF EXISTS "Admins can manage all user profiles" ON public.user_profiles;
+DROP POLICY IF EXISTS "Admins can manage all kickoff forms" ON public.kickoff_forms;
+DROP POLICY IF EXISTS "Admins can manage all project status" ON public.project_status;
+DROP POLICY IF EXISTS "Admins can manage all demo links" ON public.demo_links;
+DROP POLICY IF EXISTS "Admins can manage all payments" ON public.payments;
+DROP POLICY IF EXISTS "Admins can manage all website launch queue" ON public.website_launch_queue;
+DROP POLICY IF EXISTS "Admins can manage client assignments" ON public.client_assignments;
+
+
+-- NEW: Helper function to check for admin role
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS boolean AS $$
+BEGIN
+    RETURN EXISTS (
+        SELECT 1
+        FROM public.user_profiles
+        WHERE id = auth.uid() AND role = 'admin'
+    );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
 -- User profiles policies
 CREATE POLICY "Users can view own profile" ON public.user_profiles FOR SELECT USING (auth.uid() = id);
 CREATE POLICY "Users can update own profile" ON public.user_profiles FOR UPDATE USING (auth.uid() = id);
 CREATE POLICY "Users can insert own profile" ON public.user_profiles FOR INSERT WITH CHECK (auth.uid() = id);
+CREATE POLICY "Admins can manage all user profiles" ON public.user_profiles FOR ALL USING (is_admin());
+
 
 -- Kickoff forms policies
 CREATE POLICY "Users can view own kickoff form" ON public.kickoff_forms FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own kickoff form" ON public.kickoff_forms FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own kickoff form" ON public.kickoff_forms FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all kickoff forms" ON public.kickoff_forms FOR ALL USING (is_admin());
+
 
 -- Project status policies
 CREATE POLICY "Users can view own project status" ON public.project_status FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own project status" ON public.project_status FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own project status" ON public.project_status FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all project status" ON public.project_status FOR ALL USING (is_admin());
+
 
 -- Demo links policies
 CREATE POLICY "Users can view own demo links" ON public.demo_links FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can update own demo links" ON public.demo_links FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own demo links" ON public.demo_links FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all demo links" ON public.demo_links FOR ALL USING (is_admin());
+
 
 -- Payments policies
 CREATE POLICY "Users can view own payments" ON public.payments FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own payments" ON public.payments FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update own payments" ON public.payments FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all payments" ON public.payments FOR ALL USING (is_admin());
+
 
 -- Website launch queue policies
 CREATE POLICY "Users can view own launch queue" ON public.website_launch_queue FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can insert own launch queue" ON public.website_launch_queue FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Admins can manage all website launch queue" ON public.website_launch_queue FOR ALL USING (is_admin());
+
+-- NEW: Client assignments policies
+CREATE POLICY "Admins can manage client assignments" ON public.client_assignments FOR ALL USING (is_admin());
+
 
 -- =============================================================================
 -- 5. ADMIN POLICIES (SERVICE ROLE ACCESS)
@@ -257,6 +318,8 @@ DROP POLICY IF EXISTS "Service role can access all project_status" ON public.pro
 DROP POLICY IF EXISTS "Service role can access all demo_links" ON public.demo_links;
 DROP POLICY IF EXISTS "Service role can access all payments" ON public.payments;
 DROP POLICY IF EXISTS "Service role can access all website_launch_queue" ON public.website_launch_queue;
+DROP POLICY IF EXISTS "Service role can access all client_assignments" ON public.client_assignments;
+
 
 -- Allow service role to access all tables for admin operations and webhooks
 CREATE POLICY "Service role can access all user_profiles" ON public.user_profiles FOR ALL USING (auth.role() = 'service_role');
@@ -265,6 +328,8 @@ CREATE POLICY "Service role can access all project_status" ON public.project_sta
 CREATE POLICY "Service role can access all demo_links" ON public.demo_links FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "Service role can access all payments" ON public.payments FOR ALL USING (auth.role() = 'service_role');
 CREATE POLICY "Service role can access all website_launch_queue" ON public.website_launch_queue FOR ALL USING (auth.role() = 'service_role');
+CREATE POLICY "Service role can access all client_assignments" ON public.client_assignments FOR ALL USING (auth.role() = 'service_role');
+
 
 -- =============================================================================
 -- 6. DEMO READY NOTIFICATION TRIGGER FUNCTION
@@ -426,12 +491,18 @@ GRANT EXECUTE ON FUNCTION get_project_status_values() TO authenticated;
 GRANT EXECUTE ON FUNCTION get_project_status_values() TO service_role;
 GRANT EXECUTE ON FUNCTION get_payment_status_values() TO authenticated;
 GRANT EXECUTE ON FUNCTION get_payment_status_values() TO service_role;
+GRANT EXECUTE ON FUNCTION is_admin() TO authenticated;
+GRANT EXECUTE ON FUNCTION is_admin() TO service_role;
+
 
 -- Grant usage on enum types
 GRANT USAGE ON TYPE project_status_enum TO authenticated;
 GRANT USAGE ON TYPE project_status_enum TO service_role;
 GRANT USAGE ON TYPE payment_status_enum TO authenticated;
 GRANT USAGE ON TYPE payment_status_enum TO service_role;
+GRANT USAGE ON TYPE user_role_enum TO authenticated;
+GRANT USAGE ON TYPE user_role_enum TO service_role;
+
 
 -- Grant usage on all tables to authenticated users
 GRANT USAGE ON SCHEMA public TO authenticated;
@@ -462,10 +533,14 @@ SELECT set_config('app.base_url', 'https://app.customerflows.ch', false);
 -- ✅ Service role access for admin operations and webhooks
 -- ✅ HTTP extension enabled for API calls from triggers
 -- ✅ Helper functions to get valid enum values
+-- ✅ NEW: User roles ('user', 'admin') for access control
+-- ✅ NEW: client_assignments table to link clients to admins
+-- ✅ NEW: RLS policies that grant admins full access
 
 -- ENUM VALUES:
 -- Project Status: 'not_touched', 'in_progress', 'complete', 'live'
 -- Payment Status: 'pending', 'completed', 'failed', 'cancelled', 'scheduled_for_cancellation'
+-- User Roles: 'user', 'admin'
 
 -- IMPORTANT NOTES:
 -- 1. This script is idempotent - safe to run multiple times
