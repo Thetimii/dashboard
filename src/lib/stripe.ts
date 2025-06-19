@@ -109,71 +109,35 @@ export async function redirectToStripePayment(
     discountAmount: number
   }
 ) {
-  try {
-    console.log('Creating checkout session for payment:', { 
-      paymentId, 
-      userEmail, 
-      promoCodeData 
-    })
-    
-    const requestBody: any = {
-      payment_id: paymentId,
-      user_email: userEmail,
-      success_url: `${window.location.origin}/followupquestions`,
-      cancel_url: `${window.location.origin}/dashboard`
-    }
-
-    // Add promo code data if provided
-    if (promoCodeData) {
-      requestBody.promo_code = promoCodeData.promoCode
-      requestBody.original_amount = promoCodeData.originalAmount
-      requestBody.discount_amount = promoCodeData.discountAmount
-    }
-    
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody),
-    })
-
-    console.log('Checkout session response status:', response.status)
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      console.error('Checkout session error:', errorData)
-      throw new Error(errorData.error || `Failed to create checkout session: ${response.status}`)
-    }
-
-    const { url } = await response.json()
-    console.log('Redirecting to checkout:', url)
-    
-    // Redirect to the Stripe checkout
-    window.location.href = url
-  } catch (error) {
-    console.error('Error creating checkout session:', error)
-    
-    // Fallback to the old payment link if checkout session creation fails
-    console.log('Falling back to direct payment link')
-    let fallbackUrl = STRIPE_PAYMENT_URL
-    
-    const params = new URLSearchParams()
-    
-    if (paymentId) {
-      params.append('client_reference_id', paymentId)
-    }
-    
-    if (userEmail) {
-      params.append('prefilled_email', userEmail)
-    }
-    
-    if (params.toString()) {
-      fallbackUrl += '?' + params.toString()
-    }
-    
-    window.location.href = fallbackUrl
+  console.log('Redirecting to Stripe payment link:', { 
+    paymentId, 
+    userEmail, 
+    promoCodeData 
+  })
+  
+  // Use the direct Stripe payment link with parameters
+  let paymentUrl = STRIPE_PAYMENT_URL
+  const params = new URLSearchParams()
+  
+  // Add payment ID for tracking (Stripe will pass this back in webhooks)
+  if (paymentId) {
+    params.append('client_reference_id', paymentId)
   }
+  
+  // Pre-fill customer email
+  if (userEmail) {
+    params.append('prefilled_email', userEmail)
+  }
+  
+  // Note: Promo codes will be handled by Stripe's built-in promo code functionality
+  // The direct payment link already has promotion codes enabled
+  
+  if (params.toString()) {
+    paymentUrl += '?' + params.toString()
+  }
+  
+  console.log('Redirecting to Stripe payment:', paymentUrl)
+  window.location.href = paymentUrl
 }
 
 export async function getCustomerDetails(userId: string) {
