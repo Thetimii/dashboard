@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase';
+import { ManualEmailTrigger } from '@/components/admin/ManualEmailTrigger';
 
 type ProjectStatus = 'not_touched' | 'in_progress' | 'complete' | 'live';
 
@@ -307,6 +308,23 @@ export default function ProjectEditPage() {
               onChange={(e) => setProject({ ...project, option_3_url: e.target.value })}
               className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               placeholder="https://demo3.example.com"
+            />
+          </div>
+        </div>
+
+        {/* Manual Email Triggers Section */}
+        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Email Notifications</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <ManualEmailTrigger
+              userId={project.user_id}
+              emailType="demo_ready"
+              projectData={project}
+            />
+            <ManualEmailTrigger
+              userId={project.user_id}
+              emailType="website_launch"
+              projectData={project}
             />
           </div>
         </div>
