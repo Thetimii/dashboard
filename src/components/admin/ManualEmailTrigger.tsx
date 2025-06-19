@@ -95,10 +95,7 @@ export function ManualEmailTrigger({ userId, emailType, projectData }: EmailTrig
       const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          userId, 
-          adminUserId: user?.id 
-        })
+        body: JSON.stringify({ userId })
       })
 
       const result = await response.json()

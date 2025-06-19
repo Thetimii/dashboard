@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Manual website launch email trigger called')
     
-    const { userId, adminUserId } = await request.json()
+    const { userId } = await request.json()
 
     if (!userId) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    console.log('🚀 Processing manual website launch email for user:', userId)
+    console.log('🚀 Processing website launch email for user:', userId)
 
     // Get user data
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     if (userError || !userData?.user) {
       console.error('❌ User not found:', userError)
       return NextResponse.json(
-        { error: 'User not found: ' + (userError?.message || 'Unknown error') },
+        { error: 'User not found' },
         { status: 404 }
       )
     }
@@ -40,28 +40,18 @@ export async function POST(request: NextRequest) {
     if (projectError || !projectData) {
       console.error('❌ Project status not found:', projectError)
       return NextResponse.json(
-        { error: 'Project status not found: ' + (projectError?.message || 'No project status found') },
+        { error: 'Project status not found' },
         { status: 404 }
       )
     }
 
-    console.log('✅ Project data found:', {
-      status: projectData.status,
-      final_url: projectData.final_url ? 'PRESENT' : 'MISSING'
-    })
-
     // Check if project is live
-    const isLive = projectData?.status === 'live'
-
-    if (!isLive) {
-      console.log('⚠️ Project status is not live:', projectData?.status)
+    if (projectData.status !== 'live') {
       return NextResponse.json(
-        { error: 'Project status is not set to live. Current status: ' + (projectData?.status || 'unknown') },
+        { error: 'Project is not live' },
         { status: 400 }
       )
     }
-
-    console.log('✅ Project is live, proceeding to send email')
 
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
@@ -70,7 +60,7 @@ export async function POST(request: NextRequest) {
       .eq('user_id', userId)
       .single()
 
-    // Send email to customer
+    // Send email directly
     const emailResult = await sendWebsiteLaunchEmail({
       customerEmail: userData.user.email,
       customerName: userData.user.user_metadata?.full_name || userData.user.email,
@@ -79,40 +69,19 @@ export async function POST(request: NextRequest) {
       launchedAt: new Date().toISOString(),
     })
 
-    console.log('📧 Email send result:', emailResult)
-
-    // Temporary: Skip recording email send until database functions are ready
-    /* 
-    const { data: recordId, error: recordError } = await supabaseAdmin
-      .rpc('record_email_send', {
-        target_user_id: userId,
-        email_type_param: 'website_launch',
-        admin_user_id: adminUserId
-      })
-
-    if (recordError) {
-      console.error('⚠️ Failed to record email send:', recordError)
-      // Don't fail the request, email was sent successfully
-    }
-    */
-
-    console.log('✅ Website launch email sent successfully!')
+    // Simple log
+    console.log(`✅ Launch email sent to ${userData.user.email} for ${kickoffData?.business_name || 'project'}`)
 
     return NextResponse.json({
       success: true,
-      message: 'Website launch notification sent to customer',
-      customerEmail: userData.user.email,
-      emailResult: emailResult,
-      recordId: null // Temporarily disabled until database functions are ready
+      message: 'Website launch email sent',
+      customerEmail: userData.user.email
     })
 
   } catch (error: any) {
-    console.error('💥 CRITICAL ERROR:', error)
+    console.error('💥 Error sending launch email:', error)
     return NextResponse.json(
-      { 
-        error: 'Failed to send website launch notification', 
-        details: error.message || 'Unknown error' 
-      },
+      { error: 'Failed to send launch email' },
       { status: 500 }
     )
   }
