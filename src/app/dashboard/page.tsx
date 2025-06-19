@@ -110,6 +110,7 @@ export default function DashboardPage() {
       setPaymentStatus(payment)
     } catch (error) {
       console.error('Error fetching payment status:', error)
+      // If there's a 406 error or table doesn't exist, set to null instead of breaking
       setPaymentStatus(null)
     }
   }, [user])
@@ -137,15 +138,16 @@ export default function DashboardPage() {
         .single()
 
       if (error) {
-        // If table doesn't exist or no record found, that's expected
+        // Handle specific error cases
         if (error.code === 'PGRST116') {
+          // No record found - questionnaire not started
           setQuestionnaireStatus(null)
           return
         }
         
-        // Log other errors but don't throw
-        if (error.message?.includes('relation') || error.message?.includes('table')) {
-          console.warn('Questionnaire table not found - this may be expected:', error)
+        if (error.message?.includes('relation') || error.message?.includes('table') || error.status === 406) {
+          // Table doesn't exist or access denied - don't block user access
+          console.warn('Questionnaire table access issue (may be expected):', error)
           setQuestionnaireStatus(null)
           return
         }
@@ -158,6 +160,7 @@ export default function DashboardPage() {
       setQuestionnaireStatus(data)
     } catch (error) {
       console.error('Error fetching questionnaire status:', error)
+      // On any error, don't block access - set to null
       setQuestionnaireStatus(null)
     }
   }, [user, supabase])
@@ -313,12 +316,25 @@ export default function DashboardPage() {
     }
 
     loadData().then(() => {
-      // Only check questionnaire redirect if we have valid payment and questionnaire status data
-      if (paymentStatus?.status === 'completed' && questionnaireStatus !== undefined && !questionnaireStatus?.completed) {
+      // More robust access control logic
+      const hasCompletedPayment = paymentStatus?.status === 'completed'
+      const hasCompletedQuestionnaire = questionnaireStatus?.completed === true
+      
+      // Allow access if:
+      // 1. No payment required yet (user hasn't started payment flow)
+      // 2. Payment completed AND questionnaire completed
+      // 3. User is in the middle of the flow (let them access dashboard to see status)
+      
+      // Only redirect to questionnaire if payment is definitely completed but questionnaire is definitely not completed
+      if (hasCompletedPayment && questionnaireStatus !== null && questionnaireStatus !== undefined && !hasCompletedQuestionnaire) {
         console.log('Payment completed but questionnaire not filled, redirecting to questionnaire...')
         router.push('/followupquestions')
         return
       }
+      
+      // If we can't determine status due to API errors, allow dashboard access
+      // This prevents users from being locked out due to 406 errors
+      console.log('Dashboard access granted - Payment status:', paymentStatus?.status, 'Questionnaire completed:', questionnaireStatus?.completed)
     })
   }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails, fetchQuestionnaireStatus, paymentStatus, questionnaireStatus])
 
