@@ -121,15 +121,19 @@ export default function FollowupQuestionsPage() {
         if (!kickoffError && kickoffData) {
           // Prefill form with kickoff data
           if (kickoffData.business_description) {
-          setValue('coreBusiness', kickoffData.business_description)
+            setValue('coreBusiness', kickoffData.business_description)
+          }
+          
+          // You can add more prefilling logic here based on the kickoff data
+          // For example, if special_requests contains useful information
+          if (kickoffData.special_requests) {
+            // Could be used for various fields depending on content
+            console.log('Special requests from kickoff:', kickoffData.special_requests)
+          }
         }
-        
-        // You can add more prefilling logic here based on the kickoff data
-        // For example, if special_requests contains useful information
-        if (kickoffData.special_requests) {
-          // Could be used for various fields depending on content
-          console.log('Special requests from kickoff:', kickoffData.special_requests)
-        }
+      } catch (error) {
+        console.error('Error fetching kickoff data:', error)
+        // Continue with the flow even if we can't fetch kickoff data
       }
     } catch (error) {
       console.error('Error checking payment status:', error)
