@@ -19,26 +19,6 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 Processing manual website launch email for user:', userId)
 
-    // Check if email can be sent
-    const { data: canSend, error: checkError } = await supabaseAdmin
-      .rpc('can_send_launch_email', { target_user_id: userId })
-
-    if (checkError) {
-      console.error('❌ Error checking email eligibility:', checkError)
-      return NextResponse.json(
-        { error: 'Failed to check email eligibility: ' + checkError.message },
-        { status: 500 }
-      )
-    }
-
-    if (!canSend) {
-      console.log('⚠️ Email cannot be sent - conditions not met')
-      return NextResponse.json(
-        { error: 'Email cannot be sent. Either project is not live or email was already sent for current status.' },
-        { status: 400 }
-      )
-    }
-
     // Get user data
     const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
     
@@ -70,6 +50,19 @@ export async function POST(request: NextRequest) {
       final_url: projectData.final_url ? 'PRESENT' : 'MISSING'
     })
 
+    // Check if project is live
+    const isLive = projectData?.status === 'live'
+
+    if (!isLive) {
+      console.log('⚠️ Project status is not live:', projectData?.status)
+      return NextResponse.json(
+        { error: 'Project status is not set to live. Current status: ' + (projectData?.status || 'unknown') },
+        { status: 400 }
+      )
+    }
+
+    console.log('✅ Project is live, proceeding to send email')
+
     // Get business name
     const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
@@ -88,7 +81,8 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Email send result:', emailResult)
 
-    // Record the email send
+    // Temporary: Skip recording email send until database functions are ready
+    /* 
     const { data: recordId, error: recordError } = await supabaseAdmin
       .rpc('record_email_send', {
         target_user_id: userId,
@@ -100,6 +94,7 @@ export async function POST(request: NextRequest) {
       console.error('⚠️ Failed to record email send:', recordError)
       // Don't fail the request, email was sent successfully
     }
+    */
 
     console.log('✅ Website launch email sent successfully!')
 
@@ -108,7 +103,7 @@ export async function POST(request: NextRequest) {
       message: 'Website launch notification sent to customer',
       customerEmail: userData.user.email,
       emailResult: emailResult,
-      recordId: recordId
+      recordId: null // Temporarily disabled until database functions are ready
     })
 
   } catch (error: any) {

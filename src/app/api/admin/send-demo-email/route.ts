@@ -90,7 +90,8 @@ export async function POST(request: NextRequest) {
 
     console.log('📧 Email send result:', emailResult)
 
-    // Record the email send
+    // Temporary: Skip recording email send until database functions are ready
+    /* 
     const { data: recordId, error: recordError } = await supabaseAdmin
       .rpc('record_email_send', {
         target_user_id: userId,
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest) {
       console.error('⚠️ Failed to record email send:', recordError)
       // Don't fail the request, email was sent successfully
     }
+    */
 
     console.log('✅ Demo ready email sent successfully!')
 
@@ -110,7 +112,7 @@ export async function POST(request: NextRequest) {
       message: 'Demo ready notification sent to customer',
       customerEmail: userData.user.email,
       emailResult: emailResult,
-      recordId: recordId
+      recordId: null // Temporarily disabled until database functions are ready
     })
 
   } catch (error: any) {
