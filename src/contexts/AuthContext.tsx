@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext, useContext, useEffect, useState } from 'react'
-import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
+import { User, AuthChangeEvent, Session, PostgrestError } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
 import { clearAuthRecovery, clearPaymentContext } from '@/lib/auth-recovery'
 
@@ -19,57 +19,66 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true) // Start with loading true
   const [supabase] = useState(() => createClient())
 
   useEffect(() => {
-    // Check for initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      // The second useEffect will handle loading state based on the user.
-      // If no session, loading will be set to false there.
-    })
+    console.log('AuthContext: Subscribing to auth state changes...')
+    setLoading(true)
 
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
-      setUser(session?.user ?? null)
-      if (event === 'SIGNED_OUT') {
-        clearPaymentContext()
-        clearAuthRecovery()
+    } = supabase.auth.onAuthStateChange(
+      async (event: AuthChangeEvent, session: Session | null) => {
+        console.log(`AuthContext: Auth event - ${event}`)
+        const currentUser = session?.user ?? null
+        setUser(currentUser)
+
+        if (currentUser) {
+          // If we have a user, fetch their profile immediately.
+          console.log('AuthContext: User found, fetching profile...')
+          try {
+            const { data, error } = await supabase
+              .from('user_profiles')
+              .select('role')
+              .eq('id', currentUser.id)
+              .single() // Using single() again, ensure RLS is correct
+
+            if (error && error.code !== 'PGRST116') {
+              // PGRST116 means no rows found, which is a valid case.
+              console.error('AuthContext: Error fetching user profile:', error)
+              setIsAdmin(false)
+            } else {
+              const role = data?.role
+              console.log(`AuthContext: User role is '${role}'`)
+              setIsAdmin(role === 'admin')
+            }
+          } catch (e) {
+            console.error('AuthContext: Exception fetching profile:', e)
+            setIsAdmin(false)
+          }
+        } else {
+          // No user, so not an admin.
+          setIsAdmin(false)
+        }
+
+        // Loading is false once we have processed the auth event.
+        setLoading(false)
+        console.log('AuthContext: Loading complete.')
+
+        if (event === 'SIGNED_OUT') {
+          clearPaymentContext()
+          clearAuthRecovery()
+        }
       }
-    })
+    )
 
     return () => {
+      console.log('AuthContext: Unsubscribing from auth state changes.')
       subscription.unsubscribe()
     }
   }, [supabase])
-
-  useEffect(() => {
-    // This effect handles fetching the user's role and managing the loading state.
-    if (user) {
-      setLoading(true) // Start loading when we have a user but might not have their role yet.
-      supabase
-        .from('user_profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single()
-        .then(({ data, error }) => {
-          if (error && error.code !== 'PGRST116') {
-            console.error('Error fetching user profile:', error)
-            setIsAdmin(false)
-          } else {
-            setIsAdmin(data?.role === 'admin')
-          }
-          setLoading(false) // Finish loading once role is fetched or fails.
-        })
-    } else {
-      // No user, so not an admin and we can stop loading.
-      setIsAdmin(false)
-      setLoading(false)
-    }
-  }, [user, supabase])
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const { error } = await supabase.auth.signUp({
