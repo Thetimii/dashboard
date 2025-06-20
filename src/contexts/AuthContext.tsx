@@ -54,6 +54,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
+    const initializeSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      await updateUserAndProfile(session)
+      if (isMounted) {
+        setLoading(false)
+      }
+    }
+
+    initializeSession()
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         console.log(`Auth event: ${event}`)
@@ -62,10 +72,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (event === 'SIGNED_OUT') {
           clearPaymentContext()
           clearAuthRecovery()
-        }
-
-        if (isMounted) {
-          setLoading(false)
         }
       }
     )

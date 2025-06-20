@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -53,114 +53,65 @@ export default function FollowupQuestionsPage() {
   const watchAppointmentBooking = watch('appointmentBooking')
   const watchPrivacyPolicyExists = watch('privacyPolicyExists')
 
-  useEffect(() => {
-    if (authLoading) return // Wait for auth to finish loading
+  const checkPaymentStatusAndPrefill = useCallback(async () => {
+    if (!user) {
+      return
+    }
 
+    try {
+      const { data: kickoffData, error: kickoffError } = await supabase
+        .from('kickoff_forms')
+        .select('business_description')
+        .eq('user_id', user.id)
+        .single()
+
+      if (kickoffError && kickoffError.code !== 'PGRST116') {
+        console.error('Error fetching kickoff data:', kickoffError)
+      }
+
+      if (kickoffData?.business_description) {
+        setValue('coreBusiness', kickoffData.business_description, { shouldTouch: true })
+      }
+
+      const { data: existingQuestionnaire, error: questionnaireError } = await supabase
+        .from('followup_questionnaires')
+        .select('completed')
+        .eq('user_id', user.id)
+        .single()
+
+      if (questionnaireError && questionnaireError.code !== 'PGRST116') {
+        console.error('Error checking for existing questionnaire:', questionnaireError)
+      }
+
+      if (existingQuestionnaire?.completed) {
+        setSubmitted(true)
+      }
+    } catch (error) {
+      console.error('Error during prefill check:', error)
+    }
+  }, [user, supabase, setValue, setSubmitted])
+
+  useEffect(() => {
+    if (authLoading) {
+      return
+    }
     if (!user) {
       router.push('/signin')
       return
     }
 
-    // Verify session is still valid
-    const verifySession = async () => {
-      try {
-        const isValid = await validateSession()
-        if (!isValid) {
-          console.error('Session validation failed on questionnaire page')
-          router.push('/signin')
-          return
-        }
-      } catch (error) {
-        console.error('Error verifying session:', error)
+    const runChecks = async () => {
+      const isValid = await validateSession()
+      if (!isValid) {
+        console.error('Session validation failed, redirecting to signin.')
         router.push('/signin')
         return
       }
+      await checkPaymentStatusAndPrefill()
     }
 
-    verifySession()
-
-    // Check if user has completed payment and prefill form
-    checkPaymentStatusAndPrefill()
-  }, [user, authLoading, router])
-
-  const checkPaymentStatusAndPrefill = async () => {
-    if (!user) return
-
-    try {
-      const { data: payment, error } = await supabase
-        .from('payments')
-        .select('status')
-        .eq('user_id', user.id)
-        .eq('status', 'completed')
-        .single()
-
-      if (error) {
-        if (error.status === 406 || error.message?.includes('relation') || error.message?.includes('table')) {
-          // Table access issues - allow access anyway for testing
-          console.warn('Payment table access issue, allowing questionnaire access for testing:', error)
-        } else if (error.code !== 'PGRST116') {
-          // Not just "no record found" - might be a real error
-          console.error('Error checking payment status:', error)
-        }
-        // If no completed payment found or table issues, continue anyway
-        // Don't redirect to dashboard - let user fill questionnaire
-      }
-
-      // Check if questionnaire already completed
-      try {
-        const { data: existingQuestionnaire, error: questionnaireError } = await supabase
-          .from('followup_questionnaires')
-          .select('id, completed')
-          .eq('user_id', user.id)
-          .single()
-
-        if (questionnaireError) {
-          // If table doesn't exist (406 error), log it but continue
-          if (questionnaireError.code === 'PGRST116' || questionnaireError.message?.includes('relation') || questionnaireError.message?.includes('table') || questionnaireError.status === 406) {
-            console.warn('Questionnaire table not found - this may be expected in development:', questionnaireError)
-            // Table doesn't exist, continue to allow form submission
-          } else {
-            console.error('Error checking questionnaire status:', questionnaireError)
-          }
-        } else if (existingQuestionnaire?.completed) {
-          setSubmitted(true)
-          return
-        }
-      } catch (error) {
-        console.error('Error accessing questionnaire table:', error)
-        // Continue with the flow even if we can't check existing questionnaire
-      }
-
-      // Fetch kickoff data for prefilling
-      try {
-        const { data: kickoffData, error: kickoffError } = await supabase
-          .from('kickoff_forms')
-          .select('business_name, business_description, special_requests')
-          .eq('user_id', user.id)
-          .single()
-
-        if (!kickoffError && kickoffData) {
-          // Prefill form with kickoff data
-          if (kickoffData.business_description) {
-            setValue('coreBusiness', kickoffData.business_description)
-          }
-          
-          // You can add more prefilling logic here based on the kickoff data
-          // For example, if special_requests contains useful information
-          if (kickoffData.special_requests) {
-            // Could be used for various fields depending on content
-            console.log('Special requests from kickoff:', kickoffData.special_requests)
-          }
-        }
-      } catch (error) {
-        console.error('Error fetching kickoff data:', error)
-        // Continue with the flow even if we can't fetch kickoff data
-      }
-    } catch (error) {
-      console.error('Error checking payment status:', error)
-      router.push('/dashboard')
-    }
-  }
+    runChecks()
+  }, [user, authLoading, router, checkPaymentStatusAndPrefill])
 
   const onSubmit = async (data: FollowupQuestionnaireData) => {
     if (!user) {
