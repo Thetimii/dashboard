@@ -284,14 +284,41 @@ export default function DashboardPage() {
     if (authLoading) return
     
     if (!user) {
+      console.log('No user found, redirecting to signin')
       router.push('/signin')
       return
     }
 
-    // Handle URL parameters for customer portal returns
+    console.log('Dashboard loaded for user:', user.email)
+
+    // Handle URL parameters for customer portal returns and payment success
     const urlParams = new URLSearchParams(window.location.search)
     const updated = urlParams.get('updated')
     const view = urlParams.get('view')
+    const paymentStatus = urlParams.get('payment')
+    const sessionId = urlParams.get('session_id')
+    
+    // Handle payment success/failure
+    if (paymentStatus === 'success') {
+      console.log('Payment completed successfully!', { sessionId })
+      // Show success message and refresh data
+      setActiveTab('tracker') // Switch to tracker tab to show progress
+      // Refresh payment and demo data
+      setTimeout(() => {
+        fetchPaymentStatus()
+        fetchDemoLinks()
+      }, 1000) // Small delay to allow webhook to process
+      // Clean URL without reloading
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+      // You can add a success toast notification here
+    } else if (paymentStatus === 'cancelled') {
+      console.log('Payment was cancelled')
+      // Clean URL without reloading
+      const cleanUrl = window.location.pathname
+      window.history.replaceState({}, '', cleanUrl)
+      // You can add a cancelled notification here
+    }
     
     if (updated === 'payment_method') {
       // You can add a toast notification here

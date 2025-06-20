@@ -54,23 +54,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isMounted) setLoading(false)
     }
 
-    supabase.auth
-      .getSession()
-      .then(({ data: { session } }: { data: { session: Session | null } }) => {
-        updateUserState(session)
-      })
-      .catch((error: any) => {
-        console.error('Error getting initial session:', error)
+    // Get initial session with better error handling
+    const getInitialSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Error getting initial session:', error)
+          // Don't immediately set user to null - wait for auth state change
+          if (isMounted) setLoading(false)
+        } else {
+          await updateUserState(session)
+        }
+      } catch (error) {
+        console.error('Critical error getting session:', error)
         if (isMounted) {
           setUser(null)
           setIsAdmin(false)
           setLoading(false)
         }
-      })
+      }
+    }
+
+    getInitialSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event: AuthChangeEvent, session: Session | null) => {
-        updateUserState(session)
+      async (event: AuthChangeEvent, session: Session | null) => {
+        console.log('Auth state changed:', event, session?.user?.email)
+        await updateUserState(session)
       },
     )
 
