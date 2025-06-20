@@ -62,30 +62,34 @@ export default function FollowupQuestionsPage() {
     }
 
     try {
-      const { data: kickoffData, error: kickoffError } = await supabase
+      // Fetch kickoff data without .single() to avoid 406 error
+      const { data: kickoffForms, error: kickoffError } = await supabase
         .from('kickoff_forms')
         .select('business_description')
         .eq('user_id', user.id)
-        .single()
+        .limit(1)
 
-      if (kickoffError && kickoffError.code !== 'PGRST116') {
+      if (kickoffError) {
         console.error('Error fetching kickoff data:', kickoffError)
       }
 
+      const kickoffData = kickoffForms?.[0]
       if (kickoffData?.business_description) {
         setValue('coreBusiness', kickoffData.business_description, { shouldTouch: true })
       }
 
-      const { data: existingQuestionnaire, error: questionnaireError } = await supabase
+      // Fetch questionnaire data without .single() to avoid 406 error
+      const { data: existingQuestionnaires, error: questionnaireError } = await supabase
         .from('followup_questionnaires')
         .select('completed')
         .eq('user_id', user.id)
-        .single()
+        .limit(1)
 
-      if (questionnaireError && questionnaireError.code !== 'PGRST116') {
+      if (questionnaireError) {
         console.error('Error checking for existing questionnaire:', questionnaireError)
       }
 
+      const existingQuestionnaire = existingQuestionnaires?.[0]
       if (existingQuestionnaire?.completed) {
         setSubmitted(true)
       }
