@@ -33,8 +33,12 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     const fetchProject = async () => {
-      if (!params.id) return;
+      if (!params.id) {
+        setLoading(false);
+        return;
+      }
 
+      setLoading(true);
       try {
         // Fetch kickoff form data first
         const { data: kickoffData, error: kickoffError } = await supabase
@@ -43,37 +47,50 @@ export default function ProjectDetailPage() {
           .eq('id', params.id)
           .single();
 
-        if (kickoffError) {
-          console.error('Error fetching kickoff form:', kickoffError);
+        if (kickoffError || !kickoffData) {
+          console.error('Error fetching kickoff form or no data found:', kickoffError);
+          setProject(null);
           setLoading(false);
           return;
         }
 
-        // Fetch user profile separately to avoid relationship issues
-        const { data: userProfile } = await supabase
-          .from('user_profiles')
-          .select('full_name')
-          .eq('id', kickoffData.user_id)
-          .single();
+        // Fetch related data in parallel
+        const [
+          { data: userProfile, error: userProfileError },
+          { data: statusData, error: statusDataError },
+          { data: demoData, error: demoDataError }
+        ] = await Promise.all([
+          supabase
+            .from('user_profiles')
+            .select('full_name')
+            .eq('id', kickoffData.user_id)
+            .single(),
+          supabase
+            .from('project_status')
+            .select('status, final_url')
+            .eq('user_id', kickoffData.user_id)
+            .single(),
+          supabase
+            .from('demo_links')
+            .select('option_1_url, option_2_url, option_3_url, approved_option')
+            .eq('user_id', kickoffData.user_id)
+            .single()
+        ]);
 
-        // Fetch project status
-        const { data: statusData } = await supabase
-          .from('project_status')
-          .select('status, final_url')
-          .eq('user_id', kickoffData.user_id)
-          .single();
-
-        // Fetch demo links
-        const { data: demoData } = await supabase
-          .from('demo_links')
-          .select('option_1_url, option_2_url, option_3_url, approved_option')
-          .eq('user_id', kickoffData.user_id)
-          .single();
+        if (userProfileError && userProfileError.code !== 'PGRST116') {
+          console.error('Error fetching user profile:', userProfileError);
+        }
+        if (statusDataError && statusDataError.code !== 'PGRST116') {
+          console.error('Error fetching project status:', statusDataError);
+        }
+        if (demoDataError && demoDataError.code !== 'PGRST116') {
+          console.error('Error fetching demo links:', demoDataError);
+        }
 
         const projectDetails: ProjectDetails = {
           ...kickoffData,
           full_name: userProfile?.full_name || null,
-          project_status: statusData?.status || null,
+          project_status: statusData?.status || 'not_touched', // Default status
           final_url: statusData?.final_url || null,
           option_1_url: demoData?.option_1_url || null,
           option_2_url: demoData?.option_2_url || null,
@@ -84,6 +101,7 @@ export default function ProjectDetailPage() {
         setProject(projectDetails);
       } catch (error) {
         console.error('Error fetching project details:', error);
+        setProject(null);
       } finally {
         setLoading(false);
       }

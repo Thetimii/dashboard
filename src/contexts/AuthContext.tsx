@@ -23,62 +23,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [supabase] = useState(() => createClient())
 
   useEffect(() => {
-    let isMounted = true
     setLoading(true)
-
-    const updateUserAndProfile = async (session: Session | null) => {
-      if (!isMounted) return
-
-      const currentUser = session?.user ?? null
-      setUser(currentUser)
-
-      if (currentUser) {
-        try {
-          const { data, error } = await supabase
-            .from('user_profiles')
-            .select('role')
-            .eq('id', currentUser.id)
-            .single()
-
-          if (error) {
-            console.error('Error fetching user profile:', error)
-            if (isMounted) setIsAdmin(false)
-          } else if (isMounted) {
-            setIsAdmin(data?.role === 'admin')
-          }
-        } catch (error) {
-          console.error('Profile fetch failed:', error)
-          if (isMounted) setIsAdmin(false)
-        }
-      } else {
-        if (isMounted) setIsAdmin(false)
-      }
+    const getInitialSession = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      setUser(session?.user ?? null)
+      setLoading(false)
     }
 
-    supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: Session | null } }) => {
-      if (isMounted) {
-        await updateUserAndProfile(session)
-        setLoading(false)
-      }
-    })
+    getInitialSession()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
-      if (isMounted) {
-        await updateUserAndProfile(session)
-        if (_event === 'SIGNED_OUT') {
-          clearPaymentContext()
-          clearAuthRecovery()
-        }
-      }
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      setUser(session?.user ?? null)
     })
 
     return () => {
-      isMounted = false
       subscription.unsubscribe()
     }
   }, [supabase])
+
+  useEffect(() => {
+    if (user) {
+      supabase
+        .from('user_profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+        .then(({ data, error }: { data: { role: string } | null, error: any }) => {
+          if (error && error.code !== 'PGRST116') {
+            console.error('Error fetching user profile:', error)
+            setIsAdmin(false)
+          } else {
+            setIsAdmin(data?.role === 'admin')
+          }
+        })
+    } else {
+      setIsAdmin(false)
+    }
+  }, [user, supabase])
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const { error } = await supabase.auth.signUp({
