@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, FieldError } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { CheckCircleIcon, ArrowLeftIcon, ExclamationCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
@@ -13,11 +13,32 @@ import { validateSession } from '@/lib/auth-recovery'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 
+// Helper component for form fields to reduce repetition
+const FormField = ({ label, children, error }: { label: string, children: ReactNode, error?: FieldError }) => (
+  <div>
+    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+      {label}
+    </label>
+    {children}
+    {error && <p className="text-red-500 text-sm mt-1">{error.message}</p>}
+  </div>
+);
+
+const requiredFunctionsList = [
+  { id: 'newsletterNeeded', label: 'Newsletter-Anmeldung' },
+  { id: 'whatsappChatNeeded', label: 'WhatsApp-Button' },
+  { id: 'socialMediaNeeded', label: 'Social Media Icons' },
+  { id: 'appointmentBooking', label: 'Terminbuchung' },
+  { id: 'blogNeeded', label: 'Blog' },
+  { id: 'memberAreaNeeded', label: 'Mitgliederbereich' },
+  { id: 'ecommerceNeeded', label: 'E-Commerce/Shop' },
+  { id: 'googleAnalyticsNeeded', label: 'Google Analytics' },
+] as const;
+
 export default function FollowupQuestionsPage() {
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [currentSection, setCurrentSection] = useState(0)
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   
   const { user, loading: authLoading } = useAuth()
@@ -29,12 +50,11 @@ export default function FollowupQuestionsPage() {
     handleSubmit,
     watch,
     setValue,
-    trigger,
     control,
     formState: { errors },
   } = useForm<FollowupQuestionnaireData>({
     resolver: zodResolver(followupQuestionnaireSchema),
-    mode: 'onChange', // Validate on change for better user experience
+    mode: 'onChange',
     defaultValues: {
       serviceSubpages: false,
       existingContent: false,
@@ -51,165 +71,122 @@ export default function FollowupQuestionsPage() {
     },
   })
 
-  // Watch form values for conditional fields
-  const watchServiceSubpages = watch('serviceSubpages')
   const watchExistingContent = watch('existingContent')
   const watchAppointmentBooking = watch('appointmentBooking')
   const watchPrivacyPolicyExists = watch('privacyPolicyExists')
+  const watchServiceSubpages = watch('serviceSubpages')
 
-  const sectionFields: (keyof FollowupQuestionnaireData)[][] = [
-    // Section 0
-    ['coreBusiness', 'revenueGeneration', 'secondaryRevenue', 'longTermRevenue'],
-    // Section 1
-    ['uniqueSellingPoints', 'customerChoiceReasons', 'problemsSolved', 'trustBuilding', 'potentialObjections'],
-    // Section 2
-    ['targetGroupDemographics', 'targetGroupNeeds'],
-    // Section 3
-    [
-      'serviceSubpages', 'serviceSubpagesDetails', 
-      'existingContent', 'existingContentDetails', 
-      'requiredFunctions', 'ecommerceNeeded', 'blogNeeded', 'newsletterNeeded', 
-      'memberAreaNeeded', 'socialMediaNeeded', 'whatsappChatNeeded', 
-      'appointmentBooking', 'appointmentTool', 
-      'existingSeoKeywords', 'googleAnalyticsNeeded'
-    ],
-    // Section 4
-    [
-      'desiredDomain', 'privacyPolicyExists', 'privacyPolicyCreationNeeded', 
-      'privacyPolicyContent', 'companyAddress', 'companyPhone', 
-      'companyEmail', 'vatId'
-    ],
-  ];
+  const checkExistingData = useCallback(async () => {
+    if (!user) return;
 
-
-  const checkPaymentStatusAndPrefill = useCallback(async () => {
-    if (!user) {
-      return
-    }
-
+    setLoading(true);
     try {
-      // Fetch kickoff data without .single() to avoid 406 error
-      const { data: kickoffForms, error: kickoffError } = await supabase
-        .from('kickoff_forms')
-        .select('business_description')
-        .eq('user_id', user.id)
-        .limit(1)
-
-      if (kickoffError) {
-        console.error('Error fetching kickoff data:', kickoffError)
-      }
-
-      const kickoffData = kickoffForms?.[0]
-      if (kickoffData?.business_description) {
-        setValue('coreBusiness', kickoffData.business_description, { shouldTouch: true })
-      }
-
-      // Fetch questionnaire data without .single() to avoid 406 error
-      const { data: existingQuestionnaires, error: questionnaireError } = await supabase
+      const { data: existingQuestionnaire, error: questionnaireError } = await supabase
         .from('followup_questionnaires')
         .select('completed')
         .eq('user_id', user.id)
-        .limit(1)
+        .maybeSingle();
 
-      if (questionnaireError) {
-        console.error('Error checking for existing questionnaire:', questionnaireError)
+      if (questionnaireError) throw questionnaireError;
+
+      if (existingQuestionnaire?.completed) {
+        setSubmitted(true);
+        return;
       }
 
-      const existingQuestionnaire = existingQuestionnaires?.[0]
-      if (existingQuestionnaire?.completed) {
-        setSubmitted(true)
+      const { data: kickoffForm, error: kickoffError } = await supabase
+        .from('kickoff_forms')
+        .select('business_description')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (kickoffError) throw kickoffError;
+
+      if (kickoffForm?.business_description) {
+        setValue('coreBusiness', kickoffForm.business_description, { shouldTouch: true });
       }
     } catch (error) {
-      console.error('Error during prefill check:', error)
-      // Do not show table-related errors on initial load
-      if (error instanceof Error && !error.message.includes('relation')) {
-        setError('Fehler beim Laden der Formulardaten.')
-      }
+      console.error('Error loading initial data:', error);
+      setError('Fehler beim Laden der Formulardaten. Bitte versuchen Sie es später erneut.');
+    } finally {
+      setLoading(false);
     }
-  }, [user, supabase, setValue, setSubmitted])
+  }, [user, supabase, setValue]);
 
   useEffect(() => {
-    if (authLoading) {
-      return
-    }
+    if (authLoading) return;
     if (!user) {
-      router.push('/signin')
-      return
+      router.push('/signin');
+      return;
     }
-
+    
     const runChecks = async () => {
-      const isValid = await validateSession()
+      const isValid = await validateSession();
       if (!isValid) {
-        console.error('Session validation failed, redirecting to signin.')
-        router.push('/signin')
-        return
+        router.push('/signin');
+        return;
       }
-      await checkPaymentStatusAndPrefill()
-    }
+      await checkExistingData();
+    };
 
-    runChecks()
-  }, [user, authLoading, router, checkPaymentStatusAndPrefill])
+    runChecks();
+  }, [user, authLoading, router, checkExistingData]);
 
-  const onValidSubmit = async (data: FollowupQuestionnaireData) => {
+  const onSubmit = async (data: FollowupQuestionnaireData) => {
     if (!user) {
-      setError('Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.')
-      router.push('/signin')
-      return
+      setError('Nicht angemeldet. Bitte erneut einloggen.');
+      router.push('/signin');
+      return;
     }
 
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      // Verify user session before submitting
-      const isValid = await validateSession()
+      const isValid = await validateSession();
       if (!isValid) {
-        console.error('Session validation failed during form submission')
-        setError('Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.')
-        router.push('/signin')
-        return
+        setError('Sitzung abgelaufen. Bitte erneut einloggen.');
+        router.push('/signin');
+        return;
       }
 
-      const fileUrls: string[] = []
+      const fileUrls: string[] = [];
       if (uploadedFiles.length > 0) {
         for (const file of uploadedFiles) {
-          const fileName = `${user.id}/${Date.now()}-${file.name}`
+          const fileName = `${user.id}/${Date.now()}-${file.name}`;
           const { error: uploadError } = await supabase.storage
             .from('questionnaire-files')
-            .upload(fileName, file)
+            .upload(fileName, file);
 
-          if (uploadError) {
-            throw new Error(`Fehler beim Hochladen der Datei: ${uploadError.message}`)
-          }
+          if (uploadError) throw new Error(`Fehler beim Hochladen der Datei: ${uploadError.message}`);
           
           const { data: urlData } = supabase.storage
             .from('questionnaire-files')
-            .getPublicUrl(fileName)
+            .getPublicUrl(fileName);
           
-          fileUrls.push(urlData.publicUrl)
+          fileUrls.push(urlData.publicUrl);
         }
       }
 
-      // Convert form data to database format
       const questionnaireData = {
         user_id: user.id,
         core_business: data.coreBusiness,
         revenue_generation: data.revenueGeneration,
-        secondary_revenue: data.secondaryRevenue || null,
-        long_term_revenue: data.longTermRevenue || null,
+        secondary_revenue: data.secondaryRevenue,
+        long_term_revenue: data.longTermRevenue,
         unique_selling_points: data.uniqueSellingPoints,
         customer_choice_reasons: data.customerChoiceReasons,
         problems_solved: data.problemsSolved,
-        trust_building: data.trustBuilding || null,
-        potential_objections: data.potentialObjections || null,
+        trust_building: data.trustBuilding,
+        potential_objections: data.potentialObjections,
         target_group_demographics: data.targetGroupDemographics,
-        target_group_needs: data.targetGroupNeeds || null,
+        target_group_needs: data.targetGroupNeeds,
         service_subpages: data.serviceSubpages,
-        service_subpages_details: data.serviceSubpagesDetails || null,
+        service_subpages_details: data.serviceSubpagesDetails,
         existing_content: data.existingContent,
-        existing_content_details: data.existingContentDetails || null,
+        existing_content_details: data.existingContentDetails,
         existing_content_files: fileUrls,
-        required_functions: data.requiredFunctions || [],
+        required_functions: [], // This field is deprecated in the new form structure but kept for db compatibility
         ecommerce_needed: data.ecommerceNeeded,
         blog_needed: data.blogNeeded,
         newsletter_needed: data.newsletterNeeded,
@@ -217,207 +194,68 @@ export default function FollowupQuestionsPage() {
         social_media_needed: data.socialMediaNeeded,
         whatsapp_chat_needed: data.whatsappChatNeeded,
         appointment_booking: data.appointmentBooking,
-        appointment_tool: data.appointmentTool || null,
-        existing_seo_keywords: data.existingSeoKeywords || null,
+        appointment_tool: data.appointmentTool,
+        existing_seo_keywords: data.existingSeoKeywords,
         google_analytics_needed: data.googleAnalyticsNeeded,
-        desired_domain: data.desiredDomain || null,
+        desired_domain: data.desiredDomain,
         privacy_policy_exists: data.privacyPolicyExists,
         privacy_policy_creation_needed: data.privacyPolicyCreationNeeded,
-        privacy_policy_content: data.privacyPolicyContent || null,
+        privacy_policy_content: data.privacyPolicyContent,
         company_address: data.companyAddress,
         company_phone: data.companyPhone,
         company_email: data.companyEmail,
-        vat_id: data.vatId || null,
+        vat_id: data.vatId,
         completed: true,
-      }
+      };
 
-      // Use upsert to avoid separate select permission issue
       const { error: upsertError } = await supabase
         .from('followup_questionnaires')
-        .upsert(questionnaireData, { onConflict: 'user_id' })
+        .upsert(questionnaireData, { onConflict: 'user_id' });
 
-      if (upsertError) {
-        throw upsertError
-      }
+      if (upsertError) throw upsertError;
 
-      console.log('Questionnaire saved successfully')
-      setSubmitted(true)
-      
-      // Redirect to dashboard after successful submission
-      setTimeout(() => {
-        router.push('/dashboard')
-      }, 2000)
+      setSubmitted(true);
+      setTimeout(() => router.push('/dashboard'), 2000);
+
     } catch (error: any) {
-      console.error('Error saving questionnaire:', error)
-      
-      // Provide specific error messages
-      if (error.message?.includes('relation') || error.message?.includes('table')) {
-        setError('Die Datenbank-Tabelle für Fragebögen ist noch nicht verfügbar. Bitte kontaktiere den Support.')
-      } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
-        setError('Netzwerkfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.')
-      } else if (error.message?.includes('JWT') || error.message?.includes('auth')) {
-        setError('Authentifizierungsfehler. Bitte melden Sie sich erneut an.')
-        setTimeout(() => router.push('/signin'), 2000)
-      } else {
-        setError('Fehler beim Speichern des Fragebogens. Bitte versuche es erneut oder kontaktiere den Support.')
-      }
+      console.error('Submission Error:', error);
+      setError(error.message || 'Ein unerwarteter Fehler ist aufgetreten.');
     } finally {
-      setLoading(false)
-    }
-  }
-
-  const onInvalidSubmit = (errors: any) => {
-    console.error("Form validation failed:", errors);
-    const firstErrorField = Object.keys(errors)[0] as keyof FollowupQuestionnaireData;
-    
-    if (firstErrorField) {
-      const sectionIndex = sectionFields.findIndex(fields => fields.includes(firstErrorField));
-      if (sectionIndex !== -1) {
-        setCurrentSection(sectionIndex);
-        setError("Bitte korrigieren Sie die Fehler in diesem Abschnitt.");
-      }
+      setLoading(false);
     }
   };
 
-  const sections = [
-    {
-      title: 'Ziel des Unternehmens',
-      description: 'Erzählen Sie uns mehr über Ihr Geschäft',
-    },
-    {
-      title: 'Wettbewerbsumfeld',
-      description: 'Was macht Sie einzigartig?',
-    },
-    {
-      title: 'Zielgruppe',
-      description: 'Wer sind Ihre Kunden?',
-    },
-    {
-      title: 'Inhalte & Funktionen',
-      description: 'Was soll Ihre Website können?',
-    },
-    {
-      title: 'Domain & Rechtliches',
-      description: 'Abschließende Details',
-    },
-  ]
-
-  const nextSection = async () => {
-    const fieldsToValidate = sectionFields[currentSection];
-    const isValid = await trigger(fieldsToValidate);
-    if (!isValid) {
-      // The error messages will be displayed automatically by react-hook-form
-      return;
-    }
-    if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1);
-    }
-  };
-
-  const prevSection = () => {
-    if (currentSection > 0) {
-      setCurrentSection(currentSection - 1)
-    }
+  if (authLoading || (!user && !submitted)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <p>Laden...</p>
+      </div>
+    );
   }
 
   if (submitted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md text-center"
-        >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircleIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
-            </div>
-            
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Vielen Dank!
-            </h1>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Ihre Antworten wurden erfolgreich gespeichert. Wir werden diese Informationen verwenden, um Ihre perfekte Website zu erstellen.
-            </p>
-            
-            <button
-              onClick={() => router.push('/dashboard')}
-              className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold"
-            >
-              Zurück zum Dashboard
-            </button>
+        <div className="absolute top-4 right-4"><ThemeToggle /></div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md text-center bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+          <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+            <CheckCircleIcon className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">Vielen Dank!</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">Ihre Antworten wurden erfolgreich gespeichert.</p>
+          <button onClick={() => router.push('/dashboard')} className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl font-semibold">
+            Zum Dashboard
+          </button>
         </motion.div>
       </div>
-    )
+    );
   }
-
-  // Show error message if there's a database issue
-  if (error && error.includes('Datenbank-Tabelle')) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
-        <div className="absolute top-4 right-4">
-          <ThemeToggle />
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-md text-center"
-        >
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
-            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
-              <ExclamationCircleIcon className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-            
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-              Setup in Bearbeitung
-            </h1>
-            
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Die Datenbank-Tabelle für den Nachfrage-Fragebogen wird gerade eingerichtet. Bitte versuche es in einigen Minuten erneut oder kontaktiere den Support.
-            </p>
-            
-            <div className="space-y-3">
-              <button
-                onClick={() => window.location.reload()}
-                className="w-full px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 font-semibold"
-              >
-                Erneut versuchen
-              </button>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="w-full px-6 py-3 bg-gray-500 text-white rounded-xl hover:bg-gray-600 transition-all duration-300 font-semibold"
-              >
-                Zurück zum Dashboard
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    )
-  }
-
-  if (!user) return null
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="absolute top-4 right-4">
-        <ThemeToggle />
-      </div>
-
+      <div className="absolute top-4 right-4"><ThemeToggle /></div>
       <div className="absolute top-4 left-4">
-        <button
-          onClick={() => router.push('/dashboard')}
-          className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-        >
+        <button onClick={() => router.push('/dashboard')} className="flex items-center gap-2 px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
           <ArrowLeftIcon className="w-5 h-5" />
           Zurück
         </button>
@@ -425,513 +263,233 @@ export default function FollowupQuestionsPage() {
 
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
-          {/* Header */}
           <div className="text-center mb-8">
             <Logo size="lg" />
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-6 mb-4">
-              Detailfragebogen
-            </h1>
-            <p className="text-gray-600 dark:text-gray-300 text-lg">
-              Helfen Sie uns, Ihre perfekte Website zu erstellen
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mt-6 mb-4">Detailfragebogen</h1>
+            <p className="text-gray-600 dark:text-gray-300 text-lg">Helfen Sie uns, Ihre perfekte Website zu erstellen.</p>
           </div>
 
-          {/* Progress Bar */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              {sections.map((section, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center ${
-                    index <= currentSection ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                      index <= currentSection
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                    }`}
-                  >
-                    {index + 1}
-                  </div>
-                  {index < sections.length - 1 && (
-                    <div
-                      className={`w-12 md:w-24 h-1 ml-2 ${
-                        index < currentSection
-                          ? 'bg-blue-600 dark:bg-blue-400'
-                          : 'bg-gray-200 dark:bg-gray-700'
-                      }`}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="text-center">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                {sections[currentSection].title}
-              </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {sections[currentSection].description}
-              </p>
-            </div>
-          </div>
-
-          {/* Form */}
-          <motion.div
-            key={currentSection}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
-          >
-            <form onSubmit={handleSubmit(onValidSubmit, onInvalidSubmit)} className="space-y-6">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
                   <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
-              {/* Section 0: Ziel des Unternehmens */}
-              {currentSection === 0 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Was ist das Kerngeschäft des Unternehmens? *
-                    </label>
-                    <textarea
-                      {...register('coreBusiness')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Beschreiben Sie Ihr Hauptgeschäft..."
-                    />
-                    {errors.coreBusiness && (
-                      <p className="text-red-500 text-sm mt-1">{errors.coreBusiness.message}</p>
-                    )}
-                  </div>
+              {/* Section: Business Basics */}
+              <div className="space-y-6 p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Grundlagen</h2>
+                <FormField label="Was ist das Kerngeschäft des Unternehmens? *" error={errors.coreBusiness}>
+                  <textarea {...register('coreBusiness')} rows={4} className="w-full input-class" placeholder="Beschreiben Sie Ihr Hauptgeschäft..." />
+                </FormField>
+                <FormField label="Wie wird der Umsatz generiert? (Hauptprodukt/Dienstleistung) *" error={errors.revenueGeneration}>
+                  <textarea {...register('revenueGeneration')} rows={4} className="w-full input-class" placeholder="Beschreiben Sie Ihre Haupteinnahmequellen..." />
+                </FormField>
+                <FormField label="Langfristige Einnahmen (optional)" error={errors.longTermRevenue}>
+                  <textarea {...register('longTermRevenue')} rows={3} className="w-full input-class" placeholder="Geplante zukünftige Einnahmequellen..." />
+                </FormField>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wie wird der Umsatz generiert? (Hauptprodukt/Dienstleistung) *
-                    </label>
-                    <textarea
-                      {...register('revenueGeneration')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Beschreiben Sie Ihre Haupteinnahmequellen..."
-                    />
-                    {errors.revenueGeneration && (
-                      <p className="text-red-500 text-sm mt-1">{errors.revenueGeneration.message}</p>
-                    )}
-                  </div>
+              {/* Section: Competitive Landscape */}
+              <div className="space-y-6 p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Wettbewerbsumfeld</h2>
+                <FormField label="Was sind die Alleinstellungsmerkmale (USPs) Ihres Unternehmens? *" error={errors.uniqueSellingPoints}>
+                  <textarea {...register('uniqueSellingPoints')} rows={4} className="w-full input-class" placeholder="Was macht Sie einzigartig?" />
+                </FormField>
+                <FormField label="Warum sollte ein Kunde bei Ihnen kaufen und nicht bei der Konkurrenz? *" error={errors.customerChoiceReasons}>
+                  <textarea {...register('customerChoiceReasons')} rows={4} className="w-full input-class" placeholder="Ihre Vorteile gegenüber Mitbewerbern..." />
+                </FormField>
+                <FormField label="Welche Probleme lösen Sie für den Kunden? *" error={errors.problemsSolved}>
+                  <textarea {...register('problemsSolved')} rows={4} className="w-full input-class" placeholder="Beschreiben Sie die Kundenprobleme, die Sie lösen..." />
+                </FormField>
+                <FormField label="Wie schaffen Sie Vertrauen gegenüber Ihren Kunden? (optional)" error={errors.trustBuilding}>
+                  <textarea {...register('trustBuilding')} rows={4} className="w-full input-class" placeholder="z.B. seit wann am Markt, Anzahl der Kunden, besondere Services, Support..." />
+                </FormField>
+                <FormField label="Welche Einwände könnten potenzielle Kunden davon abhalten, bei Ihnen zu kaufen? (optional)" error={errors.potentialObjections}>
+                  <textarea {...register('potentialObjections')} rows={3} className="w-full input-class" placeholder="Mögliche Kundenbedenken..." />
+                </FormField>
+              </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Langfristige Einnahmen (optional)
-                    </label>
-                    <textarea
-                      {...register('longTermRevenue')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Geplante zukünftige Einnahmequellen..."
-                    />
-                  </div>
-                </div>
-              )}
+              {/* Section: Target Audience */}
+              <div className="space-y-6 p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Zielgruppe</h2>
+                <FormField label="Wer ist Ihre Zielgruppe? (Alter, Geschlecht, Interessen, etc.) *" error={errors.targetGroupDemographics}>
+                  <textarea {...register('targetGroupDemographics')} rows={5} className="w-full input-class" placeholder="Beschreiben Sie Ihre Zielgruppe detailliert..." />
+                </FormField>
+                <FormField label="Welche Bedürfnisse und Probleme hat Ihre Zielgruppe? (optional)" error={errors.targetGroupNeeds}>
+                  <textarea {...register('targetGroupNeeds')} rows={4} className="w-full input-class" placeholder="Bedürfnisse und Herausforderungen Ihrer Kunden..." />
+                </FormField>
+              </div>
 
-              {/* Section 1: Wettbewerbsumfeld */}
-              {currentSection === 1 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Was sind die Alleinstellungsmerkmale (USPs) Ihres Unternehmens? *
-                    </label>
-                    <textarea
-                      {...register('uniqueSellingPoints')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Was macht Sie einzigartig?"
-                    />
-                    {errors.uniqueSellingPoints && (
-                      <p className="text-red-500 text-sm mt-1">{errors.uniqueSellingPoints.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Warum sollte ein Kunde bei Ihnen kaufen und nicht bei der Konkurrenz? *
-                    </label>
-                    <textarea
-                      {...register('customerChoiceReasons')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre Vorteile gegenüber Mitbewerbern..."
-                    />
-                    {errors.customerChoiceReasons && (
-                      <p className="text-red-500 text-sm mt-1">{errors.customerChoiceReasons.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Welche Probleme lösen Sie für den Kunden? *
-                    </label>
-                    <textarea
-                      {...register('problemsSolved')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Beschreiben Sie die Kundenprobleme, die Sie lösen..."
-                    />
-                    {errors.problemsSolved && (
-                      <p className="text-red-500 text-sm mt-1">{errors.problemsSolved.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wie schaffen Sie Vertrauen gegenüber Ihren Kunden? (optional)
-                    </label>
-                    <textarea
-                      {...register('trustBuilding')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="z.B. seit wann am Markt, Anzahl der Kunden, besondere Services, Support..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Welche Einwände könnten potenzielle Kunden davon abhalten, bei Ihnen zu kaufen? (optional)
-                    </label>
-                    <textarea
-                      {...register('potentialObjections')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Mögliche Kundenbedenken..."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Section 2: Zielgruppe */}
-              {currentSection === 2 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wer ist Ihre Zielgruppe? (Alter, Geschlecht, Interessen, Verhalten, Kaufkraft) *
-                    </label>
-                    <textarea
-                      {...register('targetGroupDemographics')}
-                      rows={5}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Beschreiben Sie Ihre Zielgruppe detailliert..."
-                    />
-                    {errors.targetGroupDemographics && (
-                      <p className="text-red-500 text-sm mt-1">{errors.targetGroupDemographics.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Welche Bedürfnisse und Probleme hat Ihre Zielgruppe? (optional)
-                    </label>
-                    <textarea
-                      {...register('targetGroupNeeds')}
-                      rows={4}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Bedürfnisse und Herausforderungen Ihrer Kunden..."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Section 3: Inhalte & Funktionen */}
-              {currentSection === 3 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                      Soll es Unterseiten für verschiedene Dienstleistungen oder Produkte geben?
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center">
-                        <input type="radio" {...register('serviceSubpages')} value="true" className="mr-2" /> Ja
-                      </label>
-                      <label className="flex items-center">
-                        <input type="radio" {...register('serviceSubpages')} value="false" className="mr-2" /> Nein
-                      </label>
-                    </div>
-                  </div>
-
-                  {watchServiceSubpages && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Beschreibe jede Dienstleistung so genau wie möglich (Preis, Zielgruppe, Details)
-                      </label>
-                      <textarea
-                        {...register('serviceSubpagesDetails')}
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Welche Unterseiten sollen erstellt werden?"
-                      />
-                    </div>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                      Gibt es bereits Bilder und Texte, die wir verwenden können?
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center">
-                        <input type="radio" {...register('existingContent')} value="true" className="mr-2" /> Ja
-                      </label>
-                      <label className="flex items-center">
-                        <input type="radio" {...register('existingContent')} value="false" className="mr-2" /> Nein
-                      </label>
-                    </div>
-                  </div>
-
-                  {watchExistingContent && (
-                    <>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Details zu vorhandenen Inhalten
-                        </label>
-                        <textarea
-                          {...register('existingContentDetails')}
-                          rows={3}
-                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                          placeholder="Beschreiben Sie die vorhandenen Inhalte..."
-                        />
+              {/* Section: Content & Features */}
+              <div className="space-y-6 p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Inhalte & Funktionen</h2>
+                <FormField label="Soll es Unterseiten für verschiedene Dienstleistungen oder Produkte geben?" error={errors.serviceSubpages}>
+                  <Controller
+                    name="serviceSubpages"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(true)} checked={field.value} className="mr-2" /> Ja</label>
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(false)} checked={!field.value} className="mr-2" /> Nein</label>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                          Dateien hochladen
-                        </label>
-                        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-6 py-10">
-                          <div className="text-center">
-                            <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
-                            <div className="mt-4 flex text-sm leading-6 text-gray-600 dark:text-gray-400">
-                              <label
-                                htmlFor="file-upload"
-                                className="relative cursor-pointer rounded-md bg-white dark:bg-gray-800 font-semibold text-blue-600 dark:text-blue-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 dark:ring-offset-gray-800 hover:text-blue-500"
-                              >
-                                <span>Dateien auswählen</span>
-                                <input
-                                  id="file-upload"
-                                  name="file-upload"
-                                  type="file"
-                                  multiple
-                                  className="sr-only"
-                                  onChange={(e) => setUploadedFiles(Array.from(e.target.files || []))}
-                                />
-                              </label>
-                              <p className="pl-1">oder hierher ziehen</p>
+                    )}
+                  />
+                </FormField>
+                {watchServiceSubpages && (
+                  <FormField label="Details zu Dienstleistungs-Unterseiten" error={errors.serviceSubpagesDetails}>
+                    <textarea {...register('serviceSubpagesDetails')} rows={3} className="w-full input-class" placeholder="Welche Unterseiten sollen erstellt werden?" />
+                  </FormField>
+                )}
+                
+                <FormField label="Gibt es bereits Bilder und Texte, die wir verwenden können?" error={errors.existingContent}>
+                   <Controller
+                    name="existingContent"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(true)} checked={field.value} className="mr-2" /> Ja</label>
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(false)} checked={!field.value} className="mr-2" /> Nein</label>
+                      </div>
+                    )}
+                  />
+                </FormField>
+
+                {watchExistingContent && (
+                  <>
+                    <FormField label="Details zu vorhandenen Inhalten" error={errors.existingContentDetails}>
+                      <textarea {...register('existingContentDetails')} rows={3} className="w-full input-class" placeholder="Beschreiben Sie die vorhandenen Inhalte..." />
+                    </FormField>
+                    <FormField label="Dateien hochladen" error={undefined}>
+                      <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-6 py-10">
+                        <div className="text-center">
+                          <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
+                          <label htmlFor="file-upload" className="relative cursor-pointer rounded-md font-semibold text-blue-600 dark:text-blue-400">
+                            <span>Dateien auswählen</span>
+                            <input id="file-upload" type="file" multiple className="sr-only" onChange={(e) => setUploadedFiles(Array.from(e.target.files || []))} />
+                          </label>
+                          <p className="pl-1">oder hierher ziehen</p>
+                          {uploadedFiles.length > 0 && (
+                            <div className="mt-4 text-sm text-gray-600 dark:text-gray-400">
+                              {uploadedFiles.length} Datei(en) ausgewählt.
                             </div>
-                            <p className="text-xs leading-5 text-gray-600 dark:text-gray-400">PNG, JPG, GIF bis zu 10MB</p>
-                          </div>
+                          )}
                         </div>
-                        {uploadedFiles.length > 0 && (
-                          <div className="mt-4">
-                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Ausgewählte Dateien:</p>
-                            <ul className="mt-2 list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
-                              {uploadedFiles.map(file => <li key={file.name}>{file.name}</li>)}
-                            </ul>
+                      </div>
+                    </FormField>
+                  </>
+                )}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Welche Funktionen sind erforderlich?</label>
+                  <div className="grid grid-cols-2 gap-4">
+                    {requiredFunctionsList.map((func) => (
+                      <label key={func.id} className="flex items-center">
+                        <input type="checkbox" {...register(func.id)} className="h-4 w-4 rounded" />
+                        <span className="ml-3 text-sm">{func.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {watchAppointmentBooking && (
+                  <FormField label="Welches Tool für Terminbuchungen wird verwendet?" error={errors.appointmentTool}>
+                    <input {...register('appointmentTool')} className="w-full input-class" placeholder="z.B. Calendly, HubSpot, etc." />
+                  </FormField>
+                )}
+              </div>
+
+              {/* Section: Legal & Domain */}
+              <div className="space-y-6 p-6 border border-gray-200 dark:border-gray-700 rounded-lg">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Domain & Rechtliches</h2>
+                <FormField label="Wunschdomain (optional)" error={errors.desiredDomain}>
+                  <input {...register('desiredDomain')} className="w-full input-class" placeholder="z.B. meine-firma.de" />
+                </FormField>
+                <FormField label="Bestehende SEO-Keywords (optional)" error={errors.existingSeoKeywords}>
+                  <textarea {...register('existingSeoKeywords')} rows={3} className="w-full input-class" placeholder="Bestehende Keywords..." />
+                </FormField>
+                <FormField label="Gibt es bereits eine Datenschutzerklärung?" error={errors.privacyPolicyExists}>
+                   <Controller
+                    name="privacyPolicyExists"
+                    control={control}
+                    render={({ field }) => (
+                      <div className="flex items-center space-x-4">
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(true)} checked={field.value} className="mr-2" /> Ja</label>
+                        <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(false)} checked={!field.value} className="mr-2" /> Nein</label>
+                      </div>
+                    )}
+                  />
+                </FormField>
+                {watchPrivacyPolicyExists ? (
+                  <FormField label="Inhalt der Datenschutzerklärung" error={errors.privacyPolicyContent}>
+                    <textarea {...register('privacyPolicyContent')} rows={5} className="w-full input-class" placeholder="Fügen Sie hier den Text Ihrer bestehenden Datenschutzerklärung ein..." />
+                  </FormField>
+                ) : (
+                  <FormField label="Soll eine neue Datenschutzerklärung erstellt werden?" error={errors.privacyPolicyCreationNeeded}>
+                     <Controller
+                        name="privacyPolicyCreationNeeded"
+                        control={control}
+                        render={({ field }) => (
+                          <div className="flex items-center space-x-4">
+                            <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(true)} checked={field.value} className="mr-2" /> Ja</label>
+                            <label className="flex items-center"><input type="radio" name={field.name} ref={field.ref} onBlur={field.onBlur} onChange={() => field.onChange(false)} checked={!field.value} className="mr-2" /> Nein</label>
                           </div>
                         )}
-                      </div>
-                    </>
-                  )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Welche Funktionen sind erforderlich?
-                    </label>
-                    <div className="space-y-2">
-                      {[
-                        { id: 'newsletter', label: 'Newsletter-Anmeldung' },
-                        { id: 'contactForm', label: 'Kontaktformular' },
-                        { id: 'whatsapp', label: 'WhatsApp-Button' },
-                        { id: 'socialMedia', label: 'Social Media Icons' },
-                        { id: 'googleMaps', label: 'Google Maps Karte' },
-                        { id: 'videos', label: 'Videos' },
-                        { id: 'cookieBanner', label: 'Cookie-Banner' },
-                        { id: 'appointmentBooking', label: 'Terminbuchung' },
-                        { id: 'blog', label: 'Blog' },
-                      ].map((func) => (
-                        <label key={func.id} className="flex items-center">
-                          <input
-                            type="checkbox"
-                            {...register('requiredFunctions')}
-                            value={func.label}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">{func.label}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {watchAppointmentBooking && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Welches Tool für Terminbuchungen wird verwendet?
-                      </label>
-                      <input
-                        {...register('appointmentTool')}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="z.B. Calendly, HubSpot, etc."
                       />
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Section 4: Domain & Rechtliches */}
-              {currentSection === 4 && (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Gibt es bestehende SEO-Strategien oder Keywords, die berücksichtigt werden sollen? (optional)
-                    </label>
-                    <textarea
-                      {...register('existingSeoKeywords')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Bestehende Keywords..."
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Gibt es bereits eine Datenschutzerklärung?
-                    </label>
-                    <div className="flex items-center space-x-4">
-                      <label className="flex items-center">
-                        <input type="radio" {...register('privacyPolicyExists')} value="true" className="mr-2" /> Ja
-                      </label>
-                      <label className="flex items-center">
-                        <input type="radio" {...register('privacyPolicyExists')} value="false" className="mr-2" /> Nein
-                      </label>
-                    </div>
-                  </div>
-
-                  {watchPrivacyPolicyExists && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Inhalt der Datenschutzerklärung
-                      </label>
-                      <textarea
-                        {...register('privacyPolicyContent')}
-                        rows={5}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Fügen Sie hier den Text Ihrer bestehenden Datenschutzerklärung ein..."
-                      />
-                    </div>
-                  )}
-
-                  {!watchPrivacyPolicyExists && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Soll eine neue Datenschutzerklärung erstellt werden?
-                      </label>
-                      <div className="flex items-center space-x-4">
-                        <label className="flex items-center">
-                          <input type="radio" {...register('privacyPolicyCreationNeeded')} value="true" className="mr-2" /> Ja
-                        </label>
-                        <label className="flex items-center">
-                          <input type="radio" {...register('privacyPolicyCreationNeeded')} value="false" className="mr-2" /> Nein
-                        </label>
-                      </div>
-                    </div>
-                  )}
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Firmenadresse *
-                    </label>
-                    <input
-                      {...register('companyAddress')}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre Firmenadresse"
-                    />
-                    {errors.companyAddress && (
-                      <p className="text-red-500 text-sm mt-1">{errors.companyAddress.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Telefonnummer *
-                    </label>
-                    <input
-                      {...register('companyPhone')}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre Telefonnummer"
-                    />
-                    {errors.companyPhone && (
-                      <p className="text-red-500 text-sm mt-1">{errors.companyPhone.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      E-Mail-Adresse *
-                    </label>
-                    <input
-                      {...register('companyEmail')}
-                      type="email"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre E-Mail-Adresse"
-                    />
-                    {errors.companyEmail && (
-                      <p className="text-red-500 text-sm mt-1">{errors.companyEmail.message}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Umsatzsteuer-ID (optional)
-                    </label>
-                    <input
-                      {...register('vatId')}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre USt-IdNr."
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Navigation Buttons */}
-              <div className="flex justify-between pt-6">
-                <button
-                  type="button"
-                  onClick={prevSection}
-                  disabled={currentSection === 0}
-                  className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300 font-semibold disabled:opacity-50"
-                >
-                  Zurück
-                </button>
-                {currentSection < sections.length - 1 ? (
-                  <button
-                    type="button"
-                    onClick={nextSection}
-                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white rounded-xl hover:from-blue-600 hover:to-purple-700 transition-all duration-300 font-semibold"
-                  >
-                    Weiter
-                  </button>
-                ) : (
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 font-semibold disabled:opacity-50"
-                  >
-                    {loading ? 'Speichern...' : 'Fragebogen abschicken'}
-                  </button>
+                  </FormField>
                 )}
+                <FormField label="Firmenadresse *" error={errors.companyAddress}>
+                  <input {...register('companyAddress')} className="w-full input-class" placeholder="Ihre Firmenadresse" />
+                </FormField>
+                <FormField label="Telefonnummer *" error={errors.companyPhone}>
+                  <input {...register('companyPhone')} className="w-full input-class" placeholder="Ihre Telefonnummer" />
+                </FormField>
+                <FormField label="E-Mail-Adresse *" error={errors.companyEmail}>
+                  <input type="email" {...register('companyEmail')} className="w-full input-class" placeholder="Ihre E-Mail-Adresse" />
+                </FormField>
+                <FormField label="Umsatzsteuer-ID (optional)" error={errors.vatId}>
+                  <input {...register('vatId')} className="w-full input-class" placeholder="Ihre USt-IdNr." />
+                </FormField>
+              </div>
+
+              <div className="flex justify-end pt-6">
+                <button type="submit" disabled={loading} className="px-8 py-4 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl font-semibold disabled:opacity-50">
+                  {loading ? 'Wird gespeichert...' : 'Fragebogen abschicken'}
+                </button>
               </div>
             </form>
           </motion.div>
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+// Add a global style for input fields to avoid repetition in className
+const globalStyles = `
+  .input-class {
+    padding: 0.75rem 1rem;
+    border: 1px solid #D1D5DB; /* gray-300 */
+    border-radius: 0.5rem;
+    width: 100%;
+  }
+  .dark .input-class {
+    background-color: #374151; /* gray-700 */
+    border-color: #4B5563; /* gray-600 */
+    color: white;
+  }
+  .input-class:focus {
+    --tw-ring-color: #3B82F6; /* blue-500 */
+    box-shadow: 0 0 0 2px var(--tw-ring-color);
+    border-color: #3B82F6; /* blue-500 */
+    outline: none;
+  }
+`;
+
+if (typeof window !== 'undefined') {
+  const styleSheet = document.createElement("style");
+  styleSheet.type = "text/css";
+  styleSheet.innerText = globalStyles;
+  document.head.appendChild(styleSheet);
 }
