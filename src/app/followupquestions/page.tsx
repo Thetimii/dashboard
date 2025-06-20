@@ -174,58 +174,22 @@ export default function FollowupQuestionsPage() {
         completed: true,
       }
 
-      // Check if questionnaire exists and update, otherwise insert
-      try {
-        const { data: existingQuestionnaire, error: fetchError } = await supabase
-          .from('followup_questionnaires')
-          .select('id')
-          .eq('user_id', user.id)
-          .single()
+      // Use upsert to avoid separate select permission issue
+      const { error: upsertError } = await supabase
+        .from('followup_questionnaires')
+        .upsert(questionnaireData, { onConflict: 'user_id' })
 
-        if (fetchError && fetchError.code !== 'PGRST116') {
-          console.error('Error checking existing questionnaire:', fetchError)
-          throw fetchError
-        }
-
-        if (existingQuestionnaire) {
-          console.log('Updating existing questionnaire:', existingQuestionnaire.id)
-          const { error } = await supabase
-            .from('followup_questionnaires')
-            .update(questionnaireData)
-            .eq('id', existingQuestionnaire.id)
-
-          if (error) throw error
-        } else {
-          console.log('Creating new questionnaire')
-          const { error } = await supabase
-            .from('followup_questionnaires')
-            .insert([questionnaireData])
-
-          if (error) throw error
-        }
-
-        console.log('Questionnaire saved successfully')
-        setSubmitted(true)
-        
-        // Redirect to dashboard after successful submission
-        setTimeout(() => {
-          router.push('/dashboard')
-        }, 2000)
-        
-      } catch (dbError: any) {
-        console.error('Database error:', dbError)
-        
-        // Check if it's a table not found error (406/relation error)
-        if (dbError.message?.includes('relation') || dbError.message?.includes('table') || dbError.code === 'PGRST116') {
-          setError('Die Datenbank-Tabelle wurde noch nicht erstellt. Bitte kontaktiere den Support.')
-        } else if (dbError.message?.includes('JWT') || dbError.code === 'PGRST301') {
-          setError('Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.')
-          setTimeout(() => router.push('/signin'), 2000)
-        } else {
-          throw dbError
-        }
+      if (upsertError) {
+        throw upsertError
       }
 
+      console.log('Questionnaire saved successfully')
+      setSubmitted(true)
+      
+      // Redirect to dashboard after successful submission
+      setTimeout(() => {
+        router.push('/dashboard')
+      }, 2000)
     } catch (error: any) {
       console.error('Error saving questionnaire:', error)
       
