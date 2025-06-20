@@ -138,22 +138,15 @@ export default function DashboardPage() {
     if (!user) return
 
     try {
-      const { data, error } = await supabase
+      const { data: questionnaires, error } = await supabase
         .from('followup_questionnaires')
         .select('completed, created_at')
         .eq('user_id', user.id)
-        .single()
+        .order('created_at', { ascending: false })
+        .limit(1)
 
       if (error) {
-        // Handle specific error cases
-        if (error.code === 'PGRST116') {
-          // No record found - questionnaire not started
-          setQuestionnaireStatus(null)
-          return
-        }
-        
-        if (error.message?.includes('relation') || error.message?.includes('table') || error.status === 406) {
-          // Table doesn't exist or access denied - don't block user access
+        if (error.message?.includes('relation') || error.message?.includes('table')) {
           console.warn('Questionnaire table access issue (may be expected):', error)
           setQuestionnaireStatus(null)
           return
@@ -164,10 +157,9 @@ export default function DashboardPage() {
         return
       }
 
-      setQuestionnaireStatus(data)
+      setQuestionnaireStatus(questionnaires?.[0] || null)
     } catch (error) {
       console.error('Error fetching questionnaire status:', error)
-      // On any error, don't block access - set to null
       setQuestionnaireStatus(null)
     }
   }, [user, supabase])
