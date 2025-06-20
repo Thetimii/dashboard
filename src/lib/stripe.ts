@@ -1,5 +1,6 @@
 import { loadStripe } from '@stripe/stripe-js'
 import { createClient } from './supabase'
+import { storeAuthRecovery, storePaymentContext } from './auth-recovery'
 
 export const getStripe = () => {
   return loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -115,16 +116,24 @@ export async function redirectToStripePayment(
     promoCodeData 
   })
   
-  // Store payment context in sessionStorage to preserve it across redirect
+  // Store payment context using the utility
   if (typeof window !== 'undefined') {
-    const paymentContext = {
+    storePaymentContext({
       paymentId,
       userEmail,
-      timestamp: Date.now(),
       returnUrl: window.location.pathname + window.location.search
+    })
+    
+    // Store auth recovery data if we have user session
+    try {
+      const supabase = createClient()
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        await storeAuthRecovery(session.user.id, session.user.email!)
+      }
+    } catch (error) {
+      console.warn('Could not store auth recovery data:', error)
     }
-    sessionStorage.setItem('stripe_payment_context', JSON.stringify(paymentContext))
-    console.log('Stored payment context:', paymentContext)
   }
   
   // Use the direct Stripe payment link with parameters

@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
+import { attemptSessionRecovery, clearAuthRecovery, clearPaymentContext } from '@/lib/auth-recovery'
 
 interface AuthContextType {
   user: User | null
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isMounted) setLoading(false)
     }
 
-    // Get initial session with better error handling and retry logic
+    // Enhanced session recovery for payment flow
     const getInitialSession = async () => {
       try {
         // First, try to recover session from storage if available
@@ -67,14 +68,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log('Successfully refreshed session')
             await updateUserState(refreshData.session)
           } else {
-            if (isMounted) setLoading(false)
+            // Attempt comprehensive session recovery
+            const recovered = await attemptSessionRecovery()
+            if (recovered) {
+              const { data: { session: recoveredSession } } = await supabase.auth.getSession()
+              await updateUserState(recoveredSession)
+            } else {
+              if (isMounted) setLoading(false)
+            }
           }
         } else {
           await updateUserState(session)
         }
       } catch (error) {
         console.error('Critical error getting session:', error)
-        if (isMounted) {
+        const recovered = await attemptSessionRecovery()
+        if (!recovered && isMounted) {
           setUser(null)
           setIsAdmin(false)
           setLoading(false)
@@ -91,9 +100,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // Handle different auth events appropriately
         if (event === 'SIGNED_OUT') {
           // Clear any payment context when user signs out
-          if (typeof window !== 'undefined') {
-            sessionStorage.removeItem('stripe_payment_context')
-          }
+          clearPaymentContext()
+          clearAuthRecovery()
         }
         
         await updateUserState(session)

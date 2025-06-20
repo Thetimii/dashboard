@@ -9,6 +9,7 @@ import { CheckCircleIcon, ArrowLeftIcon, ExclamationCircleIcon } from '@heroicon
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { followupQuestionnaireSchema, type FollowupQuestionnaireData } from '@/lib/validations'
+import { validateSession } from '@/lib/auth-recovery'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 
@@ -57,6 +58,24 @@ export default function FollowupQuestionsPage() {
       router.push('/signin')
       return
     }
+
+    // Verify session is still valid
+    const verifySession = async () => {
+      try {
+        const isValid = await validateSession()
+        if (!isValid) {
+          console.error('Session validation failed on questionnaire page')
+          router.push('/signin')
+          return
+        }
+      } catch (error) {
+        console.error('Error verifying session:', error)
+        router.push('/signin')
+        return
+      }
+    }
+
+    verifySession()
 
     // Check if user has completed payment and prefill form
     checkPaymentStatusAndPrefill()
@@ -142,12 +161,25 @@ export default function FollowupQuestionsPage() {
   }
 
   const onSubmit = async (data: FollowupQuestionnaireData) => {
-    if (!user) return
+    if (!user) {
+      setError('Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.')
+      router.push('/signin')
+      return
+    }
 
     setLoading(true)
     setError(null)
 
     try {
+      // Verify user session before submitting
+      const isValid = await validateSession()
+      if (!isValid) {
+        console.error('Session validation failed during form submission')
+        setError('Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.')
+        router.push('/signin')
+        return
+      }
+
       // Convert form data to database format
       const questionnaireData = {
         user_id: user.id,
@@ -191,13 +223,19 @@ export default function FollowupQuestionsPage() {
 
       // Check if questionnaire exists and update, otherwise insert
       try {
-        const { data: existingQuestionnaire } = await supabase
+        const { data: existingQuestionnaire, error: fetchError } = await supabase
           .from('followup_questionnaires')
           .select('id')
           .eq('user_id', user.id)
           .single()
 
+        if (fetchError && fetchError.code !== 'PGRST116') {
+          console.error('Error checking existing questionnaire:', fetchError)
+          throw fetchError
+        }
+
         if (existingQuestionnaire) {
+          console.log('Updating existing questionnaire:', existingQuestionnaire.id)
           const { error } = await supabase
             .from('followup_questionnaires')
             .update(questionnaireData)
@@ -205,6 +243,7 @@ export default function FollowupQuestionsPage() {
 
           if (error) throw error
         } else {
+          console.log('Creating new questionnaire')
           const { error } = await supabase
             .from('followup_questionnaires')
             .insert([questionnaireData])
@@ -212,6 +251,7 @@ export default function FollowupQuestionsPage() {
           if (error) throw error
         }
 
+        console.log('Questionnaire saved successfully')
         setSubmitted(true)
         
         // Redirect to dashboard after successful submission
@@ -225,6 +265,9 @@ export default function FollowupQuestionsPage() {
         // Check if it's a table not found error (406/relation error)
         if (dbError.message?.includes('relation') || dbError.message?.includes('table') || dbError.code === 'PGRST116') {
           setError('Die Datenbank-Tabelle wurde noch nicht erstellt. Bitte kontaktiere den Support.')
+        } else if (dbError.message?.includes('JWT') || dbError.code === 'PGRST301') {
+          setError('Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.')
+          setTimeout(() => router.push('/signin'), 2000)
         } else {
           throw dbError
         }
@@ -238,6 +281,9 @@ export default function FollowupQuestionsPage() {
         setError('Die Datenbank-Tabelle für Fragebögen ist noch nicht verfügbar. Bitte kontaktiere den Support.')
       } else if (error.message?.includes('network') || error.message?.includes('fetch')) {
         setError('Netzwerkfehler. Bitte überprüfe deine Internetverbindung und versuche es erneut.')
+      } else if (error.message?.includes('JWT') || error.message?.includes('auth')) {
+        setError('Authentifizierungsfehler. Bitte melden Sie sich erneut an.')
+        setTimeout(() => router.push('/signin'), 2000)
       } else {
         setError('Fehler beim Speichern des Fragebogens. Bitte versuche es erneut oder kontaktiere den Support.')
       }

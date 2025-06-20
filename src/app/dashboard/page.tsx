@@ -4,7 +4,14 @@ import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
-import { createPaymentRecord, getPaymentStatus, redirectToStripePayment, getCustomerDetails, createCustomerPortalSession } from '@/lib/stripe'
+import { 
+  createPaymentRecord, 
+  redirectToStripePayment, 
+  getPaymentStatus,
+  getCustomerDetails,
+  createCustomerPortalSession
+} from '@/lib/stripe'
+import { getPaymentContext, clearPaymentContext } from '@/lib/auth-recovery'
 import { motion } from 'framer-motion'
 import { DashboardLayout } from '@/components/DashboardLayout'
 import { 
@@ -293,41 +300,27 @@ export default function DashboardPage() {
 
     // Check for returning from Stripe payment
     const checkStripeReturn = () => {
-      if (typeof window !== 'undefined') {
-        const paymentContext = sessionStorage.getItem('stripe_payment_context')
-        if (paymentContext) {
-          try {
-            const context = JSON.parse(paymentContext)
-            const timeDiff = Date.now() - context.timestamp
-            
-            // If less than 10 minutes ago and we have payment context
-            if (timeDiff < 10 * 60 * 1000) {
-              console.log('Detected return from Stripe payment:', context)
-              
-              // Clear the context
-              sessionStorage.removeItem('stripe_payment_context')
-              
-              // Show success message and refresh data
-              setActiveTab('tracker')
-              
-              // Refresh payment and demo data with a delay for webhook processing
-              setTimeout(() => {
-                console.log('Refreshing payment data after Stripe return')
-                fetchPaymentStatus()
-                fetchDemoLinks()
-              }, 2000)
-              
-              return true
-            } else {
-              // Clean up old context
-              sessionStorage.removeItem('stripe_payment_context')
-            }
-          } catch (error) {
-            console.error('Error parsing payment context:', error)
-            sessionStorage.removeItem('stripe_payment_context')
-          }
-        }
+      const paymentContext = getPaymentContext()
+      
+      if (paymentContext) {
+        console.log('Detected return from Stripe payment:', paymentContext)
+        
+        // Clear the context
+        clearPaymentContext()
+        
+        // Show success message and refresh data
+        setActiveTab('tracker')
+        
+        // Refresh payment and demo data with a delay for webhook processing
+        setTimeout(() => {
+          console.log('Refreshing payment data after Stripe return')
+          fetchPaymentStatus()
+          fetchDemoLinks()
+        }, 2000)
+        
+        return true
       }
+      
       return false
     }
 
