@@ -46,6 +46,40 @@ textarea::placeholder {
   border-color: rgb(59 130 246);
 }
 
+/* Safari-specific dark mode input improvements */
+@supports (-webkit-appearance: none) {
+  .dark input,
+  .dark textarea,
+  .dark select {
+    background-color: rgba(31, 41, 55, 0.8) !important; /* More solid dark background */
+    color: #f9fafb !important; /* gray-50 for better contrast */
+    border-color: rgba(75, 85, 99, 0.8) !important; /* gray-600 with opacity */
+  }
+  
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    color: #d1d5db !important; /* gray-300 for better visibility */
+    opacity: 0.8 !important;
+  }
+  
+  .dark input:focus,
+  .dark textarea:focus,
+  .dark select:focus {
+    background-color: rgba(31, 41, 55, 0.9) !important;
+    border-color: rgb(59 130 246) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+  }
+  
+  /* Fix autofill styles in Safari dark mode */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 30px rgba(31, 41, 55, 0.9) inset !important;
+    -webkit-text-fill-color: #f9fafb !important;
+    transition: background-color 5000s ease-in-out 0s;
+  }
+}
+
 /* Smooth transitions for theme switching */
 * {
   transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;

@@ -90,7 +90,7 @@ export default function SignInPage() {
                 {...register('email')}
                 type="email"
                 id="email"
-                className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
                 placeholder="deine@email.ch"
               />
               {errors.email && (
@@ -106,7 +106,7 @@ export default function SignInPage() {
                 {...register('password')}
                 type="password"
                 id="password"
-                className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
+                className="w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
                 placeholder="Dein Passwort"
               />
               {errors.password && (
