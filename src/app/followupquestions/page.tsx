@@ -172,8 +172,6 @@ export default function FollowupQuestionsPage() {
         problems_solved: data.problemsSolved,
         trust_building: data.trustBuilding || null,
         potential_objections: data.potentialObjections || null,
-        main_competitors: data.mainCompetitors || null,
-        competitor_strengths: data.competitorStrengths || null,
         target_group_demographics: data.targetGroupDemographics,
         target_group_needs: data.targetGroupNeeds || null,
         service_subpages: data.serviceSubpages,
@@ -583,30 +581,6 @@ export default function FollowupQuestionsPage() {
                       rows={3}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                       placeholder="Mögliche Kundenbedenken..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wer sind Ihre stärksten Mitbewerber? (optional)
-                    </label>
-                    <textarea
-                      {...register('mainCompetitors')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Ihre Hauptkonkurrenten..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Was zeichnet Ihre Mitbewerber aus? (optional)
-                    </label>
-                    <textarea
-                      {...register('competitorStrengths')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Stärken der Konkurrenz..."
                     />
                   </div>
                 </div>

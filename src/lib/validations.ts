@@ -24,22 +24,20 @@ export const fileUploadSchema = z.object({
 
 export const followupQuestionnaireSchema = z.object({
   // Ziel des Unternehmens (Business Goals)
-  coreBusiness: z.string().min(1, 'Kerngeschäft ist erforderlich'),
-  revenueGeneration: z.string().min(1, 'Umsatzgenerierung ist erforderlich'),
+  coreBusiness: z.string().min(10, 'Bitte beschreiben Sie Ihr Kerngeschäft ausführlicher.'),
+  revenueGeneration: z.string().min(10, 'Bitte erklären Sie, wie Ihr Unternehmen Geld verdient.'),
   secondaryRevenue: z.string().optional(),
   longTermRevenue: z.string().optional(),
   
   // Wettbewerbsumfeld (Competitive Environment)
-  uniqueSellingPoints: z.string().min(1, 'Alleinstellungsmerkmale sind erforderlich'),
-  customerChoiceReasons: z.string().min(1, 'Gründe für Kundenwahl sind erforderlich'),
-  problemsSolved: z.string().min(1, 'Gelöste Probleme sind erforderlich'),
+  uniqueSellingPoints: z.string().min(10, 'Bitte nennen Sie mindestens einen USP.'),
+  customerChoiceReasons: z.string().min(10, 'Bitte geben Sie mindestens einen Grund an.'),
+  problemsSolved: z.string().min(10, 'Bitte beschreiben Sie, welche Probleme Sie für Kunden lösen.'),
   trustBuilding: z.string().optional(),
   potentialObjections: z.string().optional(),
-  mainCompetitors: z.string().optional(),
-  competitorStrengths: z.string().optional(),
   
   // Zielgruppenanalyse (Target Group Analysis)
-  targetGroupDemographics: z.string().min(1, 'Zielgruppendefinition ist erforderlich'),
+  targetGroupDemographics: z.string().min(10, 'Bitte beschreiben Sie Ihre Zielgruppe.'),
   targetGroupNeeds: z.string().optional(),
   
   // Inhaltsplanung (Content Planning)
@@ -47,7 +45,7 @@ export const followupQuestionnaireSchema = z.object({
   serviceSubpagesDetails: z.string().optional(),
   existingContent: z.boolean(),
   existingContentDetails: z.string().optional(),
-  existingContentFiles: z.array(z.any()).optional(),
+  existingContentFiles: z.array(z.string()).optional(), // For file URLs
 
   // Funktionalität (Functionality)
   requiredFunctions: z.array(z.string()).optional(),
@@ -69,9 +67,9 @@ export const followupQuestionnaireSchema = z.object({
   privacyPolicyExists: z.boolean(),
   privacyPolicyCreationNeeded: z.boolean(),
   privacyPolicyContent: z.string().optional(),
-  companyAddress: z.string().min(1, 'Firmenadresse ist erforderlich'),
-  companyPhone: z.string().min(1, 'Telefonnummer ist erforderlich'),
-  companyEmail: z.string().email('Gültige E-Mail-Adresse erforderlich'),
+  companyAddress: z.string().min(5, 'Bitte geben Sie eine gültige Adresse ein.'),
+  companyPhone: z.string().min(5, 'Bitte geben Sie eine gültige Telefonnummer ein.'),
+  companyEmail: z.string().email('Bitte geben Sie eine gültige E-Mail-Adresse ein.'),
   vatId: z.string().optional(),
 })
 
