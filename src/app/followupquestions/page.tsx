@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { CheckCircleIcon, ArrowLeftIcon, ExclamationCircleIcon } from '@heroicons/react/24/outline'
+import { CheckCircleIcon, ArrowLeftIcon, ExclamationCircleIcon, ArrowUpTrayIcon } from '@heroicons/react/24/outline'
 import { createClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { followupQuestionnaireSchema, type FollowupQuestionnaireData } from '@/lib/validations'
@@ -18,6 +18,7 @@ export default function FollowupQuestionsPage() {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentSection, setCurrentSection] = useState(0)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
@@ -28,6 +29,8 @@ export default function FollowupQuestionsPage() {
     handleSubmit,
     watch,
     setValue,
+    trigger,
+    control,
     formState: { errors },
   } = useForm<FollowupQuestionnaireData>({
     resolver: zodResolver(followupQuestionnaireSchema),
@@ -88,6 +91,10 @@ export default function FollowupQuestionsPage() {
       }
     } catch (error) {
       console.error('Error during prefill check:', error)
+      // Do not show table-related errors on initial load
+      if (error instanceof Error && !error.message.includes('relation')) {
+        setError('Fehler beim Laden der Formulardaten.')
+      }
     }
   }, [user, supabase, setValue, setSubmitted])
 
@@ -133,6 +140,26 @@ export default function FollowupQuestionsPage() {
         return
       }
 
+      const fileUrls: string[] = []
+      if (uploadedFiles.length > 0) {
+        for (const file of uploadedFiles) {
+          const fileName = `${user.id}/${Date.now()}-${file.name}`
+          const { error: uploadError } = await supabase.storage
+            .from('questionnaire-files')
+            .upload(fileName, file)
+
+          if (uploadError) {
+            throw new Error(`Fehler beim Hochladen der Datei: ${uploadError.message}`)
+          }
+          
+          const { data: urlData } = supabase.storage
+            .from('questionnaire-files')
+            .getPublicUrl(fileName)
+          
+          fileUrls.push(urlData.publicUrl)
+        }
+      }
+
       // Convert form data to database format
       const questionnaireData = {
         user_id: user.id,
@@ -143,7 +170,7 @@ export default function FollowupQuestionsPage() {
         unique_selling_points: data.uniqueSellingPoints,
         customer_choice_reasons: data.customerChoiceReasons,
         problems_solved: data.problemsSolved,
-        trust_building: data.trustBuilding,
+        trust_building: data.trustBuilding || null,
         potential_objections: data.potentialObjections || null,
         main_competitors: data.mainCompetitors || null,
         competitor_strengths: data.competitorStrengths || null,
@@ -153,6 +180,7 @@ export default function FollowupQuestionsPage() {
         service_subpages_details: data.serviceSubpagesDetails || null,
         existing_content: data.existingContent,
         existing_content_details: data.existingContentDetails || null,
+        existing_content_files: fileUrls,
         required_functions: data.requiredFunctions || [],
         ecommerce_needed: data.ecommerceNeeded,
         blog_needed: data.blogNeeded,
@@ -167,6 +195,7 @@ export default function FollowupQuestionsPage() {
         desired_domain: data.desiredDomain || null,
         privacy_policy_exists: data.privacyPolicyExists,
         privacy_policy_creation_needed: data.privacyPolicyCreationNeeded,
+        privacy_policy_content: data.privacyPolicyContent || null,
         company_address: data.companyAddress,
         company_phone: data.companyPhone,
         company_email: data.companyEmail,
@@ -232,7 +261,29 @@ export default function FollowupQuestionsPage() {
     },
   ]
 
-  const nextSection = () => {
+  const getFieldsForSection = (section: number): (keyof FollowupQuestionnaireData)[] => {
+    switch (section) {
+      case 0:
+        return ['coreBusiness', 'revenueGeneration']
+      case 1:
+        return ['uniqueSellingPoints', 'customerChoiceReasons', 'problemsSolved']
+      case 2:
+        return ['targetGroupDemographics']
+      case 4:
+        return ['companyAddress', 'companyPhone', 'companyEmail']
+      default:
+        return []
+    }
+  }
+
+  const nextSection = async () => {
+    const fieldsToValidate = getFieldsForSection(currentSection)
+    if (fieldsToValidate.length > 0) {
+      const isValid = await trigger(fieldsToValidate)
+      if (!isValid) {
+        return
+      }
+    }
     if (currentSection < sections.length - 1) {
       setCurrentSection(currentSection + 1)
     }
@@ -451,18 +502,6 @@ export default function FollowupQuestionsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Nebeneinnahmen (optional)
-                    </label>
-                    <textarea
-                      {...register('secondaryRevenue')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Weitere Einnahmequellen..."
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Langfristige Einnahmen (optional)
                     </label>
                     <textarea
@@ -525,7 +564,7 @@ export default function FollowupQuestionsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wie schaffen Sie Vertrauen gegenüber Ihren Kunden? *
+                      Wie schaffen Sie Vertrauen gegenüber Ihren Kunden? (optional)
                     </label>
                     <textarea
                       {...register('trustBuilding')}
@@ -533,9 +572,6 @@ export default function FollowupQuestionsPage() {
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
                       placeholder="z.B. seit wann am Markt, Anzahl der Kunden, besondere Services, Support..."
                     />
-                    {errors.trustBuilding && (
-                      <p className="text-red-500 text-sm mt-1">{errors.trustBuilding.message}</p>
-                    )}
                   </div>
 
                   <div>
@@ -615,24 +651,12 @@ export default function FollowupQuestionsPage() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                       Soll es Unterseiten für verschiedene Dienstleistungen oder Produkte geben?
                     </label>
-                    <div className="flex gap-4">
+                    <div className="flex items-center space-x-4">
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('serviceSubpages')}
-                          value="true"
-                          className="mr-2"
-                        />
-                        Ja
+                        <input type="radio" {...register('serviceSubpages')} value="true" className="mr-2" /> Ja
                       </label>
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('serviceSubpages')}
-                          value="false"
-                          className="mr-2"
-                        />
-                        Nein
+                        <input type="radio" {...register('serviceSubpages')} value="false" className="mr-2" /> Nein
                       </label>
                     </div>
                   </div>
@@ -640,7 +664,7 @@ export default function FollowupQuestionsPage() {
                   {watchServiceSubpages && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Details zu den gewünschten Unterseiten
+                        Beschreibe jede Dienstleistung so genau wie möglich (Preis, Zielgruppe, Details)
                       </label>
                       <textarea
                         {...register('serviceSubpagesDetails')}
@@ -655,139 +679,109 @@ export default function FollowupQuestionsPage() {
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                       Gibt es bereits Bilder und Texte, die wir verwenden können?
                     </label>
-                    <div className="flex gap-4">
+                    <div className="flex items-center space-x-4">
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('existingContent')}
-                          value="true"
-                          className="mr-2"
-                        />
-                        Ja
+                        <input type="radio" {...register('existingContent')} value="true" className="mr-2" /> Ja
                       </label>
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('existingContent')}
-                          value="false"
-                          className="mr-2"
-                        />
-                        Nein
+                        <input type="radio" {...register('existingContent')} value="false" className="mr-2" /> Nein
                       </label>
                     </div>
                   </div>
 
                   {watchExistingContent && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Details zu vorhandenen Inhalten
-                      </label>
-                      <textarea
-                        {...register('existingContentDetails')}
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="Welche Inhalte sind bereits vorhanden?"
-                      />
-                    </div>
+                    <>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Details zu vorhandenen Inhalten
+                        </label>
+                        <textarea
+                          {...register('existingContentDetails')}
+                          rows={3}
+                          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                          placeholder="Beschreiben Sie die vorhandenen Inhalte..."
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                          Dateien hochladen
+                        </label>
+                        <div className="mt-2 flex justify-center rounded-lg border border-dashed border-gray-300 dark:border-gray-600 px-6 py-10">
+                          <div className="text-center">
+                            <ArrowUpTrayIcon className="mx-auto h-12 w-12 text-gray-400" />
+                            <div className="mt-4 flex text-sm leading-6 text-gray-600 dark:text-gray-400">
+                              <label
+                                htmlFor="file-upload"
+                                className="relative cursor-pointer rounded-md bg-white dark:bg-gray-800 font-semibold text-blue-600 dark:text-blue-400 focus-within:outline-none focus-within:ring-2 focus-within:ring-blue-600 focus-within:ring-offset-2 dark:ring-offset-gray-800 hover:text-blue-500"
+                              >
+                                <span>Dateien auswählen</span>
+                                <input
+                                  id="file-upload"
+                                  name="file-upload"
+                                  type="file"
+                                  multiple
+                                  className="sr-only"
+                                  onChange={(e) => setUploadedFiles(Array.from(e.target.files || []))}
+                                />
+                              </label>
+                              <p className="pl-1">oder hierher ziehen</p>
+                            </div>
+                            <p className="text-xs leading-5 text-gray-600 dark:text-gray-400">PNG, JPG, GIF bis zu 10MB</p>
+                          </div>
+                        </div>
+                        {uploadedFiles.length > 0 && (
+                          <div className="mt-4">
+                            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Ausgewählte Dateien:</p>
+                            <ul className="mt-2 list-disc list-inside text-sm text-gray-600 dark:text-gray-400">
+                              {uploadedFiles.map(file => <li key={file.name}>{file.name}</li>)}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </>
                   )}
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Welche Funktionen sind erforderlich?
                     </label>
-                    <div className="grid grid-cols-2 gap-4">
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('ecommerceNeeded')}
-                          className="mr-2"
-                        />
-                        E-Commerce
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('blogNeeded')}
-                          className="mr-2"
-                        />
-                        Blog
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('newsletterNeeded')}
-                          className="mr-2"
-                        />
-                        Newsletter-Anmeldung
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('memberAreaNeeded')}
-                          className="mr-2"
-                        />
-                        Mitgliederbereich
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('socialMediaNeeded')}
-                          className="mr-2"
-                        />
-                        Social-Media-Anbindung
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('whatsappChatNeeded')}
-                          className="mr-2"
-                        />
-                        WhatsApp-Business-Chat
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('appointmentBooking')}
-                          className="mr-2"
-                        />
-                        Terminbuchung
-                      </label>
-                      <label className="flex items-center">
-                        <input
-                          type="checkbox"
-                          {...register('googleAnalyticsNeeded')}
-                          className="mr-2"
-                        />
-                        Google Analytics
-                      </label>
+                    <div className="space-y-2">
+                      {[
+                        { id: 'newsletter', label: 'Newsletter-Anmeldung' },
+                        { id: 'contactForm', label: 'Kontaktformular' },
+                        { id: 'whatsapp', label: 'WhatsApp-Button' },
+                        { id: 'socialMedia', label: 'Social Media Icons' },
+                        { id: 'googleMaps', label: 'Google Maps Karte' },
+                        { id: 'videos', label: 'Videos' },
+                        { id: 'cookieBanner', label: 'Cookie-Banner' },
+                        { id: 'appointmentBooking', label: 'Terminbuchung' },
+                        { id: 'blog', label: 'Blog' },
+                      ].map((func) => (
+                        <label key={func.id} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            {...register('requiredFunctions')}
+                            value={func.label}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="ml-3 text-sm text-gray-700 dark:text-gray-300">{func.label}</span>
+                        </label>
+                      ))}
                     </div>
                   </div>
 
                   {watchAppointmentBooking && (
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Gibt es bereits ein Tool wie Calendly oder soll eine Lösung integriert werden?
+                        Welches Tool für Terminbuchungen wird verwendet?
                       </label>
                       <input
-                        type="text"
                         {...register('appointmentTool')}
                         className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                        placeholder="z.B. Calendly, oder 'neue Lösung gewünscht'"
+                        placeholder="z.B. Calendly, HubSpot, etc."
                       />
                     </div>
                   )}
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Gibt es bestehende SEO-Strategien oder Keywords, die berücksichtigt werden sollen? (optional)
-                    </label>
-                    <textarea
-                      {...register('existingSeoKeywords')}
-                      rows={3}
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Wichtige Keywords oder SEO-Strategien..."
-                    />
-                  </div>
                 </div>
               )}
 
@@ -796,79 +790,67 @@ export default function FollowupQuestionsPage() {
                 <div className="space-y-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Wie soll Ihre Website heißen? Gibt es eine Wunsch-Domain? (optional)
+                      Gibt es bestehende SEO-Strategien oder Keywords, die berücksichtigt werden sollen? (optional)
                     </label>
-                    <input
-                      type="text"
-                      {...register('desiredDomain')}
+                    <textarea
+                      {...register('existingSeoKeywords')}
+                      rows={3}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="z.B. meinefirma.ch"
+                      placeholder="Bestehende Keywords..."
                     />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                       Gibt es bereits eine Datenschutzerklärung?
                     </label>
-                    <div className="flex gap-4">
+                    <div className="flex items-center space-x-4">
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('privacyPolicyExists')}
-                          value="true"
-                          className="mr-2"
-                        />
-                        Ja
+                        <input type="radio" {...register('privacyPolicyExists')} value="true" className="mr-2" /> Ja
                       </label>
                       <label className="flex items-center">
-                        <input
-                          type="radio"
-                          {...register('privacyPolicyExists')}
-                          value="false"
-                          className="mr-2"
-                        />
-                        Nein
+                        <input type="radio" {...register('privacyPolicyExists')} value="false" className="mr-2" /> Nein
                       </label>
                     </div>
                   </div>
 
+                  {watchPrivacyPolicyExists && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Inhalt der Datenschutzerklärung
+                      </label>
+                      <textarea
+                        {...register('privacyPolicyContent')}
+                        rows={5}
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
+                        placeholder="Fügen Sie hier den Text Ihrer bestehenden Datenschutzerklärung ein..."
+                      />
+                    </div>
+                  )}
+
                   {!watchPrivacyPolicyExists && (
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
-                        Sollen wir eine Datenschutzerklärung für Sie erstellen?
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Soll eine neue Datenschutzerklärung erstellt werden?
                       </label>
-                      <div className="flex gap-4">
+                      <div className="flex items-center space-x-4">
                         <label className="flex items-center">
-                          <input
-                            type="radio"
-                            {...register('privacyPolicyCreationNeeded')}
-                            value="true"
-                            className="mr-2"
-                          />
-                          Ja
+                          <input type="radio" {...register('privacyPolicyCreationNeeded')} value="true" className="mr-2" /> Ja
                         </label>
                         <label className="flex items-center">
-                          <input
-                            type="radio"
-                            {...register('privacyPolicyCreationNeeded')}
-                            value="false"
-                            className="mr-2"
-                          />
-                          Nein
+                          <input type="radio" {...register('privacyPolicyCreationNeeded')} value="false" className="mr-2" /> Nein
                         </label>
                       </div>
                     </div>
                   )}
-
+                  
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Adresse des Unternehmens *
+                      Firmenadresse *
                     </label>
-                    <textarea
+                    <input
                       {...register('companyAddress')}
-                      rows={3}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="Vollständige Firmenadresse..."
+                      placeholder="Ihre Firmenadresse"
                     />
                     {errors.companyAddress && (
                       <p className="text-red-500 text-sm mt-1">{errors.companyAddress.message}</p>
@@ -877,13 +859,12 @@ export default function FollowupQuestionsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      Telefonnummer für die Website *
+                      Telefonnummer *
                     </label>
                     <input
-                      type="tel"
                       {...register('companyPhone')}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="+41 XX XXX XX XX"
+                      placeholder="Ihre Telefonnummer"
                     />
                     {errors.companyPhone && (
                       <p className="text-red-500 text-sm mt-1">{errors.companyPhone.message}</p>
@@ -892,13 +873,13 @@ export default function FollowupQuestionsPage() {
 
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                      E-Mail-Adresse für die Website *
+                      E-Mail-Adresse *
                     </label>
                     <input
-                      type="email"
                       {...register('companyEmail')}
+                      type="email"
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="info@meinefirma.ch"
+                      placeholder="Ihre E-Mail-Adresse"
                     />
                     {errors.companyEmail && (
                       <p className="text-red-500 text-sm mt-1">{errors.companyEmail.message}</p>
@@ -910,10 +891,9 @@ export default function FollowupQuestionsPage() {
                       Umsatzsteuer-ID (optional)
                     </label>
                     <input
-                      type="text"
                       {...register('vatId')}
                       className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:text-white"
-                      placeholder="CHE-XXX.XXX.XXX MWST"
+                      placeholder="Ihre USt-IdNr."
                     />
                   </div>
                 </div>
@@ -925,15 +905,10 @@ export default function FollowupQuestionsPage() {
                   type="button"
                   onClick={prevSection}
                   disabled={currentSection === 0}
-                  className={`px-6 py-3 rounded-xl font-semibold transition-all duration-300 ${
-                    currentSection === 0
-                      ? 'bg-gray-200 dark:bg-gray-700 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600'
-                  }`}
+                  className="px-6 py-3 bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white rounded-xl hover:bg-gray-300 dark:hover:bg-gray-500 transition-all duration-300 font-semibold disabled:opacity-50"
                 >
                   Zurück
                 </button>
-
                 {currentSection < sections.length - 1 ? (
                   <button
                     type="button"
@@ -946,9 +921,9 @@ export default function FollowupQuestionsPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-semibold"
+                    className="px-6 py-3 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-xl hover:from-green-600 hover:to-teal-600 transition-all duration-300 font-semibold disabled:opacity-50"
                   >
-                    {loading ? 'Wird gespeichert...' : 'Fragebogen abschließen'}
+                    {loading ? 'Speichern...' : 'Fragebogen abschicken'}
                   </button>
                 )}
               </div>

@@ -33,7 +33,7 @@ export const followupQuestionnaireSchema = z.object({
   uniqueSellingPoints: z.string().min(1, 'Alleinstellungsmerkmale sind erforderlich'),
   customerChoiceReasons: z.string().min(1, 'Gründe für Kundenwahl sind erforderlich'),
   problemsSolved: z.string().min(1, 'Gelöste Probleme sind erforderlich'),
-  trustBuilding: z.string().min(1, 'Vertrauensbildung ist erforderlich'),
+  trustBuilding: z.string().optional(),
   potentialObjections: z.string().optional(),
   mainCompetitors: z.string().optional(),
   competitorStrengths: z.string().optional(),
@@ -47,7 +47,8 @@ export const followupQuestionnaireSchema = z.object({
   serviceSubpagesDetails: z.string().optional(),
   existingContent: z.boolean(),
   existingContentDetails: z.string().optional(),
-  
+  existingContentFiles: z.array(z.any()).optional(),
+
   // Funktionalität (Functionality)
   requiredFunctions: z.array(z.string()).optional(),
   ecommerceNeeded: z.boolean(),
@@ -67,6 +68,7 @@ export const followupQuestionnaireSchema = z.object({
   // Rechtliche Anforderungen (Legal Requirements)
   privacyPolicyExists: z.boolean(),
   privacyPolicyCreationNeeded: z.boolean(),
+  privacyPolicyContent: z.string().optional(),
   companyAddress: z.string().min(1, 'Firmenadresse ist erforderlich'),
   companyPhone: z.string().min(1, 'Telefonnummer ist erforderlich'),
   companyEmail: z.string().email('Gültige E-Mail-Adresse erforderlich'),
