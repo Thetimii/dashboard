@@ -27,6 +27,16 @@ export function LandingPage() {
     router.push('/signup')
   }
 
+  const handleScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const href = e.currentTarget.href
+    const targetId = href.replace(/.*#/, '')
+    const elem = document.getElementById(targetId)
+    elem?.scrollIntoView({
+      behavior: 'smooth',
+    })
+  }
+
   const fadeInUp = {
     initial: { opacity: 0, y: 60 },
     animate: { opacity: 1, y: 0 },
@@ -70,8 +80,8 @@ export function LandingPage() {
             <span className="text-xl font-bold text-white">Customer Flows</span>
           </div>
           <div className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-white/80 hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="text-white/80 hover:text-white transition-colors">Preise</a>
+            <a href="#how-it-works" onClick={handleScroll} className="text-white/80 hover:text-white transition-colors">So geht's</a>
+            <a href="#pricing" onClick={handleScroll} className="text-white/80 hover:text-white transition-colors">Preise</a>
             <button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 px-6 py-2 rounded-xl font-semibold hover:from-teal-500 hover:to-cyan-500 transition-all duration-300"
@@ -297,7 +307,7 @@ export function LandingPage() {
       </section>
 
       {/* How It Works Section */}
-      <section className="py-32 px-4 bg-gradient-to-br from-gray-50 to-teal-50 relative overflow-hidden">
+      <section id="how-it-works" className="py-32 px-4 bg-gradient-to-br from-gray-50 to-teal-50 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-br from-teal-200/30 to-cyan-200/30 rounded-full blur-3xl"></div>
@@ -376,12 +386,8 @@ export function LandingPage() {
                     </div>
                     <h4 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-blue-600 transition-colors">Willkommen bei Customer Flows!</h4>
                     <div className="space-y-3">
-                      <div className="bg-gray-50 rounded-xl p-4 group-hover:bg-blue-50 transition-colors">
-                        <input type="text" placeholder="Dein Name" className="w-full border-0 bg-transparent text-gray-700 pointer-events-none" readOnly />
-                      </div>
-                      <div className="bg-gray-50 rounded-xl p-4 group-hover:bg-blue-50 transition-colors">
-                        <input type="email" placeholder="E-Mail Adresse" className="w-full border-0 bg-transparent text-gray-700 pointer-events-none" readOnly />
-                      </div>
+                      <input type="text" placeholder="Dein Name" className="w-full border-0 bg-gray-50 rounded-xl p-4 text-gray-700 pointer-events-none group-hover:bg-blue-50 transition-colors" readOnly />
+                      <input type="email" placeholder="E-Mail Adresse" className="w-full border-0 bg-gray-50 rounded-xl p-4 text-gray-700 pointer-events-none group-hover:bg-blue-50 transition-colors" readOnly />
                       <button className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 text-white py-4 rounded-xl font-semibold group-hover:from-blue-600 group-hover:to-cyan-600 transition-all duration-300">
                         Jetzt starten 🚀
                       </button>
@@ -533,6 +539,64 @@ export function LandingPage() {
             <p className="text-lg text-gray-600 font-inter max-w-2xl mx-auto">
               Kein Risiko. Kein Stress. Kein Kleingedrucktes. Du zahlst nur, wenn du mit deiner Website rundum zufrieden bist.
             </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-32 px-4 bg-white dark:bg-slate-900/95 relative overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#e2e8f0_1px,transparent_1px),linear-gradient(to_bottom,#e2e8f0_1px,transparent_1px)] dark:bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:80px_80px] opacity-20"></div>
+        <div className="max-w-6xl mx-auto relative z-10">
+          <motion.div
+            {...fadeInUp}
+            className="text-center mb-20"
+          >
+            <div className="inline-flex items-center px-6 py-3 bg-teal-500/10 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-500/20">
+              <SparklesIcon className="w-5 h-5 mr-2 text-teal-400" />
+              <span className="text-teal-300">Faire Preise</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-8 leading-tight">
+              Ein Preis, alles drin.
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-inter">
+              Keine versteckten Kosten. Volle Transparenz für dein Business.
+            </p>
+          </motion.div>
+          
+          <motion.div
+              variants={staggerContainer}
+              initial="initial"
+              animate="animate"
+              className="flex justify-center"
+          >
+              <motion.div 
+                  variants={scaleIn}
+                  className="group relative bg-slate-800/80 backdrop-blur-lg rounded-3xl border border-slate-700/50 p-10 max-w-md w-full text-white transform hover:scale-105 transition-transform duration-300 shadow-2xl shadow-teal-500/10"
+              >
+                  <div className="absolute top-0 right-0 -mt-8 -mr-8">
+                      <div className="w-24 h-24 bg-gradient-to-br from-teal-400 to-cyan-500 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          <span>Top</span>
+                      </div>
+                  </div>
+                  <h3 className="text-3xl font-bold mb-2 font-inter">Standard Paket</h3>
+                  <p className="text-gray-400 mb-6">Alles was du für den Start brauchst.</p>
+                  <p className="text-5xl font-bold mb-1"><span className="text-3xl">CHF</span> 99</p>
+                  <p className="text-gray-400 mb-8">pro Monat</p>
+                  <ul className="space-y-4 text-lg mb-8 text-left">
+                      <li className="flex items-center"><CheckCircleIcon className="w-6 h-6 mr-3 text-green-400 flex-shrink-0" /><span>Professionelle Website</span></li>
+                      <li className="flex items-center"><CheckCircleIcon className="w-6 h-6 mr-3 text-green-400 flex-shrink-0" /><span>Hosting &amp; Wartung</span></li>
+                      <li className="flex items-center"><CheckCircleIcon className="w-6 h-6 mr-3 text-green-400 flex-shrink-0" /><span>SEO Optimierung</span></li>
+                      <li className="flex items-center"><CheckCircleIcon className="w-6 h-6 mr-3 text-green-400 flex-shrink-0" /><span>E-Mail Support</span></li>
+                      <li className="flex items-center"><CheckCircleIcon className="w-6 h-6 mr-3 text-green-400 flex-shrink-0" /><span>Regelmässige Backups</span></li>
+                  </ul>
+                  <button
+                      onClick={handleGetStarted}
+                      className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 rounded-xl font-semibold hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 text-lg"
+                  >
+                      Jetzt starten
+                  </button>
+              </motion.div>
           </motion.div>
         </div>
       </section>

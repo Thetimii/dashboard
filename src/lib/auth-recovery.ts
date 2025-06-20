@@ -47,8 +47,8 @@ export const getAuthRecovery = (): AuthRecoveryData | null => {
     const recoveryData: AuthRecoveryData = JSON.parse(data)
     const timeDiff = Date.now() - recoveryData.timestamp
 
-    // Recovery data is valid for 30 minutes
-    if (timeDiff > 30 * 60 * 1000) {
+    // Recovery data is valid for 3 hours
+    if (timeDiff > 180 * 60 * 1000) {
       localStorage.removeItem('auth_recovery_data')
       return null
     }
@@ -107,8 +107,8 @@ export const getPaymentContext = (): PaymentContext | null => {
     const context: PaymentContext = JSON.parse(data)
     const timeDiff = Date.now() - context.timestamp
 
-    // Context is valid for 10 minutes
-    if (timeDiff > 10 * 60 * 1000) {
+    // Context is valid for 30 minutes
+    if (timeDiff > 30 * 60 * 1000) {
       clearPaymentContext()
       return null
     }

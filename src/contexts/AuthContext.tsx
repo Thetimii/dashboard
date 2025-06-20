@@ -20,12 +20,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
 
   useEffect(() => {
     let isMounted = true
 
-    const updateUserState = async (session: Session | null) => {
+    const updateUserAndProfile = async (session: Session | null) => {
       if (!isMounted) return
 
       const currentUser = session?.user ?? null
@@ -52,60 +52,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         if (isMounted) setIsAdmin(false)
       }
-      if (isMounted) setLoading(false)
     }
-
-    // Enhanced session recovery for payment flow
-    const getInitialSession = async () => {
-      try {
-        // First, try to recover session from storage if available
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) {
-          console.error('Error getting initial session:', error)
-          // Try to refresh the session in case it's just expired
-          const { data: refreshData } = await supabase.auth.refreshSession()
-          if (refreshData.session) {
-            console.log('Successfully refreshed session')
-            await updateUserState(refreshData.session)
-          } else {
-            // Attempt comprehensive session recovery
-            const recovered = await attemptSessionRecovery()
-            if (recovered) {
-              const { data: { session: recoveredSession } } = await supabase.auth.getSession()
-              await updateUserState(recoveredSession)
-            } else {
-              if (isMounted) setLoading(false)
-            }
-          }
-        } else {
-          await updateUserState(session)
-        }
-      } catch (error) {
-        console.error('Critical error getting session:', error)
-        const recovered = await attemptSessionRecovery()
-        if (!recovered && isMounted) {
-          setUser(null)
-          setIsAdmin(false)
-          setLoading(false)
-        }
-      }
-    }
-
-    getInitialSession()
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
-        console.log('Auth state changed:', event, session?.user?.email)
+        console.log(`Auth event: ${event}`)
+        await updateUserAndProfile(session)
         
-        // Handle different auth events appropriately
         if (event === 'SIGNED_OUT') {
-          // Clear any payment context when user signs out
           clearPaymentContext()
           clearAuthRecovery()
         }
-        
-        await updateUserState(session)
-      },
+
+        if (isMounted) {
+          setLoading(false)
+        }
+      }
     )
 
     return () => {

@@ -19,7 +19,7 @@ export default function FollowupQuestionsPage() {
   const [error, setError] = useState<string | null>(null)
   const [currentSection, setCurrentSection] = useState(0)
   
-  const { user } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const supabase = createClient()
 
@@ -54,6 +54,8 @@ export default function FollowupQuestionsPage() {
   const watchPrivacyPolicyExists = watch('privacyPolicyExists')
 
   useEffect(() => {
+    if (authLoading) return // Wait for auth to finish loading
+
     if (!user) {
       router.push('/signin')
       return
@@ -79,7 +81,7 @@ export default function FollowupQuestionsPage() {
 
     // Check if user has completed payment and prefill form
     checkPaymentStatusAndPrefill()
-  }, [user, router])
+  }, [user, authLoading, router])
 
   const checkPaymentStatusAndPrefill = async () => {
     if (!user) return
