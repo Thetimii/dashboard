@@ -54,14 +54,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (isMounted) setLoading(false)
     }
 
-    // Get initial session with better error handling
+    // Get initial session with better error handling and retry logic
     const getInitialSession = async () => {
       try {
+        // First, try to recover session from storage if available
         const { data: { session }, error } = await supabase.auth.getSession()
         if (error) {
           console.error('Error getting initial session:', error)
-          // Don't immediately set user to null - wait for auth state change
-          if (isMounted) setLoading(false)
+          // Try to refresh the session in case it's just expired
+          const { data: refreshData } = await supabase.auth.refreshSession()
+          if (refreshData.session) {
+            console.log('Successfully refreshed session')
+            await updateUserState(refreshData.session)
+          } else {
+            if (isMounted) setLoading(false)
+          }
         } else {
           await updateUserState(session)
         }
@@ -80,6 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         console.log('Auth state changed:', event, session?.user?.email)
+        
+        // Handle different auth events appropriately
+        if (event === 'SIGNED_OUT') {
+          // Clear any payment context when user signs out
+          if (typeof window !== 'undefined') {
+            sessionStorage.removeItem('stripe_payment_context')
+          }
+        }
+        
         await updateUserState(session)
       },
     )

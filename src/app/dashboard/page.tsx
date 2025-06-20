@@ -291,6 +291,48 @@ export default function DashboardPage() {
 
     console.log('Dashboard loaded for user:', user.email)
 
+    // Check for returning from Stripe payment
+    const checkStripeReturn = () => {
+      if (typeof window !== 'undefined') {
+        const paymentContext = sessionStorage.getItem('stripe_payment_context')
+        if (paymentContext) {
+          try {
+            const context = JSON.parse(paymentContext)
+            const timeDiff = Date.now() - context.timestamp
+            
+            // If less than 10 minutes ago and we have payment context
+            if (timeDiff < 10 * 60 * 1000) {
+              console.log('Detected return from Stripe payment:', context)
+              
+              // Clear the context
+              sessionStorage.removeItem('stripe_payment_context')
+              
+              // Show success message and refresh data
+              setActiveTab('tracker')
+              
+              // Refresh payment and demo data with a delay for webhook processing
+              setTimeout(() => {
+                console.log('Refreshing payment data after Stripe return')
+                fetchPaymentStatus()
+                fetchDemoLinks()
+              }, 2000)
+              
+              return true
+            } else {
+              // Clean up old context
+              sessionStorage.removeItem('stripe_payment_context')
+            }
+          } catch (error) {
+            console.error('Error parsing payment context:', error)
+            sessionStorage.removeItem('stripe_payment_context')
+          }
+        }
+      }
+      return false
+    }
+
+    const isStripeReturn = checkStripeReturn()
+
     // Handle URL parameters for customer portal returns and payment success
     const urlParams = new URLSearchParams(window.location.search)
     const updated = urlParams.get('updated')
@@ -298,7 +340,7 @@ export default function DashboardPage() {
     const paymentStatus = urlParams.get('payment')
     const sessionId = urlParams.get('session_id')
     
-    // Handle payment success/failure
+    // Handle explicit payment URL parameters (from checkout sessions)
     if (paymentStatus === 'success') {
       console.log('Payment completed successfully!', { sessionId })
       // Show success message and refresh data

@@ -109,65 +109,44 @@ export async function redirectToStripePayment(
     discountAmount: number
   }
 ) {
-  console.log('Creating Stripe Checkout session:', { 
+  console.log('Redirecting to Stripe payment link:', { 
     paymentId, 
     userEmail, 
     promoCodeData 
   })
   
-  try {
-    // Create a proper Stripe Checkout session with custom return URLs
-    const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://app.customerflows.ch'
-    
-    const response = await fetch('/api/create-checkout-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        paymentId,
-        userEmail,
-        promoCodeData,
-        successUrl: `${baseUrl}/dashboard?payment=success`,
-        cancelUrl: `${baseUrl}/dashboard?payment=cancelled`,
-      }),
-    })
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`)
+  // Store payment context in sessionStorage to preserve it across redirect
+  if (typeof window !== 'undefined') {
+    const paymentContext = {
+      paymentId,
+      userEmail,
+      timestamp: Date.now(),
+      returnUrl: window.location.pathname + window.location.search
     }
-
-    const { url } = await response.json()
-    
-    if (url) {
-      console.log('Redirecting to Stripe Checkout:', url)
-      window.location.href = url
-    } else {
-      throw new Error('No checkout URL received')
-    }
-  } catch (error) {
-    console.error('Error creating checkout session:', error)
-    // Fallback to direct payment link without return URLs
-    console.log('Falling back to direct payment link')
-    
-    let paymentUrl = STRIPE_PAYMENT_URL
-    const params = new URLSearchParams()
-    
-    if (paymentId) {
-      params.append('client_reference_id', paymentId)
-    }
-    
-    if (userEmail) {
-      params.append('prefilled_email', userEmail)
-    }
-    
-    if (params.toString()) {
-      paymentUrl += '?' + params.toString()
-    }
-    
-    console.log('Redirecting to Stripe payment link:', paymentUrl)
-    window.location.href = paymentUrl
+    sessionStorage.setItem('stripe_payment_context', JSON.stringify(paymentContext))
+    console.log('Stored payment context:', paymentContext)
   }
+  
+  // Use the direct Stripe payment link with parameters
+  let paymentUrl = STRIPE_PAYMENT_URL
+  const params = new URLSearchParams()
+  
+  // Add payment ID for tracking (Stripe will pass this back in webhooks)
+  if (paymentId) {
+    params.append('client_reference_id', paymentId)
+  }
+  
+  // Pre-fill customer email
+  if (userEmail) {
+    params.append('prefilled_email', userEmail)
+  }
+  
+  if (params.toString()) {
+    paymentUrl += '?' + params.toString()
+  }
+  
+  console.log('Redirecting to Stripe payment:', paymentUrl)
+  window.location.href = paymentUrl
 }
 
 export async function getCustomerDetails(userId: string) {

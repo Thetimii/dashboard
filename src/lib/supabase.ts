@@ -98,6 +98,8 @@ export const createClient = () => {
       // Improve session recovery after redirects
       storageKey: 'sb-auth-token',
       storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+      // Enable debug mode for auth issues (can be removed in production)
+      debug: process.env.NODE_ENV === 'development'
     }
   })
 }
