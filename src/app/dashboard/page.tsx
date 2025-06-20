@@ -63,14 +63,14 @@ export default function DashboardPage() {
       .from('kickoff_forms')
       .select('completed')
       .eq('user_id', user.id)
-      .single()
+      .limit(1) // Ensure we only get one record
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) { // Simplified error check
       console.error('Error checking kickoff completion:', error)
       return
     }
 
-    if (!data?.completed) {
+    if (!data?.[0]?.completed) {
       router.push('/kickoff')
     }
   }, [user, router, supabase])
@@ -82,14 +82,14 @@ export default function DashboardPage() {
       .from('project_status')
       .select('status, updated_at')
       .eq('user_id', user.id)
-      .single()
+      .limit(1) // Fetch as array and take the first
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) { // Simplified error check
       console.error('Error fetching project status:', error)
       return
     }
 
-    setProjectStatus(data)
+    setProjectStatus(data?.[0] || null)
   }, [user, supabase])
 
   const fetchDemoLinks = useCallback(async () => {
@@ -99,14 +99,14 @@ export default function DashboardPage() {
       .from('demo_links')
       .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
       .eq('user_id', user.id)
-      .single()
+      .limit(1) // Fetch as array and take the first
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) { // Simplified error check
       console.error('Error fetching demo links:', error)
       return
     }
 
-    setDemoLinks(data)
+    setDemoLinks(data?.[0] || null)
   }, [user, supabase])
 
   const fetchPaymentStatus = useCallback(async () => {

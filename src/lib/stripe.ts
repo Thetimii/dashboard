@@ -68,14 +68,13 @@ export async function getPaymentStatus(userId: string) {
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
   
-  if (error && error.code !== 'PGRST116') {
+  if (error) {
     console.error('Error fetching payment status:', error)
     throw error
   }
   
-  return data
+  return data?.[0] || null
 }
 
 export async function updatePaymentStatus(paymentId: string, status: 'completed' | 'failed', stripePaymentId?: string) {
@@ -168,14 +167,13 @@ export async function getCustomerDetails(userId: string) {
     .not('stripe_customer_id', 'is', null)
     .order('created_at', { ascending: false })
     .limit(1)
-    .single()
   
-  if (error && error.code !== 'PGRST116') {
+  if (error) {
     console.error('Error fetching customer details:', error)
     throw error
   }
   
-  return data
+  return data?.[0] || null
 }
 
 export async function createCustomerPortalSession(stripeCustomerId: string) {

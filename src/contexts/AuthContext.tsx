@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User, AuthChangeEvent, Session } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase'
-import { attemptSessionRecovery, clearAuthRecovery, clearPaymentContext } from '@/lib/auth-recovery'
+import { clearAuthRecovery, clearPaymentContext } from '@/lib/auth-recovery'
 
 interface AuthContextType {
   user: User | null
@@ -23,21 +23,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [supabase] = useState(() => createClient())
 
   useEffect(() => {
-    setLoading(true)
-    const getInitialSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
+    // Check for initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
-      setLoading(false)
-    }
+      // The second useEffect will handle loading state based on the user.
+      // If no session, loading will be set to false there.
+    })
 
-    getInitialSession()
-
+    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+    } = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user ?? null)
+      if (event === 'SIGNED_OUT') {
+        clearPaymentContext()
+        clearAuthRecovery()
+      }
     })
 
     return () => {
@@ -46,22 +47,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [supabase])
 
   useEffect(() => {
+    // This effect handles fetching the user's role and managing the loading state.
     if (user) {
+      setLoading(true) // Start loading when we have a user but might not have their role yet.
       supabase
         .from('user_profiles')
         .select('role')
         .eq('id', user.id)
         .single()
-        .then(({ data, error }: { data: { role: string } | null, error: any }) => {
+        .then(({ data, error }) => {
           if (error && error.code !== 'PGRST116') {
             console.error('Error fetching user profile:', error)
             setIsAdmin(false)
           } else {
             setIsAdmin(data?.role === 'admin')
           }
+          setLoading(false) // Finish loading once role is fetched or fails.
         })
     } else {
+      // No user, so not an admin and we can stop loading.
       setIsAdmin(false)
+      setLoading(false)
     }
   }, [user, supabase])
 
@@ -87,17 +93,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) throw error
+    await supabase.auth.signOut()
   }
 
-  return (
-    <AuthContext.Provider
-      value={{ user, loading, isAdmin, signUp, signIn, signOut }}
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const value = {
+    user,
+    loading,
+    isAdmin,
+    signUp,
+    signIn,
+    signOut,
+  }
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
