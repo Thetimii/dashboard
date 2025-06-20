@@ -34,6 +34,7 @@ export default function FollowupQuestionsPage() {
     formState: { errors },
   } = useForm<FollowupQuestionnaireData>({
     resolver: zodResolver(followupQuestionnaireSchema),
+    mode: 'onChange', // Validate on change for better user experience
     defaultValues: {
       serviceSubpages: false,
       existingContent: false,
@@ -55,6 +56,31 @@ export default function FollowupQuestionsPage() {
   const watchExistingContent = watch('existingContent')
   const watchAppointmentBooking = watch('appointmentBooking')
   const watchPrivacyPolicyExists = watch('privacyPolicyExists')
+
+  const sectionFields: (keyof FollowupQuestionnaireData)[][] = [
+    // Section 0
+    ['coreBusiness', 'revenueGeneration', 'secondaryRevenue', 'longTermRevenue'],
+    // Section 1
+    ['uniqueSellingPoints', 'customerChoiceReasons', 'problemsSolved', 'trustBuilding', 'potentialObjections'],
+    // Section 2
+    ['targetGroupDemographics', 'targetGroupNeeds'],
+    // Section 3
+    [
+      'serviceSubpages', 'serviceSubpagesDetails', 
+      'existingContent', 'existingContentDetails', 
+      'requiredFunctions', 'ecommerceNeeded', 'blogNeeded', 'newsletterNeeded', 
+      'memberAreaNeeded', 'socialMediaNeeded', 'whatsappChatNeeded', 
+      'appointmentBooking', 'appointmentTool', 
+      'existingSeoKeywords', 'googleAnalyticsNeeded'
+    ],
+    // Section 4
+    [
+      'desiredDomain', 'privacyPolicyExists', 'privacyPolicyCreationNeeded', 
+      'privacyPolicyContent', 'companyAddress', 'companyPhone', 
+      'companyEmail', 'vatId'
+    ],
+  ];
+
 
   const checkPaymentStatusAndPrefill = useCallback(async () => {
     if (!user) {
@@ -124,7 +150,7 @@ export default function FollowupQuestionsPage() {
     runChecks()
   }, [user, authLoading, router, checkPaymentStatusAndPrefill])
 
-  const onSubmit = async (data: FollowupQuestionnaireData) => {
+  const onValidSubmit = async (data: FollowupQuestionnaireData) => {
     if (!user) {
       setError('Sie sind nicht angemeldet. Bitte melden Sie sich erneut an.')
       router.push('/signin')
@@ -240,6 +266,19 @@ export default function FollowupQuestionsPage() {
     }
   }
 
+  const onInvalidSubmit = (errors: any) => {
+    console.error("Form validation failed:", errors);
+    const firstErrorField = Object.keys(errors)[0] as keyof FollowupQuestionnaireData;
+    
+    if (firstErrorField) {
+      const sectionIndex = sectionFields.findIndex(fields => fields.includes(firstErrorField));
+      if (sectionIndex !== -1) {
+        setCurrentSection(sectionIndex);
+        setError("Bitte korrigieren Sie die Fehler in diesem Abschnitt.");
+      }
+    }
+  };
+
   const sections = [
     {
       title: 'Ziel des Unternehmens',
@@ -263,33 +302,17 @@ export default function FollowupQuestionsPage() {
     },
   ]
 
-  const getFieldsForSection = (section: number): (keyof FollowupQuestionnaireData)[] => {
-    switch (section) {
-      case 0:
-        return ['coreBusiness', 'revenueGeneration']
-      case 1:
-        return ['uniqueSellingPoints', 'customerChoiceReasons', 'problemsSolved']
-      case 2:
-        return ['targetGroupDemographics']
-      case 4:
-        return ['companyAddress', 'companyPhone', 'companyEmail']
-      default:
-        return []
-    }
-  }
-
   const nextSection = async () => {
-    const fieldsToValidate = getFieldsForSection(currentSection)
-    if (fieldsToValidate.length > 0) {
-      const isValid = await trigger(fieldsToValidate)
-      if (!isValid) {
-        return
-      }
+    const fieldsToValidate = sectionFields[currentSection];
+    const isValid = await trigger(fieldsToValidate);
+    if (!isValid) {
+      // The error messages will be displayed automatically by react-hook-form
+      return;
     }
     if (currentSection < sections.length - 1) {
-      setCurrentSection(currentSection + 1)
+      setCurrentSection(currentSection + 1);
     }
-  }
+  };
 
   const prevSection = () => {
     if (currentSection > 0) {
@@ -462,7 +485,7 @@ export default function FollowupQuestionsPage() {
             transition={{ duration: 0.3 }}
             className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8"
           >
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            <form onSubmit={handleSubmit(onValidSubmit, onInvalidSubmit)} className="space-y-6">
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-4">
                   <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
