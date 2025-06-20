@@ -55,18 +55,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }: { data: { session: Session | null } }) => {
       if (isMounted) {
-        updateUserAndProfile(session)
+        await updateUserAndProfile(session)
         setLoading(false)
       }
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+    } = supabase.auth.onAuthStateChange(async (_event: AuthChangeEvent, session: Session | null) => {
       if (isMounted) {
-        updateUserAndProfile(session)
+        await updateUserAndProfile(session)
         if (_event === 'SIGNED_OUT') {
           clearPaymentContext()
           clearAuthRecovery()

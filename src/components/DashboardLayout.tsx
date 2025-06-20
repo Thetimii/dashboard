@@ -58,6 +58,9 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
               Customer Flows
             </h1>
           </div>
+          <div className="hidden md:block">
+            <ThemeToggle />
+          </div>
           <div className="md:hidden">
             <ThemeToggle />
           </div>

@@ -4,7 +4,7 @@
 
 CREATE TABLE IF NOT EXISTS public.followup_questionnaires (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-    user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id uuid NOT NULL UNIQUE REFERENCES auth.users(id) ON DELETE CASCADE,
     
     -- Business Goals
     core_business text NOT NULL,
@@ -66,23 +66,24 @@ CREATE INDEX IF NOT EXISTS idx_followup_questionnaires_user_id ON public.followu
 CREATE INDEX IF NOT EXISTS idx_followup_questionnaires_completed ON public.followup_questionnaires(completed);
 CREATE INDEX IF NOT EXISTS idx_followup_questionnaires_created_at ON public.followup_questionnaires(created_at);
 
--- Create unique constraint to ensure one questionnaire per user
-CREATE UNIQUE INDEX IF NOT EXISTS unique_questionnaire_per_user ON public.followup_questionnaires(user_id);
-
 -- Enable Row Level Security (RLS)
 ALTER TABLE public.followup_questionnaires ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies
 -- Users can only view and modify their own questionnaires
+DROP POLICY IF EXISTS "Users can view their own questionnaires" ON public.followup_questionnaires;
 CREATE POLICY "Users can view their own questionnaires" ON public.followup_questionnaires
     FOR SELECT USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can insert their own questionnaires" ON public.followup_questionnaires;
 CREATE POLICY "Users can insert their own questionnaires" ON public.followup_questionnaires
     FOR INSERT WITH CHECK (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can update their own questionnaires" ON public.followup_questionnaires;
 CREATE POLICY "Users can update their own questionnaires" ON public.followup_questionnaires
     FOR UPDATE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can delete their own questionnaires" ON public.followup_questionnaires;
 CREATE POLICY "Users can delete their own questionnaires" ON public.followup_questionnaires
     FOR DELETE USING (auth.uid() = user_id);
 
@@ -96,6 +97,7 @@ END;
 $$ language 'plpgsql';
 
 -- Create trigger to automatically update updated_at timestamp
+DROP TRIGGER IF EXISTS update_followup_questionnaires_updated_at ON public.followup_questionnaires;
 CREATE TRIGGER update_followup_questionnaires_updated_at
     BEFORE UPDATE ON public.followup_questionnaires
     FOR EACH ROW
