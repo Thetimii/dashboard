@@ -24,6 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let isMounted = true
+    setLoading(true)
 
     const updateUserAndProfile = async (session: Session | null) => {
       if (!isMounted) return
@@ -54,27 +55,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    const initializeSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      await updateUserAndProfile(session)
+    supabase.auth.getSession().then(({ data: { session } }: { data: { session: Session | null } }) => {
       if (isMounted) {
+        updateUserAndProfile(session)
         setLoading(false)
       }
-    }
+    })
 
-    initializeSession()
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event: AuthChangeEvent, session: Session | null) => {
-        console.log(`Auth event: ${event}`)
-        await updateUserAndProfile(session)
-        
-        if (event === 'SIGNED_OUT') {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
+      if (isMounted) {
+        updateUserAndProfile(session)
+        if (_event === 'SIGNED_OUT') {
           clearPaymentContext()
           clearAuthRecovery()
         }
       }
-    )
+    })
 
     return () => {
       isMounted = false
