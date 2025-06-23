@@ -486,6 +486,31 @@ export default function DashboardPage() {
                 </div>
               )}
             </div>
+
+            {/* Follow-up Questionnaire Section */}
+            <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 p-8 mt-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Follow-up Fragebogen</h2>
+              </div>
+              
+              <div className="bg-teal-50 dark:bg-teal-900/20 border border-teal-200 dark:border-teal-800 rounded-xl p-6">
+                <div className="flex items-center mb-4">
+                  <DocumentTextIcon className="w-6 h-6 text-teal-600 dark:text-teal-400 mr-3" />
+                  <span className="font-semibold text-teal-600 dark:text-teal-400 font-inter">Zusätzliche Informationen</span>
+                </div>
+                <p className="text-gray-700 dark:text-gray-300 mb-4 font-inter">
+                  Helfen Sie uns, Ihr Projekt besser zu verstehen, indem Sie unseren detaillierten Follow-up Fragebogen ausfüllen.
+                  Ihre Eingaben werden automatisch gespeichert und Sie können jederzeit zurückkehren, um die Bearbeitung fortzusetzen.
+                </p>
+                <button
+                  onClick={() => router.push('/followup-questionnaire')}
+                  className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 font-inter font-semibold"
+                >
+                  <DocumentTextIcon className="w-5 h-5 mr-2" />
+                  Fragebogen weiterbearbeiten
+                </button>
+              </div>
+            </div>
           </motion.div>
         )
 

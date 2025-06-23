@@ -17,7 +17,10 @@ import {
   ScaleIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  CheckIcon
+  CheckIcon,
+  CloudArrowUpIcon,
+  XMarkIcon,
+  ArrowLeftIcon
 } from '@heroicons/react/24/outline'
 
 const steps = [
@@ -90,7 +93,10 @@ export default function FollowupQuestionnairePage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<FormData>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [errors, setErrors] = useState<{[key: string]: string}>({})
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
+  const [isUploading, setIsUploading] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
   const supabase = createClient()
@@ -98,8 +104,60 @@ export default function FollowupQuestionnairePage() {
   useEffect(() => {
     if (!user) {
       router.push('/signin')
+      return
     }
+    
+    // Load existing questionnaire data if it exists
+    loadExistingData()
   }, [user, router])
+
+  const loadExistingData = async () => {
+    if (!user) return
+
+    try {
+      const { data, error } = await supabase
+        .from('followup_questionnaires')
+        .select('*')
+        .eq('user_id', user.id)
+        .single()
+
+      if (data && !error) {
+        // Remove user_id and other metadata, keep only form fields
+        const { user_id, id, created_at, updated_at, completed, ...formFields } = data
+        setFormData(formFields)
+      }
+    } catch (error) {
+      // No existing data found, which is fine
+      console.log('No existing questionnaire data found')
+    }
+  }
+
+  const saveProgress = async () => {
+    if (!user) return
+
+    setIsSaving(true)
+    try {
+      const { error } = await supabase
+        .from('followup_questionnaires')
+        .upsert({
+          user_id: user.id,
+          ...formData,
+          completed: false,
+        })
+
+      if (error) throw error
+    } catch (error) {
+      console.error('Error saving progress:', error)
+      alert('Fehler beim Speichern. Bitte versuchen Sie es erneut.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleBackToDashboard = async () => {
+    await saveProgress()
+    router.push('/dashboard')
+  }
 
   const progress = (currentStep / steps.length) * 100
 
@@ -123,6 +181,51 @@ export default function FollowupQuestionnairePage() {
     }
   }
 
+  const handleFileUpload = async (files: FileList | null) => {
+    if (!files || !user) return
+
+    const newFiles = Array.from(files)
+    const totalFiles = uploadedFiles.length + newFiles.length
+
+    if (totalFiles > 20) {
+      alert('Sie können maximal 20 Dateien hochladen.')
+      return
+    }
+
+    setIsUploading(true)
+    const uploadedUrls: string[] = []
+
+    try {
+      for (const file of newFiles) {
+        const fileExt = file.name.split('.').pop()
+        const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
+        
+        const { error: uploadError } = await supabase.storage
+          .from('followup')
+          .upload(fileName, file)
+
+        if (uploadError) {
+          console.error('Upload error:', uploadError)
+          alert(`Fehler beim Hochladen von ${file.name}`)
+          continue
+        }
+
+        uploadedUrls.push(fileName)
+      }
+
+      setUploadedFiles(prev => [...prev, ...newFiles])
+    } catch (error) {
+      console.error('File upload error:', error)
+      alert('Fehler beim Hochladen der Dateien')
+    } finally {
+      setIsUploading(false)
+    }
+  }
+
+  const removeFile = (index: number) => {
+    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   const validateField = (field: string, value: any, minLength?: number, required?: boolean): string => {
     if (required && (!value || (typeof value === 'string' && value.trim() === ''))) {
       return 'Dieses Feld ist erforderlich'
@@ -143,14 +246,7 @@ export default function FollowupQuestionnairePage() {
         newErrors.main_product_service = validateField('main_product_service', formData.main_product_service, 10, true)
         break
       case 2:
-        newErrors.unique_selling_points = validateField('unique_selling_points', formData.unique_selling_points, 50, true)
-        newErrors.customer_choice_reasons = validateField('customer_choice_reasons', formData.customer_choice_reasons, 40, true)
-        newErrors.problems_solved = validateField('problems_solved', formData.problems_solved, 50, true)
-        newErrors.trust_building = validateField('trust_building', formData.trust_building, 30, true)
-        if (!formData.company_market_since || formData.company_market_since < 1900 || formData.company_market_since > new Date().getFullYear()) {
-          newErrors.company_market_since = 'Bitte geben Sie ein gültiges Gründungsjahr ein'
-        }
-        newErrors.main_competitors = validateField('main_competitors', formData.main_competitors, 50, true)
+        // All step 2 questions are optional now
         break
       case 3:
         newErrors.target_group_demographics = validateField('target_group_demographics', formData.target_group_demographics, 100, true)
@@ -163,17 +259,8 @@ export default function FollowupQuestionnairePage() {
         if (formData.existing_content && !formData.existing_content_details) {
           newErrors.existing_content_details = 'Bitte geben Sie Details zu vorhandenen Inhalten an'
         }
-        if (formData.blog_needed && !formData.blog_topics) {
-          newErrors.blog_topics = 'Bitte geben Sie die Blog-Themen an'
-        }
         break
       case 5:
-        if (formData.ecommerce_needed && !formData.ecommerce_details) {
-          newErrors.ecommerce_details = 'Bitte geben Sie E-Commerce Details an'
-        }
-        if (formData.member_area_needed && !formData.member_area_details) {
-          newErrors.member_area_details = 'Bitte geben Sie Mitgliederbereich Details an'
-        }
         if (formData.appointment_booking && !formData.appointment_tool) {
           newErrors.appointment_tool = 'Bitte geben Sie Details zur Terminbuchung an'
         }
@@ -204,7 +291,7 @@ export default function FollowupQuestionnairePage() {
     try {
       const { error } = await supabase
         .from('followup_questionnaires')
-        .insert({
+        .upsert({
           user_id: user.id,
           ...formData,
           completed: true,
@@ -278,7 +365,7 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Gibt es zusätzliche Einnahmequellen?
+                Gibt es zusätzliche Einnahmequellen? (optional)
               </label>
               <textarea
                 value={formData.secondary_revenue || ''}
@@ -291,7 +378,7 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Haben Sie wiederkehrende Einnahmen oder langfristige Kundenbeziehungen?
+                Haben Sie wiederkehrende Einnahmen oder langfristige Kundenbeziehungen? (optional)
               </label>
               <textarea
                 value={formData.long_term_revenue || ''}
@@ -311,63 +398,59 @@ export default function FollowupQuestionnairePage() {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Was macht Ihr Unternehmen einzigartig? (2-3 USPs) *
+                Was macht Ihr Unternehmen einzigartig? (2-3 USPs) (optional)
               </label>
               <textarea
                 value={formData.unique_selling_points || ''}
                 onChange={(e) => handleFormDataChange('unique_selling_points', e.target.value)}
                 placeholder="Nennen Sie 2-3 Alleinstellungsmerkmale..."
                 rows={4}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.unique_selling_points ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
-              {errors.unique_selling_points && <p className="mt-1 text-sm text-red-600">{errors.unique_selling_points}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Warum sollte ein Kunde bei Ihnen kaufen? *
+                Warum sollte ein Kunde bei Ihnen kaufen? (optional)
               </label>
               <textarea
                 value={formData.customer_choice_reasons || ''}
                 onChange={(e) => handleFormDataChange('customer_choice_reasons', e.target.value)}
                 placeholder="Formulieren Sie den Mehrwert für den Kunden..."
                 rows={4}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.customer_choice_reasons ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
-              {errors.customer_choice_reasons && <p className="mt-1 text-sm text-red-600">{errors.customer_choice_reasons}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Welche konkreten Probleme lösen Sie für Ihre Kunden? *
+                Welche konkreten Probleme lösen Sie für Ihre Kunden? (optional)
               </label>
               <textarea
                 value={formData.problems_solved || ''}
                 onChange={(e) => handleFormDataChange('problems_solved', e.target.value)}
                 placeholder="Beschreiben Sie die Herausforderungen oder Bedürfnisse..."
                 rows={4}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.problems_solved ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
-              {errors.problems_solved && <p className="mt-1 text-sm text-red-600">{errors.problems_solved}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Wie schaffen Sie Vertrauen bei Ihren Kunden? *
+                Wie schaffen Sie Vertrauen bei Ihren Kunden? (optional)
               </label>
               <textarea
                 value={formData.trust_building || ''}
                 onChange={(e) => handleFormDataChange('trust_building', e.target.value)}
                 placeholder="Methoden zur Vertrauensbildung..."
                 rows={3}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.trust_building ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
-              {errors.trust_building && <p className="mt-1 text-sm text-red-600">{errors.trust_building}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Seit wann ist Ihr Unternehmen am Markt? *
+                Seit wann ist Ihr Unternehmen am Markt? (optional)
               </label>
               <input
                 type="number"
@@ -376,14 +459,13 @@ export default function FollowupQuestionnairePage() {
                 value={formData.company_market_since || ''}
                 onChange={(e) => handleFormDataChange('company_market_since', parseInt(e.target.value))}
                 placeholder="z.B. 2015"
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.company_market_since ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
               />
-              {errors.company_market_since && <p className="mt-1 text-sm text-red-600">{errors.company_market_since}</p>}
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Haben Sie Referenzen oder eine signifikante Kundenanzahl?
+                Haben Sie Referenzen oder eine signifikante Kundenanzahl? (optional)
               </label>
               <textarea
                 value={formData.references_customer_count || ''}
@@ -396,7 +478,7 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Bieten Sie besondere Services oder herausragenden Support an?
+                Bieten Sie besondere Services oder herausragenden Support an? (optional)
               </label>
               <textarea
                 value={formData.special_services_support || ''}
@@ -409,7 +491,7 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Gibt es häufige Einwände von potenziellen Kunden?
+                Gibt es häufige Einwände von potenziellen Kunden? (optional)
               </label>
               <textarea
                 value={formData.potential_objections || ''}
@@ -422,16 +504,15 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Wer sind Ihre Hauptkonkurrenten und was sind deren Stärken/Schwächen? *
+                Wer sind Ihre Hauptkonkurrenten und was sind deren Stärken/Schwächen? (optional)
               </label>
               <textarea
                 value={formData.main_competitors || ''}
                 onChange={(e) => handleFormDataChange('main_competitors', e.target.value)}
                 placeholder="Analyse der Wettbewerber..."
                 rows={4}
-                className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.main_competitors ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
               />
-              {errors.main_competitors && <p className="mt-1 text-sm text-red-600">{errors.main_competitors}</p>}
             </div>
           </div>
         )
@@ -510,7 +591,7 @@ export default function FollowupQuestionnairePage() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Stehen bereits Texte oder Bilder für die Website zur Verfügung?
               </label>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -521,44 +602,89 @@ export default function FollowupQuestionnairePage() {
                   <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Ja, ich habe bereits Inhalte</span>
                 </label>
                 {formData.existing_content && (
-                  <textarea
-                    value={formData.existing_content_details || ''}
-                    onChange={(e) => handleFormDataChange('existing_content_details', e.target.value)}
-                    placeholder="Beschreiben Sie, welche Inhalte verfügbar sind und wo wir sie finden können..."
-                    rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.existing_content_details ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
-                  />
+                  <div className="space-y-4">
+                    <textarea
+                      value={formData.existing_content_details || ''}
+                      onChange={(e) => handleFormDataChange('existing_content_details', e.target.value)}
+                      placeholder="Beschreiben Sie, welche Inhalte verfügbar sind..."
+                      rows={3}
+                      className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.existing_content_details ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
+                    />
+                    {errors.existing_content_details && <p className="mt-1 text-sm text-red-600">{errors.existing_content_details}</p>}
+                    
+                    {/* File Upload Section */}
+                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl p-6">
+                      <div className="text-center">
+                        <CloudArrowUpIcon className="mx-auto h-12 w-12 text-gray-400" />
+                        <div className="mt-4">
+                          <label htmlFor="file-upload" className="cursor-pointer">
+                            <span className="mt-2 block text-sm font-medium text-gray-900 dark:text-white">
+                              Dateien hochladen
+                            </span>
+                            <span className="mt-1 block text-xs text-gray-500 dark:text-gray-400">
+                              Maximal 20 Dateien (Bilder, Texte, PDFs, etc.)
+                            </span>
+                          </label>
+                          <input
+                            id="file-upload"
+                            name="file-upload"
+                            type="file"
+                            multiple
+                            className="sr-only"
+                            onChange={(e) => handleFileUpload(e.target.files)}
+                            disabled={isUploading}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => document.getElementById('file-upload')?.click()}
+                            disabled={isUploading}
+                            className="mt-2 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50"
+                          >
+                            {isUploading ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                Wird hochgeladen...
+                              </>
+                            ) : (
+                              <>
+                                <CloudArrowUpIcon className="h-4 w-4 mr-2" />
+                                Dateien auswählen
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Uploaded Files List */}
+                    {uploadedFiles.length > 0 && (
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Hochgeladene Dateien ({uploadedFiles.length}/20):
+                        </h4>
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {uploadedFiles.map((file, index) => (
+                            <div key={index} className="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">
+                                {file.name}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => removeFile(index)}
+                                className="ml-2 text-red-500 hover:text-red-700"
+                              >
+                                <XMarkIcon className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
-                {errors.existing_content_details && <p className="mt-1 text-sm text-red-600">{errors.existing_content_details}</p>}
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Planen Sie regelmäßige Blogbeiträge oder News-Artikel?
-              </label>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.blog_needed || false}
-                    onChange={(e) => handleFormDataChange('blog_needed', e.target.checked)}
-                    className="rounded border-gray-300 dark:border-gray-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0 dark:bg-gray-700"
-                  />
-                  <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Ja, ich möchte einen Blog/News-Bereich</span>
-                </label>
-                {formData.blog_needed && (
-                  <textarea
-                    value={formData.blog_topics || ''}
-                    onChange={(e) => handleFormDataChange('blog_topics', e.target.value)}
-                    placeholder="Welche Themenbereiche möchten Sie abdecken?"
-                    rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.blog_topics ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
-                  />
-                )}
-                {errors.blog_topics && <p className="mt-1 text-sm text-red-600">{errors.blog_topics}</p>}
-              </div>
-            </div>
           </div>
         )
 
@@ -567,33 +693,6 @@ export default function FollowupQuestionnairePage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Website-Funktionalitäten</h2>
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                E-Commerce (Online-Shop)
-              </label>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.ecommerce_needed || false}
-                    onChange={(e) => handleFormDataChange('ecommerce_needed', e.target.checked)}
-                    className="rounded border-gray-300 dark:border-gray-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0 dark:bg-gray-700"
-                  />
-                  <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Ja, ich benötige einen Online-Shop</span>
-                </label>
-                {formData.ecommerce_needed && (
-                  <textarea
-                    value={formData.ecommerce_details || ''}
-                    onChange={(e) => handleFormDataChange('ecommerce_details', e.target.value)}
-                    placeholder="Wie viele Produkte? Welche Zahlungsmethoden sind geplant?"
-                    rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.ecommerce_details ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
-                  />
-                )}
-                {errors.ecommerce_details && <p className="mt-1 text-sm text-red-600">{errors.ecommerce_details}</p>}
-              </div>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <label className="flex items-center">
                 <input
@@ -638,33 +737,6 @@ export default function FollowupQuestionnairePage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                Mitgliederbereich
-              </label>
-              <div className="space-y-3">
-                <label className="flex items-center">
-                  <input
-                    type="checkbox"
-                    checked={formData.member_area_needed || false}
-                    onChange={(e) => handleFormDataChange('member_area_needed', e.target.checked)}
-                    className="rounded border-gray-300 dark:border-gray-600 text-teal-500 focus:ring-teal-500 focus:ring-offset-0 dark:bg-gray-700"
-                  />
-                  <span className="ml-2 text-gray-700 dark:text-gray-300 font-inter">Ja, ich benötige einen Mitgliederbereich</span>
-                </label>
-                {formData.member_area_needed && (
-                  <textarea
-                    value={formData.member_area_details || ''}
-                    onChange={(e) => handleFormDataChange('member_area_details', e.target.value)}
-                    placeholder="Mit welchen Inhalten oder Funktionen?"
-                    rows={3}
-                    className={`w-full px-4 py-3 bg-white dark:bg-gray-800 border ${errors.member_area_details ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'} rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm`}
-                  />
-                )}
-                {errors.member_area_details && <p className="mt-1 text-sm text-red-600">{errors.member_area_details}</p>}
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
                 Terminbuchungsfunktion
               </label>
               <div className="space-y-3">
@@ -688,19 +760,6 @@ export default function FollowupQuestionnairePage() {
                 )}
                 {errors.appointment_tool && <p className="mt-1 text-sm text-red-600">{errors.appointment_tool}</p>}
               </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Bestehende SEO-Strategie oder relevante Keywords
-              </label>
-              <textarea
-                value={formData.existing_seo_keywords || ''}
-                onChange={(e) => handleFormDataChange('existing_seo_keywords', e.target.value)}
-                placeholder="Relevante Keywords oder SEO-Informationen..."
-                rows={3}
-                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter resize-none shadow-sm"
-              />
             </div>
           </div>
         )
@@ -859,7 +918,18 @@ export default function FollowupQuestionnairePage() {
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="flex justify-between items-center mb-8">
-            <Logo />
+            <div className="flex items-center space-x-4">
+              <button
+                onClick={handleBackToDashboard}
+                disabled={isSaving}
+                className="flex items-center px-3 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors duration-200"
+                title="Zurück zum Dashboard"
+              >
+                <ArrowLeftIcon className="w-5 h-5 mr-1" />
+                {isSaving ? 'Speichert...' : 'Dashboard'}
+              </button>
+              <Logo />
+            </div>
             <ThemeToggle />
           </div>
 
