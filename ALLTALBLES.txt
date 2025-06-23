@@ -1,0 +1,178 @@
+create table public.client_assignments (
+  id uuid not null default gen_random_uuid (),
+  admin_id uuid not null,
+  client_id uuid not null,
+  created_at timestamp with time zone not null default now(),
+  constraint client_assignments_pkey primary key (id),
+  constraint client_assignments_admin_id_fkey foreign KEY (admin_id) references user_profiles (id),
+  constraint client_assignments_client_id_fkey foreign KEY (client_id) references user_profiles (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_client_assignments_admin_id on public.client_assignments using btree (admin_id) TABLESPACE pg_default;
+
+create index IF not exists idx_client_assignments_client_id on public.client_assignments using btree (client_id) TABLESPACE pg_default;
+
+create table public.demo_links (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid null,
+  option_1_url text null,
+  option_2_url text null,
+  option_3_url text null,
+  approved_option text null,
+  approved_at timestamp without time zone null,
+  demo_email_sent boolean null default false,
+  constraint demo_links_pkey primary key (id),
+  constraint demo_links_user_id_fkey foreign KEY (user_id) references auth.users (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_demo_links_user_id on public.demo_links using btree (user_id) TABLESPACE pg_default;
+
+create table public.followup_questionnaires (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  created_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  updated_at timestamp with time zone not null default timezone ('utc'::text, now()),
+  completed boolean null default false,
+  core_business text null,
+  revenue_generation text null,
+  secondary_revenue text null,
+  long_term_revenue text null,
+  unique_selling_points text null,
+  customer_choice_reasons text null,
+  problems_solved text null,
+  trust_building text null,
+  potential_objections text null,
+  target_group_demographics text null,
+  target_group_needs text null,
+  service_subpages boolean null default false,
+  service_subpages_details text null,
+  existing_content boolean null default false,
+  existing_content_details text null,
+  required_functions text[] null,
+  ecommerce_needed boolean null default false,
+  blog_needed boolean null default false,
+  newsletter_needed boolean null default false,
+  member_area_needed boolean null default false,
+  social_media_needed boolean null default false,
+  whatsapp_chat_needed boolean null default false,
+  appointment_booking boolean null default false,
+  appointment_tool text null,
+  existing_seo_keywords text null,
+  google_analytics_needed boolean null default false,
+  desired_domain text null,
+  privacy_policy_exists boolean null default false,
+  privacy_policy_creation_needed boolean null default false,
+  company_address text null,
+  company_phone text null,
+  company_email text null,
+  vat_id text null,
+  existing_content_files text[] null,
+  privacy_policy_content text null,
+  competitor_strengths text null,
+  main_competitors text null,
+  main_product_service text null,
+  company_market_since integer null,
+  references_customer_count text null,
+  special_services_support text null,
+  competitor_strengths_weaknesses text null,
+  blog_topics text null,
+  ecommerce_details text null,
+  member_area_details text null,
+  constraint followup_questionnaires_pkey primary key (id),
+  constraint followup_questionnaires_user_id_key unique (user_id),
+  constraint followup_questionnaires_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create index IF not exists idx_followup_questionnaires_user_id on public.followup_questionnaires using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_followup_questionnaires_completed on public.followup_questionnaires using btree (completed) TABLESPACE pg_default;
+
+create index IF not exists idx_followup_questionnaires_created_at on public.followup_questionnaires using btree (created_at) TABLESPACE pg_default;
+
+create trigger update_followup_questionnaires_updated_at BEFORE
+update on followup_questionnaires for EACH row
+execute FUNCTION update_updated_at_column ();
+
+create table public.kickoff_forms (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid null,
+  business_name text null,
+  business_description text null,
+  website_style text null,
+  desired_pages text[] null,
+  color_preferences text null,
+  logo_url text null,
+  content_upload_url text null,
+  special_requests text null,
+  completed boolean null default false,
+  created_at timestamp without time zone null default now(),
+  content_upload_urls text null,
+  constraint kickoff_forms_pkey primary key (id),
+  constraint kickoff_forms_user_id_fkey foreign KEY (user_id) references auth.users (id)
+) TABLESPACE pg_default;
+
+create table public.manual_email_sends (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  email_type text not null,
+  sent_at timestamp with time zone null default now(),
+  sent_by uuid null,
+  trigger_values jsonb null,
+  created_at timestamp with time zone null default now(),
+  constraint manual_email_sends_pkey primary key (id),
+  constraint manual_email_sends_sent_by_fkey foreign KEY (sent_by) references auth.users (id),
+  constraint manual_email_sends_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE,
+  constraint manual_email_sends_email_type_check check (
+    (
+      email_type = any (array['demo_ready'::text, 'website_launch'::text])
+    )
+  )
+) TABLESPACE pg_default;
+
+create index IF not exists idx_manual_email_sends_user_id on public.manual_email_sends using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_manual_email_sends_type on public.manual_email_sends using btree (email_type) TABLESPACE pg_default;
+
+create index IF not exists idx_manual_email_sends_sent_at on public.manual_email_sends using btree (sent_at) TABLESPACE pg_default;
+
+create table public.payments (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid null,
+  stripe_payment_id text null,
+  amount numeric null,
+  status public.payment_status_enum null default 'pending'::payment_status_enum,
+  created_at timestamp without time zone null default now(),
+  stripe_customer_id text null,
+  subscription_id text null,
+  subscription_status text null default ''::text,
+  cancel_at_period_end boolean null default false,
+  canceled_at timestamp with time zone null,
+  cancellation_reason text null,
+  constraint payments_pkey primary key (id),
+  constraint payments_user_id_fkey foreign KEY (user_id) references auth.users (id)
+) TABLESPACE pg_default;
+
+create index IF not exists idx_payments_user_id on public.payments using btree (user_id) TABLESPACE pg_default;
+
+create index IF not exists idx_payments_status on public.payments using btree (status) TABLESPACE pg_default;
+
+create index IF not exists idx_payments_stripe_payment_id on public.payments using btree (stripe_payment_id) TABLESPACE pg_default;
+
+create table public.project_status (
+  id uuid not null default gen_random_uuid (),
+  user_id uuid not null,
+  status public.project_status_enum null default 'not_touched'::project_status_enum,
+  updated_at timestamp without time zone null default now(),
+  final_url text null,
+  constraint project_status_pkey primary key (id),
+  constraint project_status_user_id_fkey foreign KEY (user_id) references auth.users (id) on delete CASCADE
+) TABLESPACE pg_default;
+
+create table public.user_profiles (
+  id uuid not null,
+  full_name text null,
+  created_at timestamp without time zone null default now(),
+  role public.user_role_enum not null default 'user'::user_role_enum,
+  constraint user_profiles_pkey primary key (id),
+  constraint user_profiles_id_fkey foreign KEY (id) references auth.users (id)
+) TABLESPACE pg_default;

@@ -17,7 +17,8 @@ import {
   EnvelopeIcon,
   ChatBubbleLeftRightIcon,
   Bars3Icon, // For hamburger menu
-  XMarkIcon // For close icon
+  XMarkIcon, // For close icon
+  ShieldCheckIcon // For admin icon
 } from '@heroicons/react/24/outline'
 
 const tabs = [
@@ -26,6 +27,28 @@ const tabs = [
   { id: 'billing', label: 'Abrechnung', icon: CreditCardIcon },
   { id: 'settings', label: 'Einstellungen', icon: Cog6ToothIcon },
 ]
+
+// Admin Nav Link Component
+function AdminNavLink() {
+  const { isAdmin } = useAuth()
+  const router = useRouter()
+
+  if (!isAdmin()) return null
+
+  return (
+    <div className="px-4 pt-4">
+      <motion.button
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={() => router.push('/admin')}
+        className="w-full flex items-center space-x-3 px-4 py-3 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:text-purple-700 dark:hover:text-purple-300 rounded-xl transition-all duration-300 font-inter border border-purple-200 dark:border-purple-800"
+      >
+        <ShieldCheckIcon className="w-5 h-5" />
+        <span className="font-medium">Admin Dashboard</span>
+      </motion.button>
+    </div>
+  )
+}
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -105,6 +128,11 @@ export function DashboardLayout({ children, activeTab, onTabChange }: DashboardL
             )
           })}
         </nav>
+        
+        {/* Admin Link (only for admins) */}
+        {user && (
+          <AdminNavLink />
+        )}
       </div>
 
       {/* Help & Feedback */}
