@@ -1,23 +1,36 @@
 # Facebook Pixel Integration Setup
 
-This guide will help you set up Facebook Pixel tracking for your Next.js dashboard application.
+This guide will help you set up Facebook Pixel tracking for your Next.js dashboard application. The integration includes both frontend pixel code and server-side Conversions API for comprehensive tracking.
+
+## ✅ Integration Status
+
+The Meta Pixel has been successfully integrated into your application with:
+
+- **Frontend Pixel**: Installed in your layout with Pixel ID `3672960629671381`
+- **Server-side API**: Configured for privacy-compliant event tracking
+- **Dual Tracking**: Events sent via both frontend and server for better reliability
+- **Event Deduplication**: Automatic handling to prevent double counting
 
 ## Prerequisites
 
-1. A Facebook Business Manager account
-2. A Facebook Pixel created in your Business Manager
+1. A Facebook Business Manager account ✅
+2. A Facebook Pixel created in your Business Manager ✅ (ID: 3672960629671381)
 3. A Facebook App with Marketing API access
+4. Long-lived access token for server-side events
 
-## Step 1: Create Facebook App and Get Credentials
+## Step 1: Verify Frontend Pixel Installation
 
-1. Go to [Facebook Developers](https://developers.facebook.com/)
-2. Create a new app or use an existing one
-3. Add the "Marketing API" product to your app
-4. Get your App ID and App Secret
+The Meta Pixel frontend code is already installed in your application. You can verify it's working by:
 
-## Step 2: Generate Access Token
+1. Open your website in a browser
+2. Open Developer Tools (F12)
+3. Go to Network tab
+4. Look for requests to `facebook.net/fbevents.js`
+5. Check console for "Facebook Pixel Event Sent" messages
 
-You need a long-lived access token with `ads_management` permissions:
+## Step 2: Configure Server-side Access Token
+
+You need a long-lived access token for the Conversions API:
 
 1. Go to [Graph API Explorer](https://developers.facebook.com/tools/explorer/)
 2. Select your app
@@ -25,27 +38,24 @@ You need a long-lived access token with `ads_management` permissions:
 4. Generate token
 5. Use the [Access Token Debugger](https://developers.facebook.com/tools/debug/accesstoken/) to extend the token to long-lived
 
-## Step 3: Find Your Pixel ID
+## Step 3: Update Environment Variables
 
-1. Go to [Facebook Events Manager](https://www.facebook.com/events_manager/)
-2. Select your pixel
-3. Copy the Pixel ID from the URL or the overview page
-
-## Step 4: Configure Environment Variables
-
-Add these variables to your `.env.local` file:
+Update your `.env.local` file with your server-side access token:
 
 ```bash
-# Facebook Pixel Configuration
-NEXT_PUBLIC_FACEBOOK_PIXEL_ID=your_pixel_id_here
+# Facebook Pixel Configuration (already configured)
+NEXT_PUBLIC_FACEBOOK_PIXEL_ID=3672960629671381
 FACEBOOK_PIXEL_ACCESS_TOKEN=your_long_lived_access_token_here
 NEXT_PUBLIC_FACEBOOK_API_VERSION=v21.0
 ```
 
-## Step 5: Test Your Integration
+⚠️ **Important**: Replace `your_long_lived_access_token_here` with your actual access token.
 
-1. Use Facebook's [Test Events](https://www.facebook.com/events_manager/test_events) tool
-2. Add a test event code to your requests:
+## Step 4: Test Your Integration
+
+1. **Frontend Pixel Test**: Use Facebook's [Pixel Helper Chrome Extension](https://chrome.google.com/webstore/detail/facebook-pixel-helper/fdgfkebogiimcoedlicjlajpkdmockpc)
+2. **Server Events Test**: Use Facebook's [Test Events](https://www.facebook.com/events_manager/test_events) tool
+3. Add a test event code to your requests for testing:
 
 ```typescript
 // For testing, add testEventCode to any tracking call
@@ -55,21 +65,42 @@ trackQuestionnaireCompletion({
 });
 ```
 
+## Dual Tracking System
+
+Your application now uses both frontend and server-side tracking:
+
+### Frontend Pixel (Immediate)
+- **Faster tracking** - Events fire immediately 
+- **Better user matching** - Uses browser cookies and session data
+- **Real-time attribution** - Immediate conversion tracking
+
+### Server-side API (Reliable)  
+- **Privacy compliant** - PII data is hashed
+- **Ad blocker resistant** - Bypasses browser restrictions
+- **Better data quality** - Server-controlled event parameters
+
 ## Events Being Tracked
 
-The application automatically tracks these events:
+The application automatically tracks these events with both frontend and server-side implementation:
 
-### CompleteRegistration
-
+### CompleteRegistration (Frontend + Server)
 - **When**: User completes the follow-up questionnaire
-- **Data**: User email, completion time, form data summary
+- **Frontend Data**: Immediate conversion tracking
+- **Server Data**: Hashed user email, completion time, form data summary
 
-### ViewContent
+### ViewContent (Frontend + Server)
+- **When**: User views questionnaire pages or navigates between steps  
+- **Frontend Data**: Page view tracking with cookies
+- **Server Data**: Step number, navigation direction, user info
 
-- **When**: User views questionnaire pages or navigates between steps
-- **Data**: Step number, navigation direction, user info
+### Contact (Frontend + Server)
+- **When**: User interacts with form fields, uploads files, or encounters validation errors
+- **Frontend Data**: Real-time interaction tracking
+- **Server Data**: Interaction type, field names, error details
 
-### Contact
+### PageView (Frontend Only)
+- **When**: Any page loads (automatic)
+- **Data**: Standard page view tracking with referrer data
 
 - **When**: User interacts with form fields, uploads files, or encounters validation errors
 - **Data**: Interaction type, field names, error details

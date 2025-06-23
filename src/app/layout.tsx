@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import MetaPixel from "@/components/MetaPixel";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -28,6 +29,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <MetaPixel pixelId="3672960629671381" />
+      </head>
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans`}
       >

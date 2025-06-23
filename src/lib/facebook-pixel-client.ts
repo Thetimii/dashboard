@@ -1,5 +1,7 @@
 'use client'
 
+import { fbq as frontendFbq } from '@/components/MetaPixel'
+
 // Client-side Facebook Pixel tracking utility
 interface FacebookPixelTrackingOptions {
   userEmail?: string
@@ -12,6 +14,7 @@ interface FacebookPixelTrackingOptions {
 class FacebookPixelTracker {
   private static instance: FacebookPixelTracker
   private isEnabled: boolean = false
+  private useFrontendPixel: boolean = false
 
   constructor() {
     // Check if Facebook Pixel is configured
@@ -19,6 +22,9 @@ class FacebookPixelTracker {
       process.env.NEXT_PUBLIC_FACEBOOK_PIXEL_ID &&
       typeof window !== 'undefined'
     )
+    
+    // Check if we should use frontend pixel (when fbq is available)
+    this.useFrontendPixel = typeof window !== 'undefined' && !!window.fbq
   }
 
   static getInstance(): FacebookPixelTracker {
@@ -28,12 +34,7 @@ class FacebookPixelTracker {
     return FacebookPixelTracker.instance
   }
 
-  private async sendEvent(eventType: string, options: FacebookPixelTrackingOptions = {}) {
-    if (!this.isEnabled) {
-      console.log('Facebook Pixel tracking disabled or not configured')
-      return { success: false, error: 'Facebook Pixel not configured' }
-    }
-
+  private async sendServerEvent(eventType: string, options: FacebookPixelTrackingOptions = {}) {
     try {
       const response = await fetch('/api/facebook-pixel', {
         method: 'POST',
@@ -49,15 +50,53 @@ class FacebookPixelTracker {
       const result = await response.json()
       
       if (!result.success) {
-        console.error('Facebook Pixel Event Failed:', result.error)
+        console.error('Facebook Pixel Server Event Failed:', result.error)
       } else {
-        console.log(`Facebook Pixel Event Sent: ${eventType}`)
+        console.log(`Facebook Pixel Server Event Sent: ${eventType}`)
       }
 
       return result
     } catch (error) {
-      console.error('Facebook Pixel Tracking Error:', error)
+      console.error('Facebook Pixel Server Tracking Error:', error)
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+    }
+  }
+
+  private sendFrontendEvent(eventType: string, parameters: any = {}) {
+    if (this.useFrontendPixel) {
+      try {
+        frontendFbq('track', eventType, parameters)
+        console.log(`Facebook Pixel Frontend Event Sent: ${eventType}`)
+        return { success: true }
+      } catch (error) {
+        console.error('Facebook Pixel Frontend Tracking Error:', error)
+        return { success: false, error: error instanceof Error ? error.message : 'Unknown error' }
+      }
+    }
+    return { success: false, error: 'Frontend pixel not available' }
+  }
+
+  private async sendEvent(eventType: string, options: FacebookPixelTrackingOptions = {}) {
+    if (!this.isEnabled) {
+      console.log('Facebook Pixel tracking disabled or not configured')
+      return { success: false, error: 'Facebook Pixel not configured' }
+    }
+
+    // Send both frontend and server events for better tracking
+    const results = await Promise.allSettled([
+      // Frontend event (immediate, for better user matching)
+      Promise.resolve(this.sendFrontendEvent(eventType, options.customData)),
+      // Server event (more reliable, with PII hashing)
+      this.sendServerEvent(eventType, options)
+    ])
+
+    const frontendResult = results[0]
+    const serverResult = results[1]
+
+    return {
+      success: frontendResult.status === 'fulfilled' || serverResult.status === 'fulfilled',
+      frontend: frontendResult.status === 'fulfilled' ? frontendResult.value : null,
+      server: serverResult.status === 'fulfilled' ? serverResult.value : null,
     }
   }
 
