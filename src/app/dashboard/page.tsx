@@ -41,6 +41,7 @@ export default function DashboardPage() {
   const [paymentStatus, setPaymentStatus] = useState<any>(null)
   const [customerDetails, setCustomerDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [dataLoaded, setDataLoaded] = useState(false)
   const [approving, setApproving] = useState(false)
   const [refreshingTracker, setRefreshingTracker] = useState(false)
   const [refreshingDemos, setRefreshingDemos] = useState(false)
@@ -55,9 +56,9 @@ export default function DashboardPage() {
       .from('profiles')
       .select('needs_followup')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error checking followup status:', error)
       return
     }
@@ -75,9 +76,9 @@ export default function DashboardPage() {
       .from('kickoff_forms')
       .select('completed')
       .eq('user_id', user.id)
-      .single()
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error checking kickoff completion:', error)
       return
     }
@@ -91,35 +92,47 @@ export default function DashboardPage() {
   const fetchProjectStatus = useCallback(async () => {
     if (!user) return
 
-    const { data, error } = await supabase
-      .from('project_status')
-      .select('status, updated_at')
-      .eq('user_id', user.id)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('project_status')
+        .select('status, updated_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching project status:', error)
-      return
+      if (error) {
+        console.error('Error fetching project status:', error)
+        setProjectStatus(null)
+        return
+      }
+
+      setProjectStatus(data || null)
+    } catch (error) {
+      console.error('Unexpected error fetching project status:', error)
+      setProjectStatus(null)
     }
-
-    setProjectStatus(data)
   }, [user, supabase])
 
   const fetchDemoLinks = useCallback(async () => {
     if (!user) return
 
-    const { data, error } = await supabase
-      .from('demo_links')
-      .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
-      .eq('user_id', user.id)
-      .single()
+    try {
+      const { data, error } = await supabase
+        .from('demo_links')
+        .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
+        .eq('user_id', user.id)
+        .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
-      console.error('Error fetching demo links:', error)
-      return
+      if (error) {
+        console.error('Error fetching demo links:', error)
+        setDemoLinks(null)
+        return
+      }
+
+      setDemoLinks(data || null)
+    } catch (error) {
+      console.error('Unexpected error fetching demo links:', error)
+      setDemoLinks(null)
     }
-
-    setDemoLinks(data)
   }, [user, supabase])
 
   const fetchPaymentStatus = useCallback(async () => {
@@ -195,7 +208,7 @@ export default function DashboardPage() {
         .from('kickoff_forms')
         .select('business_name, business_description')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
       // Get the demo URL for the approved option
       const demoUrl = option === '1' ? demoLinks.option_1_url : 

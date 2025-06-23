@@ -125,9 +125,9 @@ export default function FollowupQuestionnairePage() {
         .from('followup_questionnaires')
         .select('*')
         .eq('user_id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error loading existing data:', error)
         return
       }
