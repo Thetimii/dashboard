@@ -48,6 +48,26 @@ export default function DashboardPage() {
   const router = useRouter()
   const supabase = createClient()
 
+  const checkFollowupNeeded = useCallback(async () => {
+    if (!user) return
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('needs_followup')
+      .eq('id', user.id)
+      .single()
+
+    if (error && error.code !== 'PGRST116') {
+      console.error('Error checking followup status:', error)
+      return
+    }
+
+    // Don't force redirect - let users access dashboard
+    // if (data?.needs_followup) {
+    //   router.push('/followup-questionnaire')
+    // }
+  }, [user, router, supabase])
+
   const checkKickoffCompletion = useCallback(async () => {
     if (!user) return
 
@@ -62,9 +82,10 @@ export default function DashboardPage() {
       return
     }
 
-    if (!data?.completed) {
-      router.push('/kickoff')
-    }
+    // Don't force redirect - let users access dashboard
+    // if (!data?.completed) {
+    //   router.push('/kickoff')
+    // }
   }, [user, router, supabase])
 
   const fetchProjectStatus = useCallback(async () => {
@@ -263,8 +284,10 @@ export default function DashboardPage() {
     }
 
     const loadData = async () => {
+      // Don't force users through other flows - let them access dashboard directly
+      // await checkFollowupNeeded()
       await Promise.all([
-        checkKickoffCompletion(),
+        // checkKickoffCompletion(), // Commented out to allow dashboard access
         fetchProjectStatus(),
         fetchDemoLinks(),
         fetchPaymentStatus(),
@@ -274,7 +297,7 @@ export default function DashboardPage() {
     }
 
     loadData()
-  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails])
+  }, [user, authLoading, router, checkKickoffCompletion, fetchProjectStatus, fetchDemoLinks, fetchPaymentStatus, fetchCustomerDetails, checkFollowupNeeded])
 
   if (loading || authLoading) {
     return (

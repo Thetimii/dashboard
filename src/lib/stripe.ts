@@ -6,7 +6,7 @@ export const getStripe = () => {
 }
 
 // Payment utility functions
-export const STRIPE_PAYMENT_URL = 'https://buy.stripe.com/cNi00j7ZW5xa9Ln0MG1oI00'
+// export const STRIPE_PAYMENT_URL = 'https://buy.stripe.com/cNi00j7ZW5xa9Ln0MG1oI00'
 export const PAYMENT_AMOUNT = 99 // CHF
 
 export async function createPaymentRecord(userId: string, amount: number = PAYMENT_AMOUNT, userEmail?: string) {
@@ -76,8 +76,13 @@ export async function updatePaymentStatus(paymentId: string, status: 'completed'
 }
 
 export function redirectToStripePayment(paymentId?: string, userEmail?: string) {
+  const paymentLink = process.env.NEXT_PUBLIC_STRIPE_PAYMENT_LINK;
+  if (!paymentLink) {
+    console.error('Stripe payment link is not configured. Please set NEXT_PUBLIC_STRIPE_PAYMENT_LINK environment variable.');
+    return;
+  }
   // Add payment ID and email as query parameters for tracking
-  let url = STRIPE_PAYMENT_URL
+  let url = paymentLink
   
   const params = new URLSearchParams()
   
@@ -91,7 +96,11 @@ export function redirectToStripePayment(paymentId?: string, userEmail?: string) 
   }
   
   if (params.toString()) {
-    url += '?' + params.toString()
+    if (url.includes('?')) {
+      url += '&' + params.toString();
+    } else {
+      url += '?' + params.toString();
+    }
   }
   
   window.location.href = url
