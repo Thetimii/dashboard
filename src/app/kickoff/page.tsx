@@ -206,11 +206,29 @@ export default function KickoffPage() {
       let contentUrl = null
 
       if (logoFile) {
-        logoUrl = await uploadFile(logoFile)
+        try {
+          console.log('Uploading logo file:', logoFile.name)
+          logoUrl = await uploadFile(logoFile, user.id)
+          console.log('Logo uploaded successfully:', logoUrl)
+        } catch (uploadError) {
+          console.error('Error uploading logo:', uploadError)
+          alert('Fehler beim Hochladen des Logos. Bitte versuchen Sie es erneut.')
+          setIsSubmitting(false)
+          return
+        }
       }
 
       if (contentFile) {
-        contentUrl = await uploadFile(contentFile)
+        try {
+          console.log('Uploading content file:', contentFile.name)
+          contentUrl = await uploadFile(contentFile, user.id)
+          console.log('Content file uploaded successfully:', contentUrl)
+        } catch (uploadError) {
+          console.error('Error uploading content file:', uploadError)
+          alert('Fehler beim Hochladen der Inhaltsdatei. Bitte versuchen Sie es erneut.')
+          setIsSubmitting(false)
+          return
+        }
       }
 
       // Save to database
