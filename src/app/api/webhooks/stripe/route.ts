@@ -178,6 +178,22 @@ async function handleSuccessfulPayment(session: Stripe.Checkout.Session, supabas
     if (paymentUpdateResult) {
       console.log(`💰 Payment ${paymentUpdateResult.id} successfully marked as completed with customer ${stripeCustomerId}`)
       
+      // Update profile to require followup questionnaire
+      try {
+        const { error: profileError } = await supabaseAdmin
+          .from('profiles')
+          .update({ needs_followup: true })
+          .eq('id', paymentUpdateResult.user_id)
+
+        if (profileError) {
+          console.error('❌ Error updating profile for followup questionnaire:', profileError)
+        } else {
+          console.log(`✅ Profile for user ${paymentUpdateResult.user_id} marked for followup.`)
+        }
+      } catch (e) {
+        console.error('Exception while updating profile for followup', e)
+      }
+
       // Send payment completion email to admin
       try {
         // Get customer details from the payment record and user data separately
