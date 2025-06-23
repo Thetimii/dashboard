@@ -224,11 +224,11 @@ export default function AdminPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'not_touched': return 'bg-gray-100 text-gray-800 border border-gray-300'
-      case 'in_progress': return 'bg-yellow-100 text-yellow-900 border border-yellow-300'
-      case 'complete': return 'bg-green-100 text-green-900 border border-green-300'
-      case 'live': return 'bg-blue-100 text-blue-900 border border-blue-300'
-      default: return 'bg-gray-100 text-gray-800 border border-gray-300'
+      case 'not_touched': return 'bg-gray-200 text-gray-900 border-2 border-gray-400 font-bold'
+      case 'in_progress': return 'bg-yellow-200 text-yellow-900 border-2 border-yellow-500 font-bold'
+      case 'complete': return 'bg-green-200 text-green-900 border-2 border-green-500 font-bold'
+      case 'live': return 'bg-blue-200 text-blue-900 border-2 border-blue-500 font-bold'
+      default: return 'bg-gray-200 text-gray-900 border-2 border-gray-400 font-bold'
     }
   }
 
@@ -256,10 +256,10 @@ export default function AdminPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-              <p className="mt-1 text-sm text-gray-500">Manage clients, projects, and assignments</p>
+              <p className="mt-1 text-sm text-gray-800 font-semibold">Manage clients, projects, and assignments</p>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600 font-medium">Welcome, Admin</span>
+              <span className="text-sm text-gray-900 font-bold">Welcome, Admin</span>
               <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
@@ -280,7 +280,7 @@ export default function AdminPage() {
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'clients'
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-500 font-semibold'
               }`}
             >
               <UsersIcon className="h-5 w-5 inline mr-2" />
@@ -291,7 +291,7 @@ export default function AdminPage() {
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'assignments'
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-500 font-semibold'
               }`}
             >
               <UserGroupIcon className="h-5 w-5 inline mr-2" />
@@ -302,7 +302,7 @@ export default function AdminPage() {
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === 'overview'
                   ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-gray-800 hover:text-gray-900 hover:border-gray-500 font-semibold'
               }`}
             >
               <ChartBarIcon className="h-5 w-5 inline mr-2" />
@@ -315,46 +315,46 @@ export default function AdminPage() {
         {activeTab === 'clients' && (
           <div>
             {/* Filters */}
-            <div className="bg-white p-6 rounded-lg shadow mb-6">
+            <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-200 mb-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Search Clients</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">Search Clients</label>
                   <div className="relative">
-                    <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-400" />
+                    <MagnifyingGlassIcon className="h-5 w-5 absolute left-3 top-3 text-gray-600" />
                     <input
                       type="text"
                       placeholder="Search by name or ID..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="pl-10 w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600"
                     />
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Project Status</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">Project Status</label>
                   <select
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value as any)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="all">All Statuses</option>
-                    <option value="not_touched">Not Touched</option>
-                    <option value="in_progress">In Progress</option>
-                    <option value="complete">Complete</option>
-                    <option value="live">Live</option>
+                    <option value="all" className="text-gray-900 font-medium">All Statuses</option>
+                    <option value="not_touched" className="text-gray-900 font-medium">Not Touched</option>
+                    <option value="in_progress" className="text-gray-900 font-medium">In Progress</option>
+                    <option value="complete" className="text-gray-900 font-medium">Complete</option>
+                    <option value="live" className="text-gray-900 font-medium">Live</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Assignment Status</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-3">Assignment Status</label>
                   <select
                     value={assignmentFilter}
                     onChange={(e) => setAssignmentFilter(e.target.value as any)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="all">All Clients</option>
-                    <option value="assigned">Assigned</option>
-                    <option value="unassigned">Unassigned</option>
-                    <option value="my_clients">My Clients</option>
+                    <option value="all" className="text-gray-900 font-medium">All Clients</option>
+                    <option value="assigned" className="text-gray-900 font-medium">Assigned</option>
+                    <option value="unassigned" className="text-gray-900 font-medium">Unassigned</option>
+                    <option value="my_clients" className="text-gray-900 font-medium">My Clients</option>
                   </select>
                 </div>
               </div>
@@ -369,7 +369,7 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-indigo-600 flex items-center justify-center border-2 border-indigo-200">
+                            <div className="h-10 w-10 rounded-full bg-indigo-800 flex items-center justify-center border-4 border-indigo-300 shadow-lg">
                               <span className="text-sm font-medium text-white">
                                 {client.user_profile.full_name?.charAt(0) || 'U'}
                               </span>
@@ -385,7 +385,7 @@ export default function AdminPage() {
                                 <span className="ml-1">{client.project_status?.status || 'not_touched'}</span>
                               </span>
                             </div>
-                            <div className="mt-2 flex items-center text-sm text-gray-600">
+                            <div className="mt-2 flex items-center text-sm text-gray-900 font-semibold">
                               <p>
                                 Created: {new Date(client.user_profile.created_at).toLocaleDateString()}
                                 {client.assignment && (
@@ -400,7 +400,7 @@ export default function AdminPage() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => setSelectedClient(client)}
-                            className="inline-flex items-center px-3 py-2 border-2 border-gray-400 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50 hover:border-gray-500 transition-colors"
+                            className="inline-flex items-center px-3 py-2 border-2 border-gray-600 shadow-lg text-sm leading-4 font-bold rounded-md text-gray-900 bg-white hover:bg-gray-100 hover:border-gray-800 transition-colors"
                           >
                             <EyeIcon className="h-4 w-4 mr-1" />
                             View Details
@@ -411,7 +411,7 @@ export default function AdminPage() {
                               setSelectedAdmin(client.assignment?.admin_id || '')
                               setShowAssignModal(true)
                             }}
-                            className="inline-flex items-center px-3 py-2 border-2 border-gray-400 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50 hover:border-gray-500 transition-colors"
+                            className="inline-flex items-center px-3 py-2 border-2 border-gray-600 shadow-lg text-sm leading-4 font-bold rounded-md text-gray-900 bg-white hover:bg-gray-100 hover:border-gray-800 transition-colors"
                           >
                             <UserPlusIcon className="h-4 w-4 mr-1" />
                             {client.assignment ? 'Reassign' : 'Assign'}
@@ -428,30 +428,30 @@ export default function AdminPage() {
 
         {/* Assignment Modal */}
         {showAssignModal && (
-          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-            <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="fixed inset-0 bg-gray-900 bg-opacity-60 overflow-y-auto h-full w-full z-50">
+            <div className="relative top-20 mx-auto p-6 border-2 border-gray-300 w-96 shadow-2xl rounded-lg bg-white">
               <div className="mt-3">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-medium text-gray-900">Assign Client</h3>
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-bold text-gray-900">Assign Client</h3>
                   <button
                     onClick={() => setShowAssignModal(false)}
-                    className="text-gray-400 hover:text-gray-600"
+                    className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-1 rounded"
                   >
                     <XMarkIcon className="h-6 w-6" />
                   </button>
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                <div className="mb-6">
+                  <label className="block text-sm font-bold text-gray-900 mb-3">
                     Select Admin
                   </label>
                   <select
                     value={selectedAdmin}
                     onChange={(e) => setSelectedAdmin(e.target.value)}
-                    className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
-                    <option value="">Select an admin...</option>
+                    <option value="" className="text-gray-900 font-medium">Select an admin...</option>
                     {admins.map((admin) => (
-                      <option key={admin.id} value={admin.id}>
+                      <option key={admin.id} value={admin.id} className="text-gray-900 font-medium">
                         {admin.full_name}
                       </option>
                     ))}
@@ -460,14 +460,14 @@ export default function AdminPage() {
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setShowAssignModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-bold text-gray-900 bg-white border-2 border-gray-400 rounded-md hover:bg-gray-100 hover:border-gray-600 transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={() => assigningClient && selectedAdmin && assignClient(assigningClient, selectedAdmin)}
                     disabled={!selectedAdmin}
-                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+                    className="px-4 py-2 text-sm font-bold text-white bg-blue-600 border-2 border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Assign
                   </button>
@@ -510,11 +510,11 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">{admin.full_name}</h3>
-                          <p className="text-sm text-gray-700 font-medium">{adminClients.length} clients assigned</p>
+                          <p className="text-sm text-gray-900 font-bold">{adminClients.length} clients assigned</p>
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            adminClients.length > 0 ? 'bg-blue-100 text-blue-900 border border-blue-300' : 'bg-gray-100 text-gray-900 border border-gray-300'
+                            adminClients.length > 0 ? 'bg-blue-200 text-blue-900 border-2 border-blue-500 font-bold' : 'bg-gray-200 text-gray-900 border-2 border-gray-500 font-bold'
                           }`}>
                             {adminClients.length} clients
                           </span>
@@ -535,13 +535,13 @@ export default function AdminPage() {
                                   <span className="ml-1">{client.project_status?.status || 'not_touched'}</span>
                                 </span>
                               </div>
-                              <p className="text-xs text-gray-700 mb-3">
+                              <p className="text-xs text-gray-900 font-bold mb-3">
                                 Created: {new Date(client.user_profile.created_at).toLocaleDateString()}
                               </p>
                               <div className="flex space-x-2">
                                 <button
                                   onClick={() => setSelectedClient(client)}
-                                  className="flex-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                                  className="flex-1 text-xs px-3 py-2 bg-blue-100 text-blue-800 font-bold rounded-lg hover:bg-blue-200 border border-blue-300 transition-colors"
                                 >
                                   View Details
                                 </button>
@@ -551,7 +551,7 @@ export default function AdminPage() {
                                     setSelectedAdmin('')
                                     setShowAssignModal(true)
                                   }}
-                                  className="flex-1 text-xs px-2 py-1 bg-gray-100 text-gray-900 rounded hover:bg-gray-200"
+                                  className="flex-1 text-xs px-3 py-2 bg-gray-200 text-gray-900 font-bold rounded-lg hover:bg-gray-300 border border-gray-400 transition-colors"
                                 >
                                   Reassign
                                 </button>
@@ -576,9 +576,9 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between">
                         <div>
                           <h3 className="text-lg font-medium text-gray-900">Unassigned Clients</h3>
-                          <p className="text-sm text-gray-700 font-medium">{unassignedClients.length} clients need assignment</p>
+                          <p className="text-sm text-gray-900 font-bold">{unassignedClients.length} clients need assignment</p>
                         </div>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-900 border border-yellow-300">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-200 text-yellow-900 border-2 border-yellow-500">
                           {unassignedClients.length} unassigned
                         </span>
                       </div>
@@ -596,13 +596,13 @@ export default function AdminPage() {
                                 <span className="ml-1">{client.project_status?.status || 'not_touched'}</span>
                               </span>
                             </div>
-                            <p className="text-xs text-gray-700 mb-3">
+                            <p className="text-xs text-gray-900 font-bold mb-3">
                               Created: {new Date(client.user_profile.created_at).toLocaleDateString()}
                             </p>
                             <div className="flex space-x-2">
                               <button
                                 onClick={() => setSelectedClient(client)}
-                                className="flex-1 text-xs px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
+                                className="flex-1 text-xs px-3 py-2 bg-blue-100 text-blue-800 font-bold rounded-lg hover:bg-blue-200 border border-blue-300 transition-colors"
                               >
                                 View Details
                               </button>
@@ -612,7 +612,7 @@ export default function AdminPage() {
                                   setSelectedAdmin('')
                                   setShowAssignModal(true)
                                 }}
-                                className="flex-1 text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200"
+                                className="flex-1 text-xs px-3 py-2 bg-yellow-200 text-yellow-900 font-bold rounded-lg hover:bg-yellow-300 border border-yellow-400 transition-colors"
                               >
                                 Assign
                               </button>
@@ -796,15 +796,15 @@ function ClientDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-      <div className="relative top-10 mx-auto p-5 border w-full max-w-4xl shadow-lg rounded-md bg-white m-4">
+    <div className="fixed inset-0 bg-gray-900 bg-opacity-70 overflow-y-auto h-full w-full z-50">
+      <div className="relative top-10 mx-auto p-6 border-2 border-gray-300 w-full max-w-4xl shadow-2xl rounded-lg bg-white m-4">
         <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-medium text-gray-900">
+          <h3 className="text-2xl font-bold text-gray-900">
             Client Details - {client.user_profile.full_name}
           </h3>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-600 hover:text-gray-800 hover:bg-gray-100 p-2 rounded-lg transition-colors"
           >
             <XMarkIcon className="h-6 w-6" />
           </button>
@@ -812,67 +812,67 @@ function ClientDetailModal({
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Basic Info */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <h4 className="text-lg font-medium mb-3">Basic Information</h4>
-            <div className="space-y-2">
-              <p><span className="font-medium">Name:</span> {client.user_profile.full_name}</p>
-              <p><span className="font-medium">User ID:</span> {client.user_profile.id}</p>
-              <p><span className="font-medium">Created:</span> {new Date(client.user_profile.created_at).toLocaleDateString()}</p>
-              <p><span className="font-medium">Payment Status:</span> {client.payment ? 'Paid' : 'Not Paid'}</p>
+          <div className="bg-gray-100 p-5 rounded-lg border border-gray-300">
+            <h4 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h4>
+            <div className="space-y-3">
+              <p className="text-gray-900"><span className="font-bold">Name:</span> <span className="font-semibold">{client.user_profile.full_name}</span></p>
+              <p className="text-gray-900"><span className="font-bold">User ID:</span> <span className="font-semibold">{client.user_profile.id}</span></p>
+              <p className="text-gray-900"><span className="font-bold">Created:</span> <span className="font-semibold">{new Date(client.user_profile.created_at).toLocaleDateString()}</span></p>
+              <p className="text-gray-900"><span className="font-bold">Payment Status:</span> <span className={`font-bold ${client.payment ? 'text-green-800' : 'text-red-800'}`}>{client.payment ? 'Paid' : 'Not Paid'}</span></p>
             </div>
           </div>
 
           {/* Project Status */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-lg font-medium">Project Status</h4>
+          <div className="bg-gray-100 p-5 rounded-lg border border-gray-300">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold text-gray-900">Project Status</h4>
               <button
                 onClick={() => setEditingStatus(!editingStatus)}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 p-2 rounded-lg transition-colors"
               >
                 <PencilIcon className="h-4 w-4" />
               </button>
             </div>
             {editingStatus ? (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <select
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                  <option value="not_touched">Not Touched</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="complete">Complete</option>
-                  <option value="live">Live</option>
+                  <option value="not_touched" className="text-gray-900 font-medium">Not Touched</option>
+                  <option value="in_progress" className="text-gray-900 font-medium">In Progress</option>
+                  <option value="complete" className="text-gray-900 font-medium">Complete</option>
+                  <option value="live" className="text-gray-900 font-medium">Live</option>
                 </select>
                 <input
                   type="url"
                   placeholder="Final URL (if live)"
                   value={finalUrl}
                   onChange={(e) => setFinalUrl(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600"
                 />
-                <div className="flex space-x-2">
+                <div className="flex space-x-3">
                   <button
                     onClick={handleStatusUpdate}
-                    className="px-3 py-2 bg-blue-600 text-white rounded text-sm"
+                    className="px-4 py-2 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 border-2 border-blue-600 hover:border-blue-700 transition-colors"
                   >
                     Save
                   </button>
                   <button
                     onClick={() => setEditingStatus(false)}
-                    className="px-3 py-2 bg-gray-200 text-gray-900 rounded text-sm hover:bg-gray-300"
+                    className="px-4 py-2 bg-gray-200 text-gray-900 font-bold rounded-lg hover:bg-gray-300 border-2 border-gray-400 hover:border-gray-500 transition-colors"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
-                <p><span className="font-medium">Status:</span> {client.project_status?.status || 'not_touched'}</p>
+              <div className="space-y-3">
+                <p className="text-gray-900"><span className="font-bold">Status:</span> <span className="font-semibold">{client.project_status?.status || 'not_touched'}</span></p>
                 {client.project_status?.final_url && (
-                  <p><span className="font-medium">Final URL:</span> 
-                    <a href={client.project_status.final_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                  <p className="text-gray-900"><span className="font-bold">Final URL:</span> 
+                    <a href={client.project_status.final_url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 hover:underline ml-2 font-semibold">
                       {client.project_status.final_url}
                     </a>
                   </p>
@@ -882,12 +882,12 @@ function ClientDetailModal({
           </div>
 
           {/* Demo Links */}
-          <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-lg font-medium">Demo Links</h4>
+          <div className="bg-gray-100 p-5 rounded-lg border border-gray-300">
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold text-gray-900">Demo Links</h4>
               <button
                 onClick={() => setEditingDemos(!editingDemos)}
-                className="text-blue-600 hover:text-blue-800"
+                className="text-blue-700 hover:text-blue-900 hover:bg-blue-100 p-2 rounded-lg transition-colors"
               >
                 <PencilIcon className="h-4 w-4" />
               </button>
@@ -895,75 +895,78 @@ function ClientDetailModal({
             {editingDemos ? (
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 1 URL</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Demo Option 1 URL</label>
                   <input
                     type="url"
                     placeholder="https://example.com/demo1"
                     value={demoUrl1}
                     onChange={(e) => setDemoUrl1(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 2 URL</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Demo Option 2 URL</label>
                   <input
                     type="url"
                     placeholder="https://example.com/demo2"
                     value={demoUrl2}
                     onChange={(e) => setDemoUrl2(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 transition-colors"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 3 URL</label>
+                  <label className="block text-sm font-bold text-gray-900 mb-2">Demo Option 3 URL</label>
                   <input
                     type="url"
                     placeholder="https://example.com/demo3"
                     value={demoUrl3}
                     onChange={(e) => setDemoUrl3(e.target.value)}
-                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                    className="w-full border-2 border-gray-400 rounded-lg px-4 py-3 text-gray-900 font-medium bg-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-600 transition-colors"
                   />
                 </div>
                 <div className="flex space-x-3 pt-2">
                   <button
                     onClick={handleDemoUpdate}
-                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg font-bold hover:from-blue-700 hover:to-blue-800 transition-all duration-200 shadow-lg border-2 border-blue-600"
                   >
                     Save Changes
                   </button>
                   <button
                     onClick={() => setEditingDemos(false)}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors border border-gray-300"
+                    className="px-4 py-2 bg-gray-200 text-gray-900 rounded-lg font-bold hover:bg-gray-300 transition-colors border-2 border-gray-400 hover:border-gray-500"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {client.demo_links?.option_1_url && (
-                  <p><span className="font-medium">Option 1:</span> 
-                    <a href={client.demo_links.option_1_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                  <p className="text-gray-900"><span className="font-bold">Option 1:</span> 
+                    <a href={client.demo_links.option_1_url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 hover:underline ml-2 font-semibold">
                       View Demo
                     </a>
                   </p>
                 )}
                 {client.demo_links?.option_2_url && (
-                  <p><span className="font-medium">Option 2:</span> 
-                    <a href={client.demo_links.option_2_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                  <p className="text-gray-900"><span className="font-bold">Option 2:</span> 
+                    <a href={client.demo_links.option_2_url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 hover:underline ml-2 font-semibold">
                       View Demo
                     </a>
                   </p>
                 )}
                 {client.demo_links?.option_3_url && (
-                  <p><span className="font-medium">Option 3:</span> 
-                    <a href={client.demo_links.option_3_url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+                  <p className="text-gray-900"><span className="font-bold">Option 3:</span> 
+                    <a href={client.demo_links.option_3_url} target="_blank" rel="noopener noreferrer" className="text-blue-700 hover:text-blue-900 hover:underline ml-2 font-semibold">
                       View Demo
                     </a>
                   </p>
                 )}
                 {client.demo_links?.approved_option && (
-                  <p><span className="font-medium">Approved:</span> {client.demo_links.approved_option}</p>
+                  <p className="text-gray-900"><span className="font-bold">Approved:</span> <span className="font-semibold text-green-800">{client.demo_links.approved_option}</span></p>
+                )}
+                {!client.demo_links?.option_1_url && !client.demo_links?.option_2_url && !client.demo_links?.option_3_url && (
+                  <p className="text-gray-600 font-medium italic">No demo links available</p>
                 )}
               </div>
             )}
@@ -971,25 +974,25 @@ function ClientDetailModal({
 
           {/* Kickoff Form */}
           {client.kickoff_form && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <h4 className="text-lg font-medium mb-3">Kickoff Form</h4>
-              <div className="space-y-2 text-sm">
-                <p><span className="font-medium">Business:</span> {client.kickoff_form.business_name}</p>
-                <p><span className="font-medium">Description:</span> {client.kickoff_form.business_description}</p>
-                <p><span className="font-medium">Completed:</span> {client.kickoff_form.completed ? 'Yes' : 'No'}</p>
+            <div className="bg-gray-100 p-5 rounded-lg border border-gray-300">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Kickoff Form</h4>
+              <div className="space-y-3 text-sm">
+                <p className="text-gray-900"><span className="font-bold">Business:</span> <span className="font-semibold">{client.kickoff_form.business_name}</span></p>
+                <p className="text-gray-900"><span className="font-bold">Description:</span> <span className="font-semibold">{client.kickoff_form.business_description}</span></p>
+                <p className="text-gray-900"><span className="font-bold">Completed:</span> <span className={`font-bold ${client.kickoff_form.completed ? 'text-green-800' : 'text-red-800'}`}>{client.kickoff_form.completed ? 'Yes' : 'No'}</span></p>
               </div>
             </div>
           )}
 
           {/* Follow-up Questionnaire */}
           {client.followup_questionnaire && (
-            <div className="bg-gray-50 p-4 rounded-lg lg:col-span-2">
-              <h4 className="text-lg font-medium mb-3">Follow-up Questionnaire</h4>
+            <div className="bg-gray-100 p-5 rounded-lg border border-gray-300 lg:col-span-2">
+              <h4 className="text-lg font-bold text-gray-900 mb-4">Follow-up Questionnaire</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                <p><span className="font-medium">Completed:</span> {client.followup_questionnaire.completed ? 'Yes' : 'No'}</p>
-                <p><span className="font-medium">Core Business:</span> {client.followup_questionnaire.core_business}</p>
-                <p><span className="font-medium">Target Group:</span> {client.followup_questionnaire.target_group_demographics}</p>
-                <p><span className="font-medium">Domain:</span> {client.followup_questionnaire.desired_domain}</p>
+                <p className="text-gray-900"><span className="font-bold">Completed:</span> <span className={`font-bold ${client.followup_questionnaire.completed ? 'text-green-800' : 'text-red-800'}`}>{client.followup_questionnaire.completed ? 'Yes' : 'No'}</span></p>
+                <p className="text-gray-900"><span className="font-bold">Core Business:</span> <span className="font-semibold">{client.followup_questionnaire.core_business}</span></p>
+                <p className="text-gray-900"><span className="font-bold">Target Group:</span> <span className="font-semibold">{client.followup_questionnaire.target_group_demographics}</span></p>
+                <p className="text-gray-900"><span className="font-bold">Domain:</span> <span className="font-semibold">{client.followup_questionnaire.desired_domain}</span></p>
               </div>
             </div>
           )}
@@ -1003,20 +1006,21 @@ function ClientDetailModal({
           duration: 4000,
           style: {
             background: '#fff',
-            color: '#374151',
-            border: '1px solid #d1d5db',
+            color: '#111827',
+            border: '2px solid #6b7280',
             borderRadius: '0.5rem',
-            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            fontWeight: '600',
           },
           success: {
             iconTheme: {
-              primary: '#10b981',
+              primary: '#059669',
               secondary: '#fff',
             },
           },
           error: {
             iconTheme: {
-              primary: '#ef4444',
+              primary: '#dc2626',
               secondary: '#fff',
             },
           },

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
@@ -41,151 +41,142 @@ export default function DashboardPage() {
   const [paymentStatus, setPaymentStatus] = useState<any>(null)
   const [customerDetails, setCustomerDetails] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [dataLoaded, setDataLoaded] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [approving, setApproving] = useState(false)
   const [refreshingTracker, setRefreshingTracker] = useState(false)
   const [refreshingDemos, setRefreshingDemos] = useState(false)
   const { user, loading: authLoading, signOut } = useAuth()
   const router = useRouter()
-  const supabase = createClient()
+  
+  // Memoize the supabase client to prevent recreating on each render
+  const supabase = useMemo(() => createClient(), [])
+  
+  // Memoize user ID to prevent unnecessary re-renders
+  const userId = useMemo(() => user?.id, [user?.id])
 
-  const checkFollowupNeeded = useCallback(async () => {
-    if (!user) return
 
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('needs_followup')
-      .eq('id', user.id)
-      .maybeSingle()
 
-    if (error) {
-      console.error('Error checking followup status:', error)
-      return
-    }
+  // This single useEffect handles authentication and initial data loading.
+  useEffect(() => {
+    if (authLoading || initialized || !userId) return
 
-    // Don't force redirect - let users access dashboard
-    // if (data?.needs_followup) {
-    //   router.push('/followup-questionnaire')
-    // }
-  }, [user, router, supabase])
+    const loadInitialData = async () => {
+      setLoading(true)
 
-  const checkKickoffCompletion = useCallback(async () => {
-    if (!user) return
+      try {
+        const [projectStatusData, demoLinksData, paymentStatusData, customerDetailsData] = await Promise.all([
+          supabase
+            .from('project_status')
+            .select('status, updated_at')
+            .eq('user_id', userId)
+            .maybeSingle()
+            .then(({ data, error }: { data: any, error: any }) => {
+              if (error) {
+                console.error('Error fetching project status:', error)
+                return null
+              }
+              return data
+            }),
 
-    const { data, error } = await supabase
-      .from('kickoff_forms')
-      .select('completed')
-      .eq('user_id', user.id)
-      .maybeSingle()
+          supabase
+            .from('demo_links')
+            .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
+            .eq('user_id', userId)
+            .maybeSingle()
+            .then(({ data, error }: { data: any, error: any }) => {
+              if (error) {
+                console.error('Error fetching demo links:', error)
+                return null
+              }
+              return data
+            }),
 
-    if (error) {
-      console.error('Error checking kickoff completion:', error)
-      return
-    }
+          getPaymentStatus(userId).catch((error) => {
+            console.log('Payment status check failed:', error)
+            return null
+          }),
 
-    // Don't force redirect - let users access dashboard
-    // if (!data?.completed) {
-    //   router.push('/kickoff')
-    // }
-  }, [user, router, supabase])
+          getCustomerDetails(userId).catch((error) => {
+            console.log('Customer details check failed:', error)
+            return null
+          }),
+        ])
 
-  const fetchProjectStatus = useCallback(async () => {
-    if (!user) return
-
-    try {
-      const { data, error } = await supabase
-        .from('project_status')
-        .select('status, updated_at')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (error) {
-        console.error('Error fetching project status:', error)
-        setProjectStatus(null)
-        return
+        setProjectStatus(projectStatusData)
+        setDemoLinks(demoLinksData)
+        setPaymentStatus(paymentStatusData)
+        setCustomerDetails(customerDetailsData)
+      } catch (error) {
+        console.error('Initial data load failed:', error)
+      } finally {
+        setInitialized(true) // prevents future reruns
+        setLoading(false)
       }
-
-      setProjectStatus(data || null)
-    } catch (error) {
-      console.error('Unexpected error fetching project status:', error)
-      setProjectStatus(null)
     }
-  }, [user, supabase])
 
-  const fetchDemoLinks = useCallback(async () => {
-    if (!user) return
+    loadInitialData()
+  }, [authLoading, userId, initialized])
 
-    try {
-      const { data, error } = await supabase
-        .from('demo_links')
-        .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
-        .eq('user_id', user.id)
-        .maybeSingle()
-
-      if (error) {
-        console.error('Error fetching demo links:', error)
-        setDemoLinks(null)
-        return
-      }
-
-      setDemoLinks(data || null)
-    } catch (error) {
-      console.error('Unexpected error fetching demo links:', error)
-      setDemoLinks(null)
+  // Separate useEffect for authentication redirect (runs only when auth changes)
+  useEffect(() => {
+    if (!authLoading && !userId) {
+      router.push('/signin')
     }
-  }, [user, supabase])
-
-  const fetchPaymentStatus = useCallback(async () => {
-    if (!user) return
-
-    try {
-      const payment = await getPaymentStatus(user.id)
-      setPaymentStatus(payment)
-    } catch (error) {
-      console.log('Payment status check failed:', error)
-      setPaymentStatus(null)
-    }
-  }, [user])
-
-  const fetchCustomerDetails = useCallback(async () => {
-    if (!user) return
-
-    try {
-      const customer = await getCustomerDetails(user.id)
-      setCustomerDetails(customer)
-    } catch (error) {
-      // No customer found, which is expected for users without payments
-      console.log('Customer details check failed:', error)
-      setCustomerDetails(null)
-    }
-  }, [user])
-
-  // NOTE: Demo ready emails are now handled by database triggers
-  // when demo URLs are actually added, not when users visit the page
+  }, [authLoading, userId, router])
 
   // Refresh handlers with loading simulation
   const handleRefreshTracker = async () => {
     setRefreshingTracker(true)
+    
+    // Fetch project status
+    try {
+      const { data, error } = await supabase
+        .from('project_status')
+        .select('status, updated_at')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error fetching project status:', error)
+      } else {
+        setProjectStatus(data || null)
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching project status:', error)
+    }
+    
     // Minimum loading time for better UX
-    await Promise.all([
-      fetchProjectStatus(),
-      new Promise(resolve => setTimeout(resolve, 800))
-    ])
+    await new Promise(resolve => setTimeout(resolve, 800))
     setRefreshingTracker(false)
   }
 
   const handleRefreshDemos = async () => {
     setRefreshingDemos(true)
+    
+    // Fetch demo links
+    try {
+      const { data, error } = await supabase
+        .from('demo_links')
+        .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
+        .eq('user_id', userId)
+        .maybeSingle()
+
+      if (error) {
+        console.error('Error fetching demo links:', error)
+      } else {
+        setDemoLinks(data || null)
+      }
+    } catch (error) {
+      console.error('Unexpected error fetching demo links:', error)
+    }
+    
     // Minimum loading time for better UX
-    await Promise.all([
-      fetchDemoLinks(),
-      new Promise(resolve => setTimeout(resolve, 800))
-    ])
+    await new Promise(resolve => setTimeout(resolve, 800))
     setRefreshingDemos(false)
   }
 
   const approveDemo = async (option: string) => {
-    if (!user || !demoLinks) return
+    if (!userId || !demoLinks || !user) return
 
     setApproving(true)
     
@@ -197,7 +188,7 @@ export default function DashboardPage() {
           approved_option: option,
           approved_at: new Date().toISOString()
         })
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
 
       if (demoError) {
         throw demoError
@@ -207,7 +198,7 @@ export default function DashboardPage() {
       const { data: kickoffData } = await supabase
         .from('kickoff_forms')
         .select('business_name, business_description')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle()
 
       // Get the demo URL for the approved option
@@ -244,7 +235,7 @@ export default function DashboardPage() {
       let existingPayment = paymentStatus
       if (!existingPayment) {
         try {
-          existingPayment = await getPaymentStatus(user.id)
+          existingPayment = await getPaymentStatus(userId)
         } catch (error) {
           // No payment record exists, which is fine
         }
@@ -252,14 +243,28 @@ export default function DashboardPage() {
 
       // If no payment exists or previous payment failed, create new payment record
       if (!existingPayment || existingPayment.status === 'failed') {
-        const paymentRecord = await createPaymentRecord(user.id, 99, user.email)
+        const paymentRecord = await createPaymentRecord(userId, 99, user.email)
         setPaymentStatus(paymentRecord)
         
         // Redirect to Stripe payment with payment ID and user email
         redirectToStripePayment(paymentRecord.id, user.email)
       } else if (existingPayment.status === 'completed') {
         // Payment already completed, just refresh the demo links
-        await fetchDemoLinks()
+        try {
+          const { data, error } = await supabase
+            .from('demo_links')
+            .select('option_1_url, option_2_url, option_3_url, approved_option, approved_at')
+            .eq('user_id', userId)
+            .maybeSingle()
+
+          if (error) {
+            console.error('Error fetching demo links:', error)
+          } else {
+            setDemoLinks(data || null)
+          }
+        } catch (error) {
+          console.error('Unexpected error fetching demo links:', error)
+        }
       } else if (existingPayment.status === 'pending') {
         // Payment is pending, redirect to Stripe again with email
         redirectToStripePayment(existingPayment.id, user.email)
@@ -273,100 +278,8 @@ export default function DashboardPage() {
     }
   }
 
-  const loadPaymentDataIfNeeded = useCallback(async () => {
-    // Only load payment data if we don't have it yet and user is on billing tab
-    if (activeTab === 'billing' && !paymentStatus && !customerDetails) {
-      try {
-        await Promise.all([
-          fetchPaymentStatus().catch(err => {
-            console.log('Payment status check failed:', err)
-            setPaymentStatus(null)
-          }),
-          fetchCustomerDetails().catch(err => {
-            console.log('Customer details check failed:', err)
-            setCustomerDetails(null)
-          })
-        ])
-      } catch (error) {
-        console.log('Payment data loading failed:', error)
-      }
-    }
-  }, [activeTab, paymentStatus, customerDetails, fetchPaymentStatus, fetchCustomerDetails])
-
-  useEffect(() => {
-    // Handle URL parameters for customer portal returns and payment success
-    const urlParams = new URLSearchParams(window.location.search)
-    const updated = urlParams.get('updated')
-    const view = urlParams.get('view')
-    const paymentSuccess = urlParams.get('payment_success')
-    const sessionId = urlParams.get('session_id')
-    
-    if (updated === 'payment_method') {
-      // You can add a toast notification here
-      console.log('Payment method updated successfully')
-    }
-    
-    if (view === 'subscription' || view === 'invoices') {
-      // Set the billing tab as active
-      setActiveTab('billing')
-    }
-
-    // Handle successful payment return from Stripe
-    if (paymentSuccess === 'true' || sessionId) {
-      console.log('Payment completed successfully, redirecting to follow-up questionnaire')
-      
-      // Wait a moment for the page to load, then redirect
-      setTimeout(() => {
-        // Clean up URL parameters
-        const newUrl = window.location.pathname
-        window.history.replaceState({}, document.title, newUrl)
-        
-        // Redirect to follow-up questionnaire
-        router.push('/followup-questionnaire')
-      }, 2000) // 2 second delay to ensure everything is loaded
-      
-      return // Don't load other data if we're redirecting
-    }
-
-    const loadData = async () => {
-      // Load only essential dashboard data - no payment checks needed
-      try {
-        await Promise.all([
-          fetchProjectStatus(),
-          fetchDemoLinks(),
-        ])
-      } catch (error) {
-        console.error('Error loading dashboard data:', error)
-        // Even if some data fails to load, still show the dashboard
-      } finally {
-        // Always set loading to false, regardless of what happened above
-        setLoading(false)
-      }
-    }
-
-    // Set a maximum loading time to prevent infinite loading
-    const maxLoadingTimeout = setTimeout(() => {
-      console.log('Dashboard loading timeout reached, forcing load complete')
-      setLoading(false)
-    }, 5000) // 5 second maximum loading time (reduced since no payment checks)
-
-    loadData().finally(() => {
-      clearTimeout(maxLoadingTimeout)
-    })
-
-    // Cleanup timeout on unmount
-    return () => {
-      clearTimeout(maxLoadingTimeout)
-    }
-  }, [fetchProjectStatus, fetchDemoLinks])
-
-  // Load payment data when switching to billing tab
-  useEffect(() => {
-    loadPaymentDataIfNeeded()
-  }, [loadPaymentDataIfNeeded])
-
-  // Early return for loading state - after all hooks
-  if (loading) {
+  // Show loading while auth is loading or during initial load
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
@@ -377,21 +290,8 @@ export default function DashboardPage() {
     )
   }
 
-  // Early return for auth loading - after all hooks
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 font-inter">Authentifizierung wird überprüft...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Early return for no user - after all hooks
+  // Don't render anything if user is not authenticated (redirect is happening)
   if (!user) {
-    router.push('/signin')
     return null
   }
 

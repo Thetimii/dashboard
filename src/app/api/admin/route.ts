@@ -41,7 +41,14 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    
+    // Get user with better error handling
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    
+    if (userError) {
+      console.error('Auth error:', userError)
+      return NextResponse.json({ error: 'Authentication failed' }, { status: 401 })
+    }
 
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -137,36 +144,144 @@ async function getAdmins(supabase: any) {
 async function updateProjectStatus(supabase: any, body: any) {
   try {
     const { userId, status, finalUrl } = body
+    
+    console.log('updateProjectStatus called with:', { userId, status, finalUrl })
+    
+    if (!userId || !status) {
+      console.error('Missing required fields:', { userId, status })
+      throw new Error('Missing required fields: userId or status')
+    }
+    
     const updates: any = { status }
-    if (finalUrl !== undefined) {
+    if (finalUrl !== undefined && finalUrl !== '') {
       updates.final_url = finalUrl
     }
+    
+    // Add updated_at timestamp
+    updates.updated_at = new Date().toISOString()
 
-    const { error } = await supabase
+    console.log('Attempting to update project status with:', updates)
+
+    // First check if record exists
+    const { data: existingRecord, error: selectError } = await supabase
       .from('project_status')
-      .upsert({ user_id: userId, ...updates })
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle()
 
-    if (error) throw error
+    if (selectError) {
+      console.error('Error checking existing record:', selectError)
+      throw selectError
+    }
+
+    let result
+    if (existingRecord) {
+      // Update existing record
+      console.log('Updating existing project status record')
+      result = await supabase
+        .from('project_status')
+        .update(updates)
+        .eq('user_id', userId)
+        .select()
+    } else {
+      // Insert new record
+      console.log('Inserting new project status record')
+      result = await supabase
+        .from('project_status')
+        .insert({ 
+          user_id: userId, 
+          ...updates,
+          created_at: new Date().toISOString()
+        })
+        .select()
+    }
+
+    if (result.error) {
+      console.error('Supabase error updating project status:', {
+        error: result.error,
+        message: result.error.message,
+        details: result.error.details,
+        hint: result.error.hint,
+        code: result.error.code
+      })
+      throw result.error
+    }
+    
+    console.log('Project status updated successfully:', result.data)
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Error updating project status:', error)
-    return NextResponse.json({ error: 'Failed to update project status' }, { status: 500 })
+    console.error('Error updating project status:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined
+    })
+    return NextResponse.json({ 
+      error: `Failed to update project status: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      details: error instanceof Error ? error.stack : undefined
+    }, { status: 500 })
   }
 }
 
 async function updateDemoLinks(supabase: any, body: any) {
   try {
     const { userId, updates } = body
+    
+    if (!userId || !updates) {
+      throw new Error('Missing required fields: userId or updates')
+    }
 
-    const { error } = await supabase
+    console.log('Updating demo links:', { userId, updates })
+
+    // Add updated_at timestamp to the updates
+    const updatesWithTimestamp = {
+      ...updates,
+      updated_at: new Date().toISOString()
+    }
+
+    // First check if record exists
+    const { data: existingRecord, error: selectError } = await supabase
       .from('demo_links')
-      .upsert({ user_id: userId, ...updates })
+      .select('id')
+      .eq('user_id', userId)
+      .maybeSingle()
 
-    if (error) throw error
+    if (selectError) {
+      console.error('Error checking existing record:', selectError)
+      throw selectError
+    }
+
+    let result
+    if (existingRecord) {
+      // Update existing record
+      console.log('Updating existing record with:', updatesWithTimestamp)
+      result = await supabase
+        .from('demo_links')
+        .update(updatesWithTimestamp)
+        .eq('user_id', userId)
+        .select()
+    } else {
+      // Insert new record
+      console.log('Inserting new record with:', { user_id: userId, ...updatesWithTimestamp })
+      result = await supabase
+        .from('demo_links')
+        .insert({ 
+          user_id: userId, 
+          ...updatesWithTimestamp,
+          created_at: new Date().toISOString()
+        })
+        .select()
+    }
+
+    if (result.error) {
+      console.error('Supabase error updating demo links:', result.error)
+      throw result.error
+    }
+    
+    console.log('Demo links updated successfully:', result.data)
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error updating demo links:', error)
-    return NextResponse.json({ error: 'Failed to update demo links' }, { status: 500 })
+    return NextResponse.json({ error: `Failed to update demo links: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 })
   }
 }
 

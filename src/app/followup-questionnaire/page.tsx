@@ -340,17 +340,6 @@ export default function FollowupQuestionnairePage() {
         throw error
       }
 
-      // Update user profile to mark questionnaire as completed
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ needs_followup: false })
-        .eq('id', user.id)
-
-      if (profileError) {
-        console.error('Profile update error:', profileError)
-        // Don't throw here as the questionnaire was saved successfully
-      }
-
       router.push('/dashboard')
     } catch (error) {
       console.error('Error submitting questionnaire:', error)
@@ -1034,7 +1023,7 @@ export default function FollowupQuestionnairePage() {
             {currentStep === steps.length ? (
               <button
                 onClick={handleSubmit}
-                disabled={isSubmitting || !validateCurrentStep()}
+                disabled={isSubmitting}
                 className="flex items-center px-8 py-3 bg-gradient-to-r from-teal-500 to-cyan-500 text-white rounded-xl hover:from-teal-600 hover:to-cyan-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 font-inter font-semibold shadow-lg"
               >
                 {isSubmitting ? (
