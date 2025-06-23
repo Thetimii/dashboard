@@ -8,6 +8,14 @@ import { createClient } from '@/lib/supabase'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { Logo } from '@/components/Logo'
 import { 
+  trackQuestionnaireCompletion, 
+  trackQuestionnaireView, 
+  trackFormInteraction, 
+  trackFileUpload, 
+  trackStepNavigation, 
+  trackFormErrors 
+} from '@/lib/facebook-pixel-client'
+import { 
   BuildingOfficeIcon, 
   TrophyIcon, 
   UserGroupIcon,
@@ -112,6 +120,16 @@ export default function FollowupQuestionnairePage() {
     const loadData = async () => {
       await loadExistingData()
       setIsLoading(false)
+      
+      // Track initial page view
+      await trackQuestionnaireView(currentStep, {
+        userEmail: user.email,
+        userCountry: 'ch',
+        customData: {
+          page_load: true,
+          user_id: user.id,
+        }
+      })
     }
     
     loadData()
@@ -189,18 +207,53 @@ export default function FollowupQuestionnairePage() {
 
   const nextStep = () => {
     if (validateCurrentStep() && currentStep < steps.length) {
-      setCurrentStep(currentStep + 1)
+      const newStep = currentStep + 1
+      
+      // Track step navigation
+      trackStepNavigation(currentStep, newStep, {
+        userEmail: user?.email,
+        userCountry: 'ch',
+        customData: {
+          user_id: user?.id,
+        }
+      })
+      
+      setCurrentStep(newStep)
     }
   }
 
   const prevStep = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      const newStep = currentStep - 1
+      
+      // Track step navigation
+      trackStepNavigation(currentStep, newStep, {
+        userEmail: user?.email,
+        userCountry: 'ch',
+        customData: {
+          user_id: user?.id,
+        }
+      })
+      
+      setCurrentStep(newStep)
     }
   }
 
   const handleFormDataChange = (key: keyof FormData, value: string | boolean | number) => {
     setFormData(prev => ({ ...prev, [key]: value }))
+    
+    // Track form interaction
+    trackFormInteraction('field_change', {
+      userEmail: user?.email,
+      userCountry: 'ch',
+      customData: {
+        user_id: user?.id,
+        field_name: key,
+        current_step: currentStep,
+        field_type: typeof value,
+      }
+    })
+    
     // Clear error when user starts typing
     if (errors[key]) {
       setErrors(prev => ({ ...prev, [key]: '' }))
@@ -244,6 +297,17 @@ export default function FollowupQuestionnairePage() {
 
       if (successfulUploads.length > 0) {
         setUploadedFiles(prev => [...prev, ...successfulUploads])
+        
+        // Track file upload
+        trackFileUpload(successfulUploads.length, {
+          userEmail: user?.email,
+          userCountry: 'ch',
+          customData: {
+            user_id: user?.id,
+            current_step: currentStep,
+            total_files: uploadedFiles.length + successfulUploads.length,
+          }
+        })
       }
     } catch (error) {
       console.error('File upload error:', error)
@@ -312,6 +376,19 @@ export default function FollowupQuestionnairePage() {
     )
     
     setErrors(filteredErrors)
+    
+    // Track form errors if any
+    if (Object.keys(filteredErrors).length > 0) {
+      trackFormErrors(Object.keys(filteredErrors), currentStep, {
+        userEmail: user?.email,
+        userCountry: 'ch',
+        customData: {
+          user_id: user?.id,
+          validation_errors: filteredErrors,
+        }
+      })
+    }
+    
     return Object.keys(filteredErrors).length === 0
   }
 
@@ -339,6 +416,19 @@ export default function FollowupQuestionnairePage() {
         console.error('Submission error:', error)
         throw error
       }
+
+      // Track questionnaire completion
+      await trackQuestionnaireCompletion({
+        userEmail: user.email,
+        userCountry: 'ch',
+        customData: {
+          user_id: user.id,
+          completion_time: new Date().toISOString(),
+          total_steps: steps.length,
+          form_data_fields: Object.keys(cleanFormData).length,
+          uploaded_files_count: uploadedFiles.length,
+        }
+      })
 
       router.push('/dashboard')
     } catch (error) {
