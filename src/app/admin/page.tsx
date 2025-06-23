@@ -216,11 +216,11 @@ export default function AdminPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'not_touched': return 'bg-gray-100 text-gray-800'
-      case 'in_progress': return 'bg-yellow-100 text-yellow-800'
-      case 'complete': return 'bg-green-100 text-green-800'
-      case 'live': return 'bg-blue-100 text-blue-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'not_touched': return 'bg-gray-200 text-gray-900'
+      case 'in_progress': return 'bg-yellow-200 text-yellow-800'
+      case 'complete': return 'bg-green-200 text-green-800'
+      case 'live': return 'bg-blue-200 text-blue-800'
+      default: return 'bg-gray-200 text-gray-900'
     }
   }
 
@@ -254,7 +254,7 @@ export default function AdminPage() {
               <span className="text-sm text-gray-500">Welcome, Admin</span>
               <button
                 onClick={() => router.push('/dashboard')}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
                 Back to Dashboard
               </button>
@@ -361,8 +361,8 @@ export default function AdminPage() {
                       <div className="flex items-center justify-between">
                         <div className="flex items-center">
                           <div className="flex-shrink-0">
-                            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
-                              <span className="text-sm font-medium text-gray-700">
+                            <div className="h-10 w-10 rounded-full bg-indigo-500 flex items-center justify-center">
+                              <span className="text-sm font-medium text-white">
                                 {client.user_profile.full_name?.charAt(0) || 'U'}
                               </span>
                             </div>
@@ -392,7 +392,7 @@ export default function AdminPage() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => setSelectedClient(client)}
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50"
                           >
                             <EyeIcon className="h-4 w-4 mr-1" />
                             View Details
@@ -403,7 +403,7 @@ export default function AdminPage() {
                               setSelectedAdmin(client.assignment?.admin_id || '')
                               setShowAssignModal(true)
                             }}
-                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                            className="inline-flex items-center px-3 py-2 border border-gray-300 shadow-sm text-sm leading-4 font-medium rounded-md text-gray-900 bg-white hover:bg-gray-50"
                           >
                             <UserPlusIcon className="h-4 w-4 mr-1" />
                             {client.assignment ? 'Reassign' : 'Assign'}
@@ -452,7 +452,7 @@ export default function AdminPage() {
                 <div className="flex justify-end space-x-3">
                   <button
                     onClick={() => setShowAssignModal(false)}
-                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
                   >
                     Cancel
                   </button>
@@ -543,7 +543,7 @@ export default function AdminPage() {
                                     setSelectedAdmin('')
                                     setShowAssignModal(true)
                                   }}
-                                  className="flex-1 text-xs px-2 py-1 bg-gray-50 text-gray-700 rounded hover:bg-gray-100"
+                                  className="flex-1 text-xs px-2 py-1 bg-gray-100 text-gray-900 rounded hover:bg-gray-200"
                                 >
                                   Reassign
                                 </button>
@@ -711,8 +711,8 @@ export default function AdminPage() {
                         <div className="flex items-center justify-between">
                           <div className="flex items-center">
                             <div className="flex-shrink-0">
-                              <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                                <span className="text-xs font-medium text-gray-700">
+                              <div className="h-8 w-8 rounded-full bg-indigo-600 flex items-center justify-center">
+                                <span className="text-xs font-medium text-white">
                                   {client.user_profile.full_name?.charAt(0) || 'U'}
                                 </span>
                               </div>
@@ -853,7 +853,7 @@ function ClientDetailModal({
                   </button>
                   <button
                     onClick={() => setEditingStatus(false)}
-                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded text-sm"
+                    className="px-3 py-2 bg-gray-200 text-gray-900 rounded text-sm hover:bg-gray-300"
                   >
                     Cancel
                   </button>
@@ -916,7 +916,7 @@ function ClientDetailModal({
                   </button>
                   <button
                     onClick={() => setEditingDemos(false)}
-                    className="px-3 py-2 bg-gray-300 text-gray-700 rounded text-sm"
+                    className="px-3 py-2 bg-gray-200 text-gray-900 rounded text-sm hover:bg-gray-300"
                   >
                     Cancel
                   </button>
