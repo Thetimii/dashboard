@@ -1,10 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { createClient } from '@/lib/supabase'
 import { motion } from 'framer-motion'
+import toast, { Toaster } from 'react-hot-toast'
 import { 
   UsersIcon,
   UserGroupIcon,
@@ -61,19 +62,8 @@ export default function AdminPage() {
   const router = useRouter()
   const supabase = createClient()
 
-  // Check admin access
-  useEffect(() => {
-    if (authLoading) return
-    
-    if (!user) {
-      router.push('/signin')
-      return
-    }
-
-    checkAdminAccess()
-  }, [user, authLoading, router])
-
-  const checkAdminAccess = async () => {
+  // Check admin access - memoized to prevent constant re-checking
+  const checkAdminAccess = useCallback(async () => {
     try {
       // Try to fetch clients - if the user is not an admin, this will fail
       const response = await fetch('/api/admin?action=clients')
@@ -90,7 +80,19 @@ export default function AdminPage() {
       console.error('Error checking admin access:', error)
       router.push('/dashboard')
     }
-  }
+  }, [router])
+
+  useEffect(() => {
+    if (authLoading) return
+    
+    if (!user) {
+      router.push('/signin')
+      return
+    }
+
+    // Only check admin access once when user is loaded
+    checkAdminAccess()
+  }, [user?.id, authLoading, checkAdminAccess]) // Use user.id instead of user object to prevent constant changes
 
   const loadData = async () => {
     setLoading(true)
@@ -147,9 +149,11 @@ export default function AdminPage() {
         throw new Error('Failed to update project status')
       }
       
+      toast.success('Project status updated successfully!')
       await loadClients()
     } catch (error) {
       console.error('Error updating project status:', error)
+      toast.error('Failed to update project status')
     }
   }
 
@@ -169,9 +173,11 @@ export default function AdminPage() {
         throw new Error('Failed to update demo links')
       }
       
+      toast.success('Demo links updated successfully!')
       await loadClients()
     } catch (error) {
       console.error('Error updating demo links:', error)
+      toast.error('Failed to update demo links')
     }
   }
 
@@ -191,12 +197,14 @@ export default function AdminPage() {
         throw new Error('Failed to assign client')
       }
       
+      toast.success('Client assigned successfully!')
       setShowAssignModal(false)
       setAssigningClient(null)
       setSelectedAdmin('')
       await loadClients()
     } catch (error) {
       console.error('Error assigning client:', error)
+      toast.error('Failed to assign client')
     }
   }
 
@@ -885,38 +893,47 @@ function ClientDetailModal({
               </button>
             </div>
             {editingDemos ? (
-              <div className="space-y-3">
-                <input
-                  type="url"
-                  placeholder="Demo Option 1 URL"
-                  value={demoUrl1}
-                  onChange={(e) => setDemoUrl1(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                />
-                <input
-                  type="url"
-                  placeholder="Demo Option 2 URL"
-                  value={demoUrl2}
-                  onChange={(e) => setDemoUrl2(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                />
-                <input
-                  type="url"
-                  placeholder="Demo Option 3 URL"
-                  value={demoUrl3}
-                  onChange={(e) => setDemoUrl3(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                />
-                <div className="flex space-x-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 1 URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/demo1"
+                    value={demoUrl1}
+                    onChange={(e) => setDemoUrl1(e.target.value)}
+                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 2 URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/demo2"
+                    value={demoUrl2}
+                    onChange={(e) => setDemoUrl2(e.target.value)}
+                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Demo Option 3 URL</label>
+                  <input
+                    type="url"
+                    placeholder="https://example.com/demo3"
+                    value={demoUrl3}
+                    onChange={(e) => setDemoUrl3(e.target.value)}
+                    className="w-full border-2 border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  />
+                </div>
+                <div className="flex space-x-3 pt-2">
                   <button
                     onClick={handleDemoUpdate}
-                    className="px-3 py-2 bg-blue-600 text-white rounded text-sm"
+                    className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg text-sm font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-md"
                   >
-                    Save
+                    Save Changes
                   </button>
                   <button
                     onClick={() => setEditingDemos(false)}
-                    className="px-3 py-2 bg-gray-200 text-gray-900 rounded text-sm hover:bg-gray-300"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors border border-gray-300"
                   >
                     Cancel
                   </button>
@@ -978,6 +995,33 @@ function ClientDetailModal({
           )}
         </div>
       </div>
+      
+      {/* Toast notifications */}
+      <Toaster 
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: '#fff',
+            color: '#374151',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.5rem',
+            boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+          },
+          success: {
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
     </div>
   )
 }

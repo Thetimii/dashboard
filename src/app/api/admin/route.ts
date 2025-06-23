@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError || profile?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       .from('user_profiles')
       .select('role')
       .eq('id', user.id)
-      .single()
+      .maybeSingle()
 
     if (profileError || profile?.role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden - Admin access required' }, { status: 403 })
@@ -92,12 +92,12 @@ async function getClients(supabase: any) {
     const clientsData = await Promise.all(
       userProfiles.map(async (profile: any) => {
         const [kickoffForm, projectStatus, demoLinks, followupQuestionnaire, payment, assignment] = await Promise.all([
-          supabase.from('kickoff_forms').select('*').eq('user_id', profile.id).single(),
-          supabase.from('project_status').select('*').eq('user_id', profile.id).single(),
-          supabase.from('demo_links').select('*').eq('user_id', profile.id).single(),
-          supabase.from('followup_questionnaires').select('*').eq('user_id', profile.id).single(),
-          supabase.from('payments').select('*').eq('user_id', profile.id).eq('status', 'completed').single(),
-          supabase.from('client_assignments').select('*, admin:admin_id(full_name)').eq('client_id', profile.id).single()
+          supabase.from('kickoff_forms').select('*').eq('user_id', profile.id).maybeSingle(),
+          supabase.from('project_status').select('*').eq('user_id', profile.id).maybeSingle(),
+          supabase.from('demo_links').select('*').eq('user_id', profile.id).maybeSingle(),
+          supabase.from('followup_questionnaires').select('*').eq('user_id', profile.id).maybeSingle(),
+          supabase.from('payments').select('*').eq('user_id', profile.id).eq('status', 'completed').maybeSingle(),
+          supabase.from('client_assignments').select('*, admin:admin_id(full_name)').eq('client_id', profile.id).maybeSingle()
         ])
 
         return {
