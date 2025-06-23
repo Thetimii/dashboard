@@ -281,10 +281,12 @@ export default function DashboardPage() {
   }, [activeTab, paymentStatus, customerDetails, fetchPaymentStatus, fetchCustomerDetails])
 
   useEffect(() => {
-    // Handle URL parameters for customer portal returns
+    // Handle URL parameters for customer portal returns and payment success
     const urlParams = new URLSearchParams(window.location.search)
     const updated = urlParams.get('updated')
     const view = urlParams.get('view')
+    const paymentSuccess = urlParams.get('payment_success')
+    const sessionId = urlParams.get('session_id')
     
     if (updated === 'payment_method') {
       // You can add a toast notification here
@@ -294,6 +296,23 @@ export default function DashboardPage() {
     if (view === 'subscription' || view === 'invoices') {
       // Set the billing tab as active
       setActiveTab('billing')
+    }
+
+    // Handle successful payment return from Stripe
+    if (paymentSuccess === 'true' || sessionId) {
+      console.log('Payment completed successfully, redirecting to follow-up questionnaire')
+      
+      // Wait a moment for the page to load, then redirect
+      setTimeout(() => {
+        // Clean up URL parameters
+        const newUrl = window.location.pathname
+        window.history.replaceState({}, document.title, newUrl)
+        
+        // Redirect to follow-up questionnaire
+        router.push('/followup-questionnaire')
+      }, 2000) // 2 second delay to ensure everything is loaded
+      
+      return // Don't load other data if we're redirecting
     }
 
     const loadData = async () => {

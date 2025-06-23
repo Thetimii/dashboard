@@ -23,12 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient()
 
   useEffect(() => {
+    let isMounted = true
+
     // Simple auth - just get the session and stay logged in
     const getInitialSession = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession()
         
-        if (session?.user) {
+        if (session?.user && isMounted) {
           setUser(session.user)
           setUserProfile({ 
             id: session.user.id, 
@@ -39,33 +41,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch (error) {
         console.error('Session error:', error)
       } finally {
-        setLoading(false)
+        if (isMounted) {
+          setLoading(false)
+        }
       }
     }
 
     getInitialSession()
 
-    // Listen for auth changes
+    // Listen for auth changes - but be more resilient to external redirects
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, session: Session | null) => {
         console.log('Auth change:', event)
         
-        if (session?.user) {
-          setUser(session.user)
-          setUserProfile({ 
-            id: session.user.id, 
-            role: 'user',
-            full_name: session.user.user_metadata?.full_name || null 
-          })
-        } else {
-          setUser(null)
-          setUserProfile(null)
+        // Don't clear state on INITIAL_SESSION - just update if we have a session
+        if (event === 'INITIAL_SESSION') {
+          if (session?.user && isMounted) {
+            setUser(session.user)
+            setUserProfile({ 
+              id: session.user.id, 
+              role: 'user',
+              full_name: session.user.user_metadata?.full_name || null 
+            })
+          }
+          if (isMounted) setLoading(false)
+          return
         }
-        setLoading(false)
+
+        // Handle other auth events normally
+        if (isMounted) {
+          if (session?.user) {
+            setUser(session.user)
+            setUserProfile({ 
+              id: session.user.id, 
+              role: 'user',
+              full_name: session.user.user_metadata?.full_name || null 
+            })
+          } else if (event === 'SIGNED_OUT') {
+            // Only clear user state on explicit sign out
+            setUser(null)
+            setUserProfile(null)
+          }
+          setLoading(false)
+        }
       }
     )
 
     return () => {
+      isMounted = false
       subscription.unsubscribe()
     }
   }, [supabase.auth])
