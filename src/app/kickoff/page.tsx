@@ -159,6 +159,7 @@ export default function KickoffPage() {
   const [selectedPages, setSelectedPages] = useState<string[]>([])
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [contentFile, setContentFile] = useState<File | null>(null)
+  const [contentFiles, setContentFiles] = useState<File[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { user } = useAuth()
   const router = useRouter()
@@ -196,6 +197,44 @@ export default function KickoffPage() {
     )
   }
 
+  const handleMultipleFilesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    
+    // Validate file count
+    if (files.length > 20) {
+      alert('Sie können maximal 20 Dateien gleichzeitig hochladen.')
+      e.target.value = '' // Clear the input
+      return
+    }
+
+    // Validate each file
+    const validFiles: File[] = []
+    const maxSize = 10 * 1024 * 1024 // 10MB per file
+    
+    for (const file of files) {
+      if (file.size > maxSize) {
+        alert(`Die Datei "${file.name}" ist zu groß. Maximale Dateigröße: 10MB`)
+        e.target.value = '' // Clear the input
+        return
+      }
+      
+      // Check if it's an image
+      if (!file.type.startsWith('image/')) {
+        alert(`Die Datei "${file.name}" ist kein Bild. Bitte wählen Sie nur Bilddateien aus.`)
+        e.target.value = '' // Clear the input
+        return
+      }
+      
+      validFiles.push(file)
+    }
+    
+    setContentFiles(validFiles)
+  }
+
+  const removeContentFile = (index: number) => {
+    setContentFiles(prev => prev.filter((_, i) => i !== index))
+  }
+
   const handleSubmit = async () => {
     if (!user) return
 
@@ -231,6 +270,28 @@ export default function KickoffPage() {
         }
       }
 
+      // Upload multiple content files if they exist
+      let contentUrls: string[] = []
+      if (contentFiles.length > 0) {
+        try {
+          console.log(`Uploading ${contentFiles.length} content files...`)
+          const uploadPromises = contentFiles.map(file => uploadFile(file, user.id))
+          contentUrls = await Promise.all(uploadPromises)
+          console.log('All content files uploaded successfully:', contentUrls)
+        } catch (uploadError) {
+          console.error('Error uploading content files:', uploadError)
+          alert('Fehler beim Hochladen der Inhaltsdateien. Bitte versuchen Sie es erneut.')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
+      // Combine single file URL with multiple file URLs
+      const allContentUrls = [
+        ...(contentUrl ? [contentUrl] : []),
+        ...contentUrls
+      ]
+
       // Save to database
       const { error } = await supabase
         .from('kickoff_forms')
@@ -242,7 +303,8 @@ export default function KickoffPage() {
           desired_pages: selectedPages,
           color_preferences: formData.colorPreferences!,
           logo_url: logoUrl,
-          content_upload_url: contentUrl,
+          content_upload_url: allContentUrls.length > 0 ? allContentUrls[0] : null, // First file for backward compatibility
+          content_upload_urls: allContentUrls.length > 0 ? allContentUrls : null, // All files array
           special_requests: formData.specialRequests || null,
           completed: true,
         })
@@ -271,6 +333,8 @@ export default function KickoffPage() {
               colorPreferences: formData.colorPreferences,
               logoUrl: logoUrl || undefined,
               contentUploadUrl: contentUrl || undefined,
+              contentUploadUrls: allContentUrls.length > 0 ? allContentUrls : undefined,
+              contentFileCount: allContentUrls.length,
               specialRequests: formData.specialRequests,
               userEmail: user.email,
               userName: user.user_metadata?.full_name || user.email,
@@ -477,20 +541,70 @@ export default function KickoffPage() {
           <div className="space-y-6">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Inhalte hochladen</h2>
             <p className="text-gray-600 dark:text-gray-400 font-inter">Lade Content-Dateien, Dokumente oder Bilder hoch (optional)</p>
-            <div className="relative">
-              <input
-                type="file"
-                accept=".zip,.doc,.docx,.pdf,image/*"
-                onChange={(e) => setContentFile(e.target.files?.[0] || null)}
-                className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 dark:file:bg-teal-900/30 file:text-teal-700 dark:file:text-teal-300 hover:file:bg-teal-100 dark:hover:file:bg-teal-900/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
-              />
-            </div>
-            {contentFile && (
-              <div className="flex items-center space-x-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl">
-                <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
-                <p className="text-sm text-green-800 dark:text-green-300 font-inter">{contentFile.name} ausgewählt</p>
+            
+            {/* Single file upload (for documents) */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Dokumente oder andere Dateien</h3>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept=".zip,.doc,.docx,.pdf"
+                  onChange={(e) => setContentFile(e.target.files?.[0] || null)}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-teal-50 dark:file:bg-teal-900/30 file:text-teal-700 dark:file:text-teal-300 hover:file:bg-teal-100 dark:hover:file:bg-teal-900/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
+                />
               </div>
-            )}
+              {contentFile && (
+                <div className="flex items-center space-x-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl mt-2">
+                  <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
+                  <p className="text-sm text-green-800 dark:text-green-300 font-inter">{contentFile.name} ausgewählt</p>
+                </div>
+              )}
+            </div>
+
+            {/* Multiple image uploads */}
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Bilder (bis zu 20 Stück)</h3>
+              <div className="relative">
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleMultipleFilesChange}
+                  className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-900 dark:text-white file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-purple-50 dark:file:bg-purple-900/30 file:text-purple-700 dark:file:text-purple-300 hover:file:bg-purple-100 dark:hover:file:bg-purple-900/50 focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 font-inter shadow-sm"
+                />
+              </div>
+              
+              {/* Selected images preview */}
+              {contentFiles.length > 0 && (
+                <div className="mt-4">
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 font-inter">
+                    {contentFiles.length} Bild(er) ausgewählt:
+                  </p>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 max-h-64 overflow-y-auto">
+                    {contentFiles.map((file, index) => (
+                      <div key={index} className="relative group">
+                        <div className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden">
+                          <img
+                            src={URL.createObjectURL(file)}
+                            alt={file.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <button
+                          onClick={() => removeContentFile(index)}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100"
+                        >
+                          ×
+                        </button>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 truncate font-inter">
+                          {file.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         )
 

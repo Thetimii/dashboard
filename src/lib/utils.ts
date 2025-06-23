@@ -54,17 +54,18 @@ export async function uploadFile(file: File, userId?: string): Promise<string> {
       throw new Error(`Failed to upload file: ${error.message}`)
     }
 
-    // Get the public URL for the uploaded file
-    const { data: urlData } = supabase.storage
+    // Get a signed URL for the uploaded file (valid for 1 year)
+    const { data: signedUrlData, error: signedUrlError } = await supabase.storage
       .from('useruploads')
-      .getPublicUrl(fileName)
+      .createSignedUrl(fileName, 60 * 60 * 24 * 365) // 1 year expiration
 
-    if (!urlData?.publicUrl) {
-      throw new Error('Failed to get public URL for uploaded file')
+    if (signedUrlError || !signedUrlData?.signedUrl) {
+      console.error('Signed URL error:', signedUrlError)
+      throw new Error('Failed to get signed URL for uploaded file')
     }
 
-    console.log('File uploaded successfully:', urlData.publicUrl)
-    return urlData.publicUrl
+    console.log('File uploaded successfully:', signedUrlData.signedUrl)
+    return signedUrlData.signedUrl
 
   } catch (error) {
     console.error('Error uploading file:', error)
