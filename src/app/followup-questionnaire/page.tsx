@@ -94,6 +94,7 @@ export default function FollowupQuestionnairePage() {
   const [formData, setFormData] = useState<FormData>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
   const [errors, setErrors] = useState<{[key: string]: string}>({})
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState(false)
@@ -108,7 +109,12 @@ export default function FollowupQuestionnairePage() {
     }
     
     // Load existing questionnaire data if it exists
-    loadExistingData()
+    const loadData = async () => {
+      await loadExistingData()
+      setIsLoading(false)
+    }
+    
+    loadData()
   }, [user, router])
 
   const loadExistingData = async () => {
@@ -121,14 +127,24 @@ export default function FollowupQuestionnairePage() {
         .eq('user_id', user.id)
         .single()
 
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error loading existing data:', error)
+        return
+      }
+
       if (data && !error) {
         // Remove user_id and other metadata, keep only form fields
         const { user_id, id, created_at, updated_at, completed, ...formFields } = data
-        setFormData(formFields)
+        
+        // Filter out null/undefined values and only set defined form fields
+        const cleanFormFields = Object.fromEntries(
+          Object.entries(formFields).filter(([_, value]) => value !== null && value !== undefined)
+        )
+        
+        setFormData(cleanFormFields)
       }
     } catch (error) {
-      // No existing data found, which is fine
-      console.log('No existing questionnaire data found')
+      console.error('Unexpected error loading existing data:', error)
     }
   }
 
@@ -137,15 +153,25 @@ export default function FollowupQuestionnairePage() {
 
     setIsSaving(true)
     try {
+      // Clean the form data to remove any undefined values
+      const cleanFormData = Object.fromEntries(
+        Object.entries(formData).filter(([_, value]) => value !== undefined && value !== null)
+      )
+
       const { error } = await supabase
         .from('followup_questionnaires')
         .upsert({
           user_id: user.id,
-          ...formData,
+          ...cleanFormData,
           completed: false,
+        }, {
+          onConflict: 'user_id'
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Save progress error:', error)
+        throw error
+      }
     } catch (error) {
       console.error('Error saving progress:', error)
       alert('Fehler beim Speichern. Bitte versuchen Sie es erneut.')
@@ -193,27 +219,32 @@ export default function FollowupQuestionnairePage() {
     }
 
     setIsUploading(true)
-    const uploadedUrls: string[] = []
 
     try {
+      const successfulUploads: File[] = []
+      
       for (const file of newFiles) {
         const fileExt = file.name.split('.').pop()
         const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`
         
         const { error: uploadError } = await supabase.storage
           .from('followup')
-          .upload(fileName, file)
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
 
         if (uploadError) {
           console.error('Upload error:', uploadError)
-          alert(`Fehler beim Hochladen von ${file.name}`)
-          continue
+          alert(`Fehler beim Hochladen von ${file.name}: ${uploadError.message}`)
+        } else {
+          successfulUploads.push(file)
         }
-
-        uploadedUrls.push(fileName)
       }
 
-      setUploadedFiles(prev => [...prev, ...newFiles])
+      if (successfulUploads.length > 0) {
+        setUploadedFiles(prev => [...prev, ...successfulUploads])
+      }
     } catch (error) {
       console.error('File upload error:', error)
       alert('Fehler beim Hochladen der Dateien')
@@ -289,21 +320,36 @@ export default function FollowupQuestionnairePage() {
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
+      // Clean the form data to remove any undefined values
+      const cleanFormData = Object.fromEntries(
+        Object.entries(formData).filter(([_, value]) => value !== undefined && value !== null)
+      )
+
+      const { data, error } = await supabase
         .from('followup_questionnaires')
         .upsert({
           user_id: user.id,
-          ...formData,
+          ...cleanFormData,
           completed: true,
+        }, {
+          onConflict: 'user_id'
         })
 
-      if (error) throw error
+      if (error) {
+        console.error('Submission error:', error)
+        throw error
+      }
 
       // Update user profile to mark questionnaire as completed
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update({ needs_followup: false })
         .eq('id', user.id)
+
+      if (profileError) {
+        console.error('Profile update error:', profileError)
+        // Don't throw here as the questionnaire was saved successfully
+      }
 
       router.push('/dashboard')
     } catch (error) {
@@ -901,7 +947,7 @@ export default function FollowupQuestionnairePage() {
     }
   }
 
-  if (!user) {
+  if (!user || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 flex items-center justify-center">
         <div className="text-center">
