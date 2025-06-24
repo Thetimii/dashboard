@@ -70,11 +70,13 @@ trackQuestionnaireCompletion({
 Your application now uses both frontend and server-side tracking:
 
 ### Frontend Pixel (Immediate)
-- **Faster tracking** - Events fire immediately 
+
+- **Faster tracking** - Events fire immediately
 - **Better user matching** - Uses browser cookies and session data
 - **Real-time attribution** - Immediate conversion tracking
 
-### Server-side API (Reliable)  
+### Server-side API (Reliable)
+
 - **Privacy compliant** - PII data is hashed
 - **Ad blocker resistant** - Bypasses browser restrictions
 - **Better data quality** - Server-controlled event parameters
@@ -84,21 +86,25 @@ Your application now uses both frontend and server-side tracking:
 The application automatically tracks these events with both frontend and server-side implementation:
 
 ### CompleteRegistration (Frontend + Server)
+
 - **When**: User completes the follow-up questionnaire
 - **Frontend Data**: Immediate conversion tracking
 - **Server Data**: Hashed user email, completion time, form data summary
 
 ### ViewContent (Frontend + Server)
-- **When**: User views questionnaire pages or navigates between steps  
+
+- **When**: User views questionnaire pages or navigates between steps
 - **Frontend Data**: Page view tracking with cookies
 - **Server Data**: Step number, navigation direction, user info
 
 ### Contact (Frontend + Server)
+
 - **When**: User interacts with form fields, uploads files, or encounters validation errors
 - **Frontend Data**: Real-time interaction tracking
 - **Server Data**: Interaction type, field names, error details
 
 ### PageView (Frontend Only)
+
 - **When**: Any page loads (automatic)
 - **Data**: Standard page view tracking with referrer data
 

@@ -261,6 +261,12 @@ export default function AdminPage() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-900 font-bold">Welcome, Admin</span>
               <button
+                onClick={() => router.push('/admin/emails')}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-blue-600 rounded-md hover:bg-blue-700 hover:border-blue-700 transition-colors"
+              >
+                📧 Email Management
+              </button>
+              <button
                 onClick={() => router.push('/dashboard')}
                 className="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
               >
@@ -778,12 +784,13 @@ function ClientDetailModal({
   const [demoUrl1, setDemoUrl1] = useState(client.demo_links?.option_1_url || '')
   const [demoUrl2, setDemoUrl2] = useState(client.demo_links?.option_2_url || '')
   const [demoUrl3, setDemoUrl3] = useState(client.demo_links?.option_3_url || '')
-
-  const handleStatusUpdate = async () => {
-    await onUpdateProjectStatus(client.user_profile.id, newStatus, finalUrl)
-    setEditingStatus(false)
-    onRefresh()
-  }
+  
+  // Email functionality state
+  const [emailStatus, setEmailStatus] = useState<{
+    demo_ready?: { canSend: boolean; reason: string; lastEmail?: any }
+    website_launch?: { canSend: boolean; reason: string; lastEmail?: any }
+  }>({})
+  const [sendingEmail, setSendingEmail] = useState<string | null>(null)
 
   const handleDemoUpdate = async () => {
     await onUpdateDemoLinks(client.user_profile.id, {
@@ -793,7 +800,84 @@ function ClientDetailModal({
     })
     setEditingDemos(false)
     onRefresh()
+    // Refresh email status after demo update
+    checkEmailStatus('demo_ready')
   }
+
+  // Check if emails can be sent and get status
+  const checkEmailStatus = async (emailType: 'demo_ready' | 'website_launch') => {
+    try {
+      const response = await fetch(
+        `/api/admin/send-manual-email?userId=${client.user_profile.id}&emailType=${emailType}`
+      )
+      const data = await response.json()
+      
+      setEmailStatus(prev => ({
+        ...prev,
+        [emailType]: {
+          canSend: data.canSend,
+          reason: data.reason,
+          lastEmail: data.lastEmail
+        }
+      }))
+    } catch (error) {
+      console.error('Error checking email status:', error)
+    }
+  }
+
+  // Send manual email
+  const sendManualEmail = async (emailType: 'demo_ready' | 'website_launch') => {
+    setSendingEmail(emailType)
+    try {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      if (!user) {
+        toast.error('Not authenticated')
+        return
+      }
+
+      const response = await fetch('/api/admin/send-manual-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: client.user_profile.id,
+          emailType,
+          sentBy: user.id
+        })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        toast.success(`${emailType.replace('_', ' ')} email sent successfully!`)
+        // Refresh email status
+        checkEmailStatus(emailType)
+      } else {
+        toast.error(`Failed to send email: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Error sending email:', error)
+      toast.error('Failed to send email')
+    } finally {
+      setSendingEmail(null)
+    }
+  }
+
+  // Update handleStatusUpdate to refresh email status
+  const handleStatusUpdate = async () => {
+    await onUpdateProjectStatus(client.user_profile.id, newStatus, finalUrl)
+    setEditingStatus(false)
+    onRefresh()
+    // Refresh email status after status update
+    checkEmailStatus('website_launch')
+  }
+
+  // Check email status on component mount and when relevant data changes
+  useEffect(() => {
+    checkEmailStatus('demo_ready')
+    checkEmailStatus('website_launch')
+  }, [client.user_profile.id])
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-70 overflow-y-auto h-full w-full z-50">
@@ -877,6 +961,34 @@ function ClientDetailModal({
                     </a>
                   </p>
                 )}
+                
+                {/* Website Launch Email Button */}
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">Website Launch Email</p>
+                      <p className="text-xs text-gray-600">
+                        {emailStatus.website_launch?.reason || 'Checking status...'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => sendManualEmail('website_launch')}
+                      disabled={!emailStatus.website_launch?.canSend || sendingEmail === 'website_launch'}
+                      className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-colors ${
+                        emailStatus.website_launch?.canSend && sendingEmail !== 'website_launch'
+                          ? 'bg-green-600 text-white border-green-600 hover:bg-green-700 hover:border-green-700'
+                          : 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      {sendingEmail === 'website_launch' ? 'Sending...' : '📧 Send Launch Email'}
+                    </button>
+                  </div>
+                  {emailStatus.website_launch?.lastEmail && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Last sent: {new Date(emailStatus.website_launch.lastEmail.sentAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -968,6 +1080,34 @@ function ClientDetailModal({
                 {!client.demo_links?.option_1_url && !client.demo_links?.option_2_url && !client.demo_links?.option_3_url && (
                   <p className="text-gray-600 font-medium italic">No demo links available</p>
                 )}
+                
+                {/* Demo Ready Email Button */}
+                <div className="pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-gray-900">Demo Ready Email</p>
+                      <p className="text-xs text-gray-600">
+                        {emailStatus.demo_ready?.reason || 'Checking status...'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => sendManualEmail('demo_ready')}
+                      disabled={!emailStatus.demo_ready?.canSend || sendingEmail === 'demo_ready'}
+                      className={`px-4 py-2 text-sm font-bold rounded-lg border-2 transition-colors ${
+                        emailStatus.demo_ready?.canSend && sendingEmail !== 'demo_ready'
+                          ? 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700 hover:border-blue-700'
+                          : 'bg-gray-300 text-gray-500 border-gray-300 cursor-not-allowed'
+                      }`}
+                    >
+                      {sendingEmail === 'demo_ready' ? 'Sending...' : '📧 Send Demo Email'}
+                    </button>
+                  </div>
+                  {emailStatus.demo_ready?.lastEmail && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Last sent: {new Date(emailStatus.demo_ready.lastEmail.sentAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
