@@ -14,8 +14,6 @@ const requestCache = new Map<string, { timestamp: number; processing: boolean }>
 const CACHE_DURATION = 5000 // 5 seconds
 
 export async function POST(request: NextRequest) {
-  let cacheKey = ''
-  
   try {
     console.log('📧 Received manual email request')
     
@@ -47,7 +45,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicate request within cache duration
-    cacheKey = `${userId}-${emailType}-${sentBy}`
+    const cacheKey = `${userId}-${emailType}-${sentBy}`
     const cachedRequest = requestCache.get(cacheKey)
     const now = Date.now()
     
@@ -55,7 +53,7 @@ export async function POST(request: NextRequest) {
       if (cachedRequest.processing) {
         console.log('🔄 Duplicate request detected, already processing')
         return NextResponse.json(
-          { error: 'Request already being processed, please wait' },
+          { error: 'Request already being processed' },
           { status: 429 }
         )
       }
@@ -70,6 +68,8 @@ export async function POST(request: NextRequest) {
         requestCache.delete(key)
       }
     }
+
+    try {
 
     // Verify admin permissions
     const { data: adminUser, error: adminError } = await supabase
@@ -319,10 +319,9 @@ export async function POST(request: NextRequest) {
     }, { status: 500 })
   } finally {
     // Clear the processing flag
-    if (cacheKey) {
-      requestCache.set(cacheKey, { timestamp: Date.now(), processing: false })
-    }
+    requestCache.set(cacheKey, { timestamp: Date.now(), processing: false })
   }
+}
 }
 
 export async function GET(request: NextRequest) {
