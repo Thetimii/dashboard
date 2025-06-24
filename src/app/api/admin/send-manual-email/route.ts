@@ -4,10 +4,29 @@ import { sendDemoReadyEmail, sendWebsiteLaunchEmail } from '@/lib/email'
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('📧 Received manual email request')
+    
     const supabase = await createClient()
-    const { userId, emailType, sentBy } = await request.json()
+    
+    // Parse request body with error handling
+    let body
+    try {
+      body = await request.json()
+      console.log('📧 Manual email request body:', body)
+    } catch (parseError) {
+      console.error('❌ Failed to parse request body:', parseError)
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+    
+    const { userId, emailType, sentBy } = body
+
+    console.log('📧 Extracted parameters:', { userId, emailType, sentBy })
 
     if (!userId || !emailType || !sentBy) {
+      console.log('❌ Missing parameters:', { userId, emailType, sentBy })
       return NextResponse.json(
         { error: 'userId, emailType, and sentBy are required' },
         { status: 400 }

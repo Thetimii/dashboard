@@ -830,12 +830,21 @@ function ClientDetailModal({
     setSendingEmail(emailType)
     try {
       const supabase = createClient()
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: authError } = await supabase.auth.getUser()
       
-      if (!user) {
+      console.log('🔍 Auth check:', { user: user?.id, error: authError })
+      
+      if (authError || !user) {
+        console.error('❌ Auth error:', authError)
         toast.error('Not authenticated')
         return
       }
+
+      console.log('📧 Sending email request:', {
+        userId: client.user_profile.id,
+        emailType,
+        sentBy: user.id
+      })
 
       const response = await fetch('/api/admin/send-manual-email', {
         method: 'POST',
@@ -847,7 +856,9 @@ function ClientDetailModal({
         })
       })
 
+      console.log('📬 Response status:', response.status)
       const result = await response.json()
+      console.log('📬 Response data:', result)
       
       if (result.success) {
         toast.success(`${emailType.replace('_', ' ')} email sent successfully!`)
