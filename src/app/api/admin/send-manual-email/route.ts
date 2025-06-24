@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { sendDemoReadyEmail, sendWebsiteLaunchEmail } from '@/lib/email'
+
+// Admin client with service role for auth operations
+const supabaseAdmin = createAdminClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(request: NextRequest) {
   try {
@@ -34,27 +41,49 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify admin permissions
-    const { data: adminUser } = await supabase
+    const { data: adminUser, error: adminError } = await supabase
       .from('user_profiles')
       .select('role')
       .eq('id', sentBy)
       .single()
 
-    if (adminUser?.role !== 'admin') {
+    console.log('🔑 Admin check result:', { adminUser, adminError })
+
+    if (adminError || adminUser?.role !== 'admin') {
+      console.log('❌ Admin check failed:', { adminError, role: adminUser?.role })
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    // Get user data
-    const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId)
-    if (userError || !userData?.user) {
-      return NextResponse.json({ error: 'User not found' }, { status: 404 })
-    }
-
-    const { data: userProfile } = await supabase
+    // Get user data from user_profiles and auth using admin client
+    const { data: userProfile, error: userProfileError } = await supabase
       .from('user_profiles')
       .select('full_name')
       .eq('id', userId)
       .single()
+
+    console.log('👤 User profile result:', { userProfile, userProfileError })
+
+    if (userProfileError || !userProfile) {
+      console.log('❌ User profile not found:', { userProfileError, userId })
+      return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
+    }
+
+    // Get user email using admin client
+    const { data: userData, error: userError } = await supabaseAdmin.auth.admin.getUserById(userId)
+    
+    console.log('📧 User data result:', { 
+      hasUser: !!userData?.user, 
+      email: userData?.user?.email, 
+      error: userError 
+    })
+
+    if (userError || !userData?.user?.email) {
+      console.log('❌ User email not found:', { userError, userId })
+      return NextResponse.json({ error: 'User email not found' }, { status: 404 })
+    }
+
+    const userEmail = userData.user.email
+    const userName = userProfile.full_name || userEmail
 
     // Get current state for trigger values and validate email can be sent
     let triggerValues = null
@@ -62,7 +91,7 @@ export async function POST(request: NextRequest) {
     let canSend = false
     
     if (emailType === 'demo_ready') {
-      const { data: demoData } = await supabase
+      const { data: demoData } = await supabaseAdmin
         .from('demo_links')
         .select('option_1_url, option_2_url, option_3_url, updated_at')
         .eq('user_id', userId)
@@ -89,7 +118,7 @@ export async function POST(request: NextRequest) {
       emailSubject = 'Your Website Demos Are Ready!'
       
     } else if (emailType === 'website_launch') {
-      const { data: statusData } = await supabase
+      const { data: statusData } = await supabaseAdmin
         .from('project_status')
         .select('final_url, status, updated_at')
         .eq('user_id', userId)
@@ -118,7 +147,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check for duplicates - compare current state with last email sent
-    const { data: lastEmail } = await supabase
+    const { data: lastEmail } = await supabaseAdmin
       .from('manual_email_sends')
       .select('trigger_values, sent_at')
       .eq('user_id', userId)
@@ -140,7 +169,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get business name for email
-    const { data: kickoffData } = await supabase
+    const { data: kickoffData } = await supabaseAdmin
       .from('kickoff_forms')
       .select('business_name')
       .eq('user_id', userId)
@@ -149,26 +178,28 @@ export async function POST(request: NextRequest) {
     // Send the actual email
     let emailResult
     if (emailType === 'demo_ready') {
+      const demoValues = triggerValues as any
       emailResult = await sendDemoReadyEmail({
-        customerEmail: userData.user.email!,
-        customerName: userProfile?.full_name || userData.user.email!,
+        customerEmail: userEmail,
+        customerName: userName,
         businessName: kickoffData?.business_name || null,
-        option1Url: triggerValues.option_1_url,
-        option2Url: triggerValues.option_2_url,
-        option3Url: triggerValues.option_3_url,
+        option1Url: demoValues.option_1_url,
+        option2Url: demoValues.option_2_url,
+        option3Url: demoValues.option_3_url,
       })
     } else if (emailType === 'website_launch') {
+      const statusValues = triggerValues as any
       emailResult = await sendWebsiteLaunchEmail({
-        customerEmail: userData.user.email!,
-        customerName: userProfile?.full_name || userData.user.email!,
+        customerEmail: userEmail,
+        customerName: userName,
         businessName: kickoffData?.business_name || null,
-        websiteUrl: triggerValues.final_url,
+        websiteUrl: statusValues.final_url,
         launchedAt: new Date().toISOString(),
       })
     }
 
     // Record the email send
-    const { error: insertError } = await supabase
+    const { error: insertError } = await supabaseAdmin
       .from('manual_email_sends')
       .insert({
         user_id: userId,
@@ -176,7 +207,7 @@ export async function POST(request: NextRequest) {
         sent_by: sentBy,
         trigger_values: triggerValues,
         email_subject: emailSubject,
-        email_recipient: userData.user.email!,
+        email_recipient: userEmail,
         status: 'sent'
       })
 
@@ -188,7 +219,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ 
       success: true,
       message: `${emailType} email sent successfully`,
-      recipient: userData.user.email,
+      recipient: userEmail,
       emailResult 
     })
 
