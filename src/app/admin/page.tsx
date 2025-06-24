@@ -865,7 +865,16 @@ function ClientDetailModal({
         // Refresh email status
         checkEmailStatus(emailType)
       } else {
-        toast.error(`Failed to send email: ${result.error}`)
+        // Enhanced error handling for duplicates
+        if (result.duplicate || result.error?.includes('already sent') || result.error?.includes('Values have not changed')) {
+          toast.error(`Duplicate prevented: ${result.error}`, { duration: 6000 })
+          console.log('🚫 Duplicate email blocked:', result)
+        } else {
+          toast.error(`Failed to send email: ${result.error}`)
+        }
+        
+        // Still refresh status to show current state
+        checkEmailStatus(emailType)
       }
     } catch (error) {
       console.error('Error sending email:', error)

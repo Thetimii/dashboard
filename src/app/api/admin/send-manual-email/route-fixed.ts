@@ -207,55 +207,30 @@ export async function POST(request: NextRequest) {
         currentTriggerValues: triggerValues
       })
       
-      // Enhanced comparison logic with multiple checks
-      const lastValuesString = JSON.stringify(lastEmail.trigger_values)
-      const currentValuesString = JSON.stringify(triggerValues)
-      
       // Sort JSON keys for consistent comparison
-      const sortedLastValues = JSON.stringify(lastEmail.trigger_values, Object.keys(lastEmail.trigger_values || {}).sort())
-      const sortedCurrentValues = JSON.stringify(triggerValues, Object.keys(triggerValues || {}).sort())
+      const sortedLastValues = JSON.stringify(lastEmail.trigger_values, Object.keys(lastEmail.trigger_values).sort())
+      const sortedCurrentValues = JSON.stringify(triggerValues, Object.keys(triggerValues).sort())
       
-      // Multiple comparison methods to be absolutely sure
-      const rawComparison = lastValuesString === currentValuesString
-      const sortedComparison = sortedLastValues === sortedCurrentValues
-      const deepEqual = JSON.stringify(lastEmail.trigger_values) === JSON.stringify(triggerValues)
-      
-      const valuesChanged = !rawComparison && !sortedComparison && !deepEqual
-      
-      console.log('📧 COMPREHENSIVE Values comparison:', {
-        rawComparison,
-        sortedComparison, 
-        deepEqual,
+      const valuesChanged = sortedLastValues !== sortedCurrentValues
+      console.log('📧 Values comparison:', {
         valuesChanged,
-        lastValuesString,
-        currentValuesString,
-        sortedLastValues,
-        sortedCurrentValues,
-        verdict: valuesChanged ? 'ALLOW SEND' : 'BLOCK DUPLICATE'
+        sortedLastJSON: sortedLastValues,
+        sortedCurrentJSON: sortedCurrentValues,
+        rawLastJSON: JSON.stringify(lastEmail.trigger_values),
+        rawCurrentJSON: JSON.stringify(triggerValues)
       })
       
-      // If ANY comparison method shows they're the same, block the email
-      if (!valuesChanged || rawComparison || sortedComparison || deepEqual) {
-        console.log('❌ DUPLICATE DETECTED - BLOCKING email send')
-        console.log('❌ Comparison results:', {
-          rawComparison,
-          sortedComparison,
-          deepEqual,
-          decision: 'BLOCKED'
-        })
+      if (!valuesChanged) {
+        console.log('❌ DUPLICATE DETECTED - values have not changed, BLOCKING email send')
         return NextResponse.json({ 
-          error: `Duplicate email blocked: Email already sent with same content on ${new Date(lastEmail.sent_at).toLocaleDateString()}. Values have not changed.`,
+          error: `Email already sent with same content on ${new Date(lastEmail.sent_at).toLocaleDateString()}. Values have not changed.`,
           lastSent: lastEmail.sent_at,
           duplicate: true,
-          blockReason: 'Values are identical',
           debug: {
             lastValues: lastEmail.trigger_values,
             currentValues: triggerValues,
-            comparisons: {
-              rawComparison,
-              sortedComparison,
-              deepEqual
-            }
+            sortedLastJSON: sortedLastValues,
+            sortedCurrentJSON: sortedCurrentValues
           }
         }, { status: 400 })
       }
@@ -273,19 +248,9 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     // Send the actual email
-    console.log('🚀 PROCEEDING TO SEND EMAIL - Duplicate check passed')
-    console.log('🚀 Email details:', {
-      userId,
-      emailType,
-      userEmail,
-      userName,
-      triggerValues
-    })
-    
     let emailResult
     if (emailType === 'demo_ready') {
       const demoValues = triggerValues as any
-      console.log('📧 Sending demo ready email...')
       emailResult = await sendDemoReadyEmail({
         customerEmail: userEmail,
         customerName: userName,
@@ -296,7 +261,6 @@ export async function POST(request: NextRequest) {
       })
     } else if (emailType === 'website_launch') {
       const statusValues = triggerValues as any
-      console.log('📧 Sending website launch email...')
       emailResult = await sendWebsiteLaunchEmail({
         customerEmail: userEmail,
         customerName: userName,
@@ -305,8 +269,6 @@ export async function POST(request: NextRequest) {
         launchedAt: new Date().toISOString(),
       })
     }
-
-    console.log('📧 Email send result:', emailResult)
 
     // Record the email send
     console.log('💾 Recording email send with data:', {
