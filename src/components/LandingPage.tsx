@@ -125,10 +125,9 @@ export function LandingPage() {
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-300 to-blue-400">
                 wirklich?
               </span>
-            </h2>
-            <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
-              Ja, du hast richtig gehört. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Hosting, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Kein Risiko, keine versteckten Kosten.
-            </p>
+            </h2>                <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
+                  Ja, du hast richtig gehört. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Hosting, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Monatlich kündbar, keine Startgebühren, keine versteckten Kosten.
+                </p>
             
             {/* CTA Button */}
             <motion.div
@@ -162,7 +161,7 @@ export function LandingPage() {
                   Wie wir arbeiten
                 </h3>
                 <p className="text-gray-300 text-lg leading-relaxed font-inter max-w-4xl mx-auto mb-8">
-                  Transparenz steht bei uns an erster Stelle. Wir erstellen deine professionelle Website komplett kostenlos und du entscheidest, ob sie online geht. Keine versteckten Kosten, keine Startgebühren, kein Risiko.
+                  Transparenz steht bei uns an erster Stelle. Wir erstellen deine professionelle Website komplett kostenlos und du entscheidest, ob sie online geht. Keine versteckten Kosten, keine Startgebühren, monatlich kündbar, kein Risiko.
                 </p>
               </div>
               
@@ -213,7 +212,7 @@ export function LandingPage() {
                   </div>
                   <div>
                     <h4 className="font-semibold text-white text-lg mb-2">Transparente Preise</h4>
-                    <p className="text-gray-400">Nur 99 CHF/Monat für Hosting, Wartung und Support. Keine versteckten Gebühren.</p>
+                    <p className="text-gray-400">Nur 99 CHF/Monat für Hosting, Wartung und Support. Monatlich kündbar, keine versteckten Gebühren.</p>
                   </div>
                 </div>
                 
@@ -469,6 +468,181 @@ export function LandingPage() {
             <p className="text-lg text-gray-600 font-inter max-w-2xl mx-auto">
               Kein Risiko. Kein Stress. Kein Kleingedrucktes. Du zahlst nur, wenn du mit deiner Website rundum zufrieden bist.
             </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-24 bg-gradient-to-br from-gray-50 to-blue-50 px-4 relative overflow-hidden">
+        {/* Background Elements */}
+        <div className="absolute inset-0">
+          <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-br from-teal-300/20 to-cyan-300/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-gradient-to-br from-blue-300/20 to-purple-300/20 rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="max-w-5xl mx-auto relative z-10">
+          <motion.div
+            {...fadeInUp}
+            className="text-center mb-16"
+          >
+            <div className="inline-flex items-center px-6 py-3 bg-white/70 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-200">
+              <SparklesIcon className="w-5 h-5 mr-2 text-teal-600" />
+              <span className="text-teal-700">Transparente Preise</span>
+            </div>
+            
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8 leading-tight">
+              Das{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">
+                Rundum-Sorglos-Paket
+              </span>
+            </h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-inter mb-8">
+              Alles was du für deine professionelle Website brauchst - in einem fairen monatlichen Preis.
+            </p>
+          </motion.div>
+
+          <motion.div
+            {...scaleIn}
+            className="max-w-2xl mx-auto mt-8"
+          >
+            <div className="bg-white rounded-3xl shadow-2xl shadow-teal-500/10 border-2 border-teal-200 p-8 relative overflow-visible">
+              {/* Popular Badge */}
+              <div className="absolute -top-4 right-8">
+                <div className="bg-gradient-to-r from-teal-500 to-cyan-500 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg">
+                  ⭐ Beliebteste Wahl
+                </div>
+              </div>
+
+              <div className="text-center mb-8 pt-6">
+                <h3 className="text-3xl font-bold text-gray-900 mb-2">Rundum-Sorglos-Paket</h3>
+                <p className="text-gray-600 text-lg mb-6">Alles inklusive für deine Website</p>
+                
+                <div className="flex items-center justify-center mb-6">
+                  <span className="text-5xl font-bold text-gray-900">99 CHF</span>
+                  <span className="text-gray-600 text-xl ml-2">/Monat</span>
+                </div>
+                
+                <div className="flex items-center justify-center space-x-2 text-teal-600 mb-8">
+                  <CheckCircleIcon className="w-5 h-5" />
+                  <span className="font-semibold">Monatlich kündbar</span>
+                </div>
+              </div>
+
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Kostenlose Website-Erstellung</div>
+                    <div className="text-gray-600 text-sm">Professionelles Design & Entwicklung ohne Vorabkosten</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Premium Hosting & SSL</div>
+                    <div className="text-gray-600 text-sm">Schnelle Server, sichere Verschlüsselung, 99.9% Uptime</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Online-Buchungssystem</div>
+                    <div className="text-gray-600 text-sm">Integrierter Kalender für Terminbuchungen</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Technischer Support</div>
+                    <div className="text-gray-600 text-sm">Persönlicher Support bei Fragen & Problemen</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Regelmäßige Updates</div>
+                    <div className="text-gray-600 text-sm">Sicherheitsupdates & kleine Änderungen inklusive</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Automatische Backups</div>
+                    <div className="text-gray-600 text-sm">Täglich gesichert, damit deine Daten sicher sind</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start space-x-4">
+                  <div className="w-6 h-6 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircleIcon className="w-4 h-4 text-teal-600" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Mobile Optimierung</div>
+                    <div className="text-gray-600 text-sm">Perfekt auf allen Geräten - Handy, Tablet, Desktop</div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-200 pt-6">
+                <button
+                  onClick={handleGetStarted}
+                  className="w-full bg-gradient-to-r from-teal-500 to-cyan-500 text-white py-4 px-6 rounded-xl font-bold text-lg hover:from-teal-600 hover:to-cyan-600 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  Jetzt kostenlos starten
+                </button>
+                <p className="text-center text-sm text-gray-600 mt-4">
+                  ✅ Keine Startgebühren • ✅ Monatlich kündbar • ✅ 100% Zufriedenheitsgarantie
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Additional Benefits */}
+          <motion.div
+            {...fadeInUp}
+            transition={{ delay: 0.4 }}
+            className="grid md:grid-cols-3 gap-6 mt-16"
+          >
+            <div className="text-center p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50">
+              <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white text-2xl">💰</span>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Keine Startgebühren</h4>
+              <p className="text-gray-600 text-sm">Website-Erstellung komplett kostenlos. Du zahlst erst nach Freigabe.</p>
+            </div>
+
+            <div className="text-center p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white text-2xl">⏱️</span>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Monatlich kündbar</h4>
+              <p className="text-gray-600 text-sm">Volle Flexibilität. Keine Mindestlaufzeit. Kündigung jederzeit möglich.</p>
+            </div>
+
+            <div className="text-center p-6 bg-white/70 backdrop-blur-sm rounded-2xl border border-white/50">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mx-auto mb-4 flex items-center justify-center">
+                <span className="text-white text-2xl">🛡️</span>
+              </div>
+              <h4 className="font-bold text-gray-900 mb-2">Zufriedenheitsgarantie</h4>
+              <p className="text-gray-600 text-sm">Du zahlst nur, wenn du zu 100% mit deiner Website zufrieden bist.</p>
+            </div>
           </motion.div>
         </div>
       </section>
