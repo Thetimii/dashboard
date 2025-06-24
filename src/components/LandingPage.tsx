@@ -17,7 +17,8 @@ import {
   ArrowRightIcon,
   PhoneIcon,
   DevicePhoneMobileIcon,
-  ComputerDesktopIcon
+  ComputerDesktopIcon,
+  EnvelopeIcon
 } from '@heroicons/react/24/outline'
 
 export function LandingPage() {
@@ -25,6 +26,17 @@ export function LandingPage() {
 
   const handleGetStarted = () => {
     router.push('/signup')
+  }
+
+  const handleSmoothScroll = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const target = document.querySelector('#features')
+    if (target) {
+      target.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }
   }
 
   const fadeInUp = {
@@ -70,8 +82,13 @@ export function LandingPage() {
             <span className="text-xl font-bold text-white">Customer Flows</span>
           </div>
           <div className="hidden md:flex items-center space-x-6">
-            <a href="#features" className="text-white/80 hover:text-white transition-colors">Features</a>
-            <a href="#pricing" className="text-white/80 hover:text-white transition-colors">Preise</a>
+            <a 
+              href="#features" 
+              onClick={handleSmoothScroll}
+              className="text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              So funktioniert's
+            </a>
             <button
               onClick={handleGetStarted}
               className="bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 px-6 py-2 rounded-xl font-semibold hover:from-teal-500 hover:to-cyan-500 transition-all duration-300"
@@ -100,18 +117,17 @@ export function LandingPage() {
           >
             <div className="inline-flex items-center px-6 py-3 bg-teal-500/10 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-500/20">
               <SparklesIcon className="w-5 h-5 mr-2 text-teal-400" />
-              <span className="text-teal-300">Warum Customer Flows?</span>
+              <span className="text-teal-300">Ein faires Versprechen</span>
             </div>
             
             <h2 className="text-5xl lg:text-7xl font-serif font-bold text-white mb-8 leading-tight">
-              Deine Website ist mehr als nur{' '}
+              Kostenlose Website,{" "}
               <span className="block text-transparent bg-clip-text bg-gradient-to-r from-teal-400 via-cyan-300 to-blue-400">
-                eine Visitenkarte
+                wirklich?
               </span>
             </h2>
             <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
-              Sie ist dein digitales Schaufenster, das 24/7 für dich arbeitet, neue Kunden anzieht 
-              und dein Business auf das nächste Level bringt.
+              Ja, du hast richtig gehört. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Hosting, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Kein Risiko, keine versteckten Kosten.
             </p>
             
             {/* CTA Button */}
@@ -132,172 +148,92 @@ export function LandingPage() {
             </motion.div>
           </motion.div>
 
-          <motion.div 
-            variants={staggerContainer}
-            initial="initial"
-            animate="animate"
-            className="grid lg:grid-cols-2 gap-8 mb-20"
-          >
-            {/* Benefit Card 1 */}
-            <motion.div 
-              variants={fadeInLeft} 
-              className="group relative p-10 bg-gradient-to-br from-slate-800/80 to-blue-900/30 backdrop-blur-lg rounded-3xl border border-slate-700/50 hover:border-teal-500/50 transition-all duration-500 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-teal-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-emerald-500/25">
-                <MapPinIcon className="w-10 h-10 text-white" />
-              </div>
-              
-              <div className="relative z-10">
-                <div className="mb-6">
-                  <div className="text-6xl mb-4">📍</div>
-                  <h3 className="text-3xl font-bold text-white mb-6 font-inter">
-                    Du wirst gefunden
-                  </h3>
-                  <p className="text-gray-300 text-lg leading-relaxed font-inter">
-                    Kunden suchen online nach Lösungen wie deiner. Mit einer professionellen Website 
-                    bist du genau dort, wo sie dich erwarten – bei Google an der Spitze.
-                  </p>
-                </div>
-                
-                <div className="flex items-center text-teal-400 font-semibold">
-                  <span>Mehr Sichtbarkeit</span>
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Benefit Card 2 */}
-            <motion.div 
-              variants={fadeInRight} 
-              className="group relative p-10 bg-gradient-to-br from-slate-800/80 to-purple-900/30 backdrop-blur-lg rounded-3xl border border-slate-700/50 hover:border-purple-500/50 transition-all duration-500 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-purple-400 to-pink-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-purple-500/25">
-                <BuildingStorefrontIcon className="w-10 h-10 text-white" />
-              </div>
-              
-              <div className="relative z-10">
-                <div className="mb-6">
-                  <div className="text-6xl mb-4">🏪</div>
-                  <h3 className="text-3xl font-bold text-white mb-6 font-inter">
-                    Dein 24/7 Schaufenster
-                  </h3>
-                  <p className="text-gray-300 text-lg leading-relaxed font-inter">
-                    Während du schläfst, arbeitet deine Website für dich. Potenzielle Kunden können 
-                    rund um die Uhr deine Dienstleistungen entdecken und Kontakt aufnehmen.
-                  </p>
-                </div>
-                
-                <div className="flex items-center text-purple-400 font-semibold">
-                  <span>Rund-um-die-Uhr arbeiten</span>
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Benefit Card 3 */}
-            <motion.div 
-              variants={fadeInLeft} 
-              className="group relative p-10 bg-gradient-to-br from-slate-800/80 to-cyan-900/30 backdrop-blur-lg rounded-3xl border border-slate-700/50 hover:border-cyan-500/50 transition-all duration-500 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-cyan-500/25">
-                <HandRaisedIcon className="w-10 h-10 text-white" />
-              </div>
-              
-              <div className="relative z-10">
-                <div className="mb-6">
-                  <div className="text-6xl mb-4">🤝</div>
-                  <h3 className="text-3xl font-bold text-white mb-6 font-inter">
-                    Vertrauen aufbauen
-                  </h3>
-                  <p className="text-gray-300 text-lg leading-relaxed font-inter">
-                    Eine professionelle Website zeigt, dass du es ernst meinst. Kunden vertrauen 
-                    Unternehmen mit starker Online-Präsenz deutlich mehr.
-                  </p>
-                </div>
-                
-                <div className="flex items-center text-cyan-400 font-semibold">
-                  <span>Professionalität zeigen</span>
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Benefit Card 4 */}
-            <motion.div 
-              variants={fadeInRight} 
-              className="group relative p-10 bg-gradient-to-br from-slate-800/80 to-orange-900/30 backdrop-blur-lg rounded-3xl border border-slate-700/50 hover:border-orange-500/50 transition-all duration-500 overflow-hidden"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-              
-              <div className="absolute top-8 right-8 w-20 h-20 bg-gradient-to-br from-orange-400 to-red-500 rounded-3xl flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-lg shadow-orange-500/25">
-                <ChatBubbleLeftRightIcon className="w-10 h-10 text-white" />
-              </div>
-              
-              <div className="relative z-10">
-                <div className="mb-6">
-                  <div className="text-6xl mb-4">💬</div>
-                  <h3 className="text-3xl font-bold text-white mb-6 font-inter">
-                    Direkte Kontaktaufnahme
-                  </h3>
-                  <p className="text-gray-300 text-lg leading-relaxed font-inter">
-                    Egal ob Terminbuchungen, Anfragen oder Bestellungen – deine Kunden können 
-                    direkt über deine Website mit dir in Kontakt treten.
-                  </p>
-                </div>
-                
-                <div className="flex items-center text-orange-400 font-semibold">
-                  <span>Mehr Anfragen erhalten</span>
-                  <ArrowRightIcon className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Stats Section */}
           <motion.div
-            {...fadeInUp}
-            className="grid md:grid-cols-3 gap-8 text-center mb-16"
+            variants={fadeInUp}
+            className="mt-20"
           >
-            <div className="p-8">
-              <div className="text-5xl font-bold text-teal-400 mb-2">95%</div>
-              <div className="text-gray-300 font-inter">der Kunden schauen zuerst online</div>
+            <div className="relative p-12 bg-gradient-to-br from-slate-800/70 via-slate-900/50 to-slate-800/70 backdrop-blur-lg rounded-3xl border border-slate-700/50 max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <div className="inline-flex items-center px-5 py-2 bg-teal-500/10 rounded-full text-sm font-semibold mb-6 border border-teal-500/20">
+                  <ShieldCheckIcon className="w-5 h-5 mr-2 text-teal-400" />
+                  <span className="text-teal-300">Unser Geschäftsmodell</span>
+                </div>
+                <h3 className="text-4xl lg:text-5xl font-bold text-white mb-6 font-inter">
+                  Wie wir arbeiten
+                </h3>
+                <p className="text-gray-300 text-lg leading-relaxed font-inter max-w-4xl mx-auto mb-8">
+                  Transparenz steht bei uns an erster Stelle. Wir erstellen deine professionelle Website komplett kostenlos und du entscheidest, ob sie online geht. Keine versteckten Kosten, keine Startgebühren, kein Risiko.
+                </p>
+              </div>
+              
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 text-left">
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Kostenlose Erstellung</h4>
+                    <p className="text-gray-400">Wir designen und entwickeln deine Website ohne Vorauszahlung oder Vertrag.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Sichere Web-Präsenz</h4>
+                    <p className="text-gray-400">SSL-Verschlüsselung, regelmäßige Backups und Schutz vor Cyber-Bedrohungen inklusive.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Online-Buchungssystem</h4>
+                    <p className="text-gray-400">Integrierter Kalender für Terminbuchungen direkt über deine Website.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Du entscheidest</h4>
+                    <p className="text-gray-400">Erst wenn du 100% zufrieden bist und die Website freigibst, beginnt dein Hosting.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Transparente Preise</h4>
+                    <p className="text-gray-400">Nur 99 CHF/Monat für Hosting, Wartung und Support. Keine versteckten Gebühren.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-4">
+                  <div className="w-8 h-8 bg-teal-500/20 rounded-full flex items-center justify-center flex-shrink-0">
+                    <CheckCircleIcon className="w-5 h-5 text-teal-400" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-white text-lg mb-2">Alles inklusive</h4>
+                    <p className="text-gray-400">Updates, technischer Support und kleine Änderungen sind im monatlichen Preis enthalten.</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="p-8">
-              <div className="text-5xl font-bold text-cyan-400 mb-2">24/7</div>
-              <div className="text-gray-300 font-inter">arbeitet deine Website für dich</div>
-            </div>
-            <div className="p-8">
-              <div className="text-5xl font-bold text-blue-400 mb-2">+150%</div>
-              <div className="text-gray-300 font-inter">mehr Anfragen durch Website</div>
-            </div>
-          </motion.div>
-
-          {/* CTA Button */}
-          <motion.div
-            {...fadeInUp}
-            className="text-center"
-          >
-            <button
-              onClick={handleGetStarted}
-              className="group relative inline-flex items-center justify-center px-10 py-5 bg-gradient-to-r from-teal-400 to-cyan-400 text-slate-900 text-xl font-bold rounded-2xl shadow-2xl hover:shadow-teal-400/25 transition-all duration-300 font-inter overflow-hidden transform hover:scale-105"
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-white to-yellow-100 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-              <RocketLaunchIcon className="w-7 h-7 mr-3 relative z-10 group-hover:animate-bounce" />
-              <span className="relative z-10">Jetzt kostenlos starten</span>
-              <ArrowRightIcon className="w-6 h-6 ml-3 relative z-10 group-hover:translate-x-2 transition-transform" />
-            </button>
           </motion.div>
         </div>
       </section>
 
-      {/* How It Works Section */}
-      <section className="py-32 px-4 bg-gradient-to-br from-gray-50 to-teal-50 relative overflow-hidden">
+      {/* How it works Section */}
+      <section id="features" className="py-24 bg-white dark:bg-gray-900 px-4 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-br from-teal-200/30 to-cyan-200/30 rounded-full blur-3xl"></div>
@@ -309,19 +245,19 @@ export function LandingPage() {
             {...fadeInUp}
             className="text-center mb-20"
           >
-            <div className="inline-flex items-center px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-200">
+            <div className="inline-flex items-center px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-200 dark:bg-gray-800/60 dark:border-gray-600">
               <SparklesIcon className="w-5 h-5 mr-2 text-teal-600" />
-              <span className="text-teal-700">So einfach geht's</span>
+              <span className="text-teal-700 dark:text-teal-300">So einfach geht's</span>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8 leading-tight">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-8 leading-tight">
               In nur{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">
                 3 Schritten
               </span>
               {' '}zu deiner professionellen Website
             </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-inter">
+            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-inter">
               Kein technisches Wissen nötig. Kein Stress. Einfach registrieren und loslegen.
             </p>
           </motion.div>
@@ -340,26 +276,26 @@ export function LandingPage() {
                     1
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
                       Kostenlos registrieren
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
                   Erstelle deinen kostenlosen Account in weniger als 2 Minuten. 
                   Keine Kreditkarte erforderlich, keine versteckten Kosten.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>100% kostenlos & unverbindlich</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Sofortiger Zugang zu deinem Dashboard</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Keine Kreditkarte nötig</span>
                   </div>
@@ -429,26 +365,26 @@ export function LandingPage() {
                     2
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
                       Fragebogen ausfüllen
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
                   Erzähl uns in wenigen Minuten über dein Business. Je mehr wir wissen, 
                   desto besser wird deine Website.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Nur 5 Minuten deiner Zeit</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Intelligente Fragen, einfache Antworten</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Fotos & Logo optional hochladen</span>
                   </div>
@@ -464,26 +400,26 @@ export function LandingPage() {
                     3
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
                       Website ansehen & freigeben
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
                   Wir erstellen deine Website und zeigen sie dir. Erst wenn du 100% zufrieden bist 
                   und freigibst, beginnt dein Hosting für nur 99 CHF/Monat.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Professionelle Umsetzung in 3-5 Tagen</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Du zahlst nur, wenn du zufrieden bist</span>
                   </div>
-                  <div className="flex items-center text-gray-700">
+                  <div className="flex items-center text-gray-700 dark:text-gray-300">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Änderungswünsche inklusive</span>
                   </div>
@@ -528,9 +464,9 @@ export function LandingPage() {
           >
             <div className="inline-flex items-center mb-4">
               <ShieldCheckIcon className="w-8 h-8 text-teal-600 mr-3" />
-              <h4 className="text-2xl font-bold text-gray-900 font-inter">100% Zufriedenheitsgarantie</h4>
+              <h4 className="text-2xl font-bold text-gray-900 dark:text-white font-inter">100% Zufriedenheitsgarantie</h4>
             </div>
-            <p className="text-lg text-gray-600 font-inter max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 dark:text-gray-300 font-inter max-w-2xl mx-auto">
               Kein Risiko. Kein Stress. Kein Kleingedrucktes. Du zahlst nur, wenn du mit deiner Website rundum zufrieden bist.
             </p>
           </motion.div>
@@ -614,6 +550,109 @@ export function LandingPage() {
           </motion.div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900 text-white py-16 px-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {/* Company Info */}
+            <div className="lg:col-span-2">
+              <div className="flex items-center space-x-3 mb-6">
+                <Logo size="md" className="flex-shrink-0" />
+                <span className="text-xl font-bold">Customer Flows</span>
+              </div>
+              <p className="text-gray-300 mb-6 leading-relaxed">
+                Wir erstellen professionelle Websites für kleine und mittlere Unternehmen. 
+                Kostenlos, risikofrei und nur dann bezahlt, wenn Sie zu 100% zufrieden sind.
+              </p>
+              <div className="space-y-3">
+                <div className="flex items-center text-gray-300">
+                  <PhoneIcon className="w-5 h-5 mr-3 text-teal-400" />
+                  <a href="tel:+41784462524" className="hover:text-white transition-colors">
+                    +41 (0)78 446 2524
+                  </a>
+                </div>
+                <div className="flex items-center text-gray-300">
+                  <EnvelopeIcon className="w-5 h-5 mr-3 text-teal-400" />
+                  <a href="mailto:info@customerflows.ch" className="hover:text-white transition-colors">
+                    info@customerflows.ch
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Schnellzugriff</h4>
+              <ul className="space-y-3">
+                <li>
+                  <a 
+                    href="#features" 
+                    onClick={handleSmoothScroll}
+                    className="text-gray-300 hover:text-white transition-colors cursor-pointer"
+                  >
+                    So funktioniert's
+                  </a>
+                </li>
+                <li>
+                  <button
+                    onClick={handleGetStarted}
+                    className="text-gray-300 hover:text-white transition-colors text-left"
+                  >
+                    Jetzt starten
+                  </button>
+                </li>
+                <li>
+                  <a href="mailto:info@customerflows.ch" className="text-gray-300 hover:text-white transition-colors">
+                    Kontakt
+                  </a>
+                </li>
+              </ul>
+            </div>
+
+            {/* Social Media */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4">Folgen Sie uns</h4>
+              <div className="flex space-x-4">
+                <a 
+                  href="https://www.facebook.com/profile.php?id=61577761730016" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="w-10 h-10 bg-gray-700 hover:bg-blue-600 rounded-full flex items-center justify-center transition-colors"
+                  aria-label="Facebook"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                  </svg>
+                </a>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-700 pt-8">
+            <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+              <div className="text-gray-400 text-sm">
+                © {new Date().getFullYear()} Customer Flows. Alle Rechte vorbehalten.
+              </div>
+              <div className="flex flex-wrap justify-center md:justify-end space-x-6 text-sm">
+                <a href="/impressum" className="text-gray-400 hover:text-white transition-colors">
+                  Impressum
+                </a>
+                <a href="/datenschutz" className="text-gray-400 hover:text-white transition-colors">
+                  Datenschutz
+                </a>
+                <a href="/agb" className="text-gray-400 hover:text-white transition-colors">
+                  AGB
+                </a>
+                <a href="/widerruf" className="text-gray-400 hover:text-white transition-colors">
+                  Widerrufsrecht
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
