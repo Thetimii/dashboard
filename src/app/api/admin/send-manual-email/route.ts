@@ -155,17 +155,34 @@ export async function POST(request: NextRequest) {
       .eq('status', 'sent')
       .order('sent_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     if (lastEmail) {
+      console.log('📧 Found last email:', {
+        sentAt: lastEmail.sent_at,
+        lastTriggerValues: lastEmail.trigger_values,
+        currentTriggerValues: triggerValues
+      })
+      
       const valuesChanged = JSON.stringify(lastEmail.trigger_values) !== JSON.stringify(triggerValues)
+      console.log('📧 Values comparison:', {
+        valuesChanged,
+        lastJSON: JSON.stringify(lastEmail.trigger_values),
+        currentJSON: JSON.stringify(triggerValues)
+      })
+      
       if (!valuesChanged) {
+        console.log('❌ Duplicate detected - values have not changed')
         return NextResponse.json({ 
           error: `Email already sent with same content on ${new Date(lastEmail.sent_at).toLocaleDateString()}. Values have not changed.`,
           lastSent: lastEmail.sent_at,
           duplicate: true
         }, { status: 400 })
       }
+      
+      console.log('✅ Values have changed, email can be sent')
+    } else {
+      console.log('📧 No previous email found, can send')
     }
 
     // Get business name for email
@@ -290,7 +307,7 @@ export async function GET(request: NextRequest) {
       .eq('status', 'sent')
       .order('sent_at', { ascending: false })
       .limit(1)
-      .single()
+      .maybeSingle()
 
     let duplicateStatus = 'no_previous_email'
     if (lastEmail) {
