@@ -72,7 +72,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="min-h-screen bg-white overflow-hidden">
 
       {/* Navigation Header */}
       <nav className="absolute top-0 left-0 right-0 z-50 p-6">
@@ -233,7 +233,7 @@ export function LandingPage() {
       </section>
 
       {/* How it works Section */}
-      <section id="features" className="py-24 bg-white dark:bg-gray-900 px-4 relative overflow-hidden">
+      <section id="features" className="py-24 bg-white px-4 relative overflow-hidden">
         {/* Background Pattern */}
         <div className="absolute inset-0">
           <div className="absolute top-20 left-20 w-80 h-80 bg-gradient-to-br from-teal-200/30 to-cyan-200/30 rounded-full blur-3xl"></div>
@@ -245,19 +245,19 @@ export function LandingPage() {
             {...fadeInUp}
             className="text-center mb-20"
           >
-            <div className="inline-flex items-center px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-200 dark:bg-gray-800/60 dark:border-gray-600">
+            <div className="inline-flex items-center px-6 py-3 bg-white/60 backdrop-blur-sm rounded-full text-sm font-semibold mb-8 border border-teal-200">
               <SparklesIcon className="w-5 h-5 mr-2 text-teal-600" />
-              <span className="text-teal-700 dark:text-teal-300">So einfach geht's</span>
+              <span className="text-teal-700">So einfach geht's</span>
             </div>
             
-            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 dark:text-white mb-8 leading-tight">
+            <h2 className="text-4xl md:text-6xl font-serif font-bold text-gray-900 mb-8 leading-tight">
               In nur{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-cyan-600">
                 3 Schritten
               </span>
               {' '}zu deiner professionellen Website
             </h2>
-            <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto font-inter">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-inter">
               Kein technisches Wissen nötig. Kein Stress. Einfach registrieren und loslegen.
             </p>
           </motion.div>
@@ -276,26 +276,26 @@ export function LandingPage() {
                     1
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
                       Kostenlos registrieren
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
                   Erstelle deinen kostenlosen Account in weniger als 2 Minuten. 
                   Keine Kreditkarte erforderlich, keine versteckten Kosten.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>100% kostenlos & unverbindlich</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Sofortiger Zugang zu deinem Dashboard</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Keine Kreditkarte nötig</span>
                   </div>
@@ -365,26 +365,26 @@ export function LandingPage() {
                     2
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
                       Fragebogen ausfüllen
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
                   Erzähl uns in wenigen Minuten über dein Business. Je mehr wir wissen, 
                   desto besser wird deine Website.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Nur 5 Minuten deiner Zeit</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Intelligente Fragen, einfache Antworten</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Fotos & Logo optional hochladen</span>
                   </div>
@@ -400,26 +400,26 @@ export function LandingPage() {
                     3
                   </div>
                   <div className="ml-6">
-                    <h3 className="text-3xl font-bold text-gray-900 dark:text-white mb-2 font-inter">
+                    <h3 className="text-3xl font-bold text-gray-900 mb-2 font-inter">
                       Website ansehen & freigeben
                     </h3>
                     <div className="w-16 h-1 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
                   </div>
                 </div>
-                <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed font-inter mb-6">
+                <p className="text-xl text-gray-600 leading-relaxed font-inter mb-6">
                   Wir erstellen deine Website und zeigen sie dir. Erst wenn du 100% zufrieden bist 
                   und freigibst, beginnt dein Hosting für nur 99 CHF/Monat.
                 </p>
                 <div className="space-y-3">
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Professionelle Umsetzung in 3-5 Tagen</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Du zahlst nur, wenn du zufrieden bist</span>
                   </div>
-                  <div className="flex items-center text-gray-700 dark:text-gray-300">
+                  <div className="flex items-center text-gray-700">
                     <CheckCircleIcon className="w-5 h-5 mr-3 text-green-500" />
                     <span>Änderungswünsche inklusive</span>
                   </div>
@@ -464,9 +464,9 @@ export function LandingPage() {
           >
             <div className="inline-flex items-center mb-4">
               <ShieldCheckIcon className="w-8 h-8 text-teal-600 mr-3" />
-              <h4 className="text-2xl font-bold text-gray-900 dark:text-white font-inter">100% Zufriedenheitsgarantie</h4>
+              <h4 className="text-2xl font-bold text-gray-900 font-inter">100% Zufriedenheitsgarantie</h4>
             </div>
-            <p className="text-lg text-gray-600 dark:text-gray-300 font-inter max-w-2xl mx-auto">
+            <p className="text-lg text-gray-600 font-inter max-w-2xl mx-auto">
               Kein Risiko. Kein Stress. Kein Kleingedrucktes. Du zahlst nur, wenn du mit deiner Website rundum zufrieden bist.
             </p>
           </motion.div>
