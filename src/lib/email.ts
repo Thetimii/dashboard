@@ -349,22 +349,20 @@ export function generateDemoReadyEmail(data: DemoReadyData) {
       <title>Your Website Demos Are Ready</title>
       <style>
         body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .header { background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
         .content { background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
         .section { margin-bottom: 25px; }
         .label { font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block; }
-        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #8B5CF6; }
-        .demo-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin: 20px 0; }
-        .demo-card { background: white; border: 1px solid #e5e7eb; border-radius: 8px; padding: 15px; text-align: center; }
-        .demo-button { background: #8B5CF6; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; display: inline-block; font-weight: 500; }
-        .demo-button:hover { background: #7C3AED; text-decoration: none; color: white; }
+        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #14b8a6; }
+        .cta-button { background: linear-gradient(135deg, #14b8a6 0%, #0891b2 100%); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; font-size: 16px; margin: 20px 0; transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3); text-decoration: none; color: white; }
         .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
       </style>
     </head>
     <body>
       <div class="header">
         <h1 style="margin: 0; font-size: 28px;">🎨 Your Website Demos Are Ready!</h1>
-        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">We've created three beautiful design options for your review</p>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">We've created beautiful design options for your review</p>
       </div>
 
       <div class="content">
@@ -372,56 +370,33 @@ export function generateDemoReadyEmail(data: DemoReadyData) {
           <span class="label">👋 Hello ${data.customerName || 'there'}!</span>
           <div class="value">
             Great news! We've completed the initial design concepts for <strong>${data.businessName || 'your project'}</strong>. 
-            We've created three different design options for you to choose from, each tailored to your specific requirements and preferences.
-          </div>
-        </div>
-
-        <div class="section">
-          <span class="label">🎨 Available Design Options</span>
-          <div class="demo-grid">
-            ${data.option1Url ? `
-            <div class="demo-card">
-              <h4>Option 1</h4>
-              <p>Modern and clean design approach</p>
-              <a href="${data.option1Url}" class="demo-button" target="_blank">View Option 1</a>
-            </div>
-            ` : ''}
-            
-            ${data.option2Url ? `
-            <div class="demo-card">
-              <h4>Option 2</h4>
-              <p>Professional and business-focused</p>
-              <a href="${data.option2Url}" class="demo-button" target="_blank">View Option 2</a>
-            </div>
-            ` : ''}
-            
-            ${data.option3Url ? `
-            <div class="demo-card">
-              <h4>Option 3</h4>
-              <p>Creative and visually striking</p>
-              <a href="${data.option3Url}" class="demo-button" target="_blank">View Option 3</a>
-            </div>
-            ` : ''}
+            Three different design options are now ready for your review, each tailored to your specific requirements and preferences.
           </div>
         </div>
 
         <div class="section">
           <span class="label">📝 What's Next?</span>
           <div class="value">
-            <ol style="margin: 0; padding-left: 20px;">
-              <li>Review each design option carefully</li>
-              <li>Consider how well each aligns with your brand and goals</li>
-              <li>Select your preferred option in the dashboard</li>
+            <p style="margin: 0 0 15px 0;">Visit your dashboard to:</p>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li>Review all three design options</li>
+              <li>Compare how each aligns with your brand and goals</li>
+              <li>Select your preferred option</li>
               <li>Complete the payment to proceed with development</li>
-              <li>We'll begin building your final website based on the chosen design</li>
-            </ol>
+            </ul>
           </div>
+        </div>
+
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://customerflows.ch/dashboard" class="cta-button">
+            🚀 View Your Demos in Dashboard
+          </a>
         </div>
       </div>
 
       <div class="footer">
         <p>Questions? Reply to this email or contact us through your dashboard.</p>
-        <p>Customer Flows Dashboard • ${new Date().toLocaleDateString()}</p>
+        <p>Customer Flows • ${new Date().toLocaleDateString()}</p>
       </div>
     </body>
     </html>
@@ -433,23 +408,20 @@ Your Website Demos Are Ready!
 Hello ${data.customerName || 'there'}!
 
 Great news! We've completed the initial design concepts for ${data.businessName || 'your project'}. 
-We've created three different design options for you to choose from.
-
-Available Design Options:
-${data.option1Url ? `- Option 1: ${data.option1Url}` : ''}
-${data.option2Url ? `- Option 2: ${data.option2Url}` : ''}
-${data.option3Url ? `- Option 3: ${data.option3Url}` : ''}
+Three different design options are now ready for your review, each tailored to your specific requirements and preferences.
 
 What's Next?
-1. Review each design option carefully
-2. Consider how well each aligns with your brand and goals  
-3. Select your preferred option in the dashboard
-4. Complete the payment to proceed with development
-5. We'll begin building your final website based on the chosen design
+Visit your dashboard to:
+- Review all three design options
+- Compare how each aligns with your brand and goals
+- Select your preferred option
+- Complete the payment to proceed with development
+
+View Your Demos: https://app.customerflows.ch/dashboard
 
 Questions? Reply to this email or contact us through your dashboard.
 
-Generated on: ${new Date().toLocaleString()}
+Customer Flows
   `;
 
   return { subject, html, text };
@@ -467,15 +439,17 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
       <title>Your Website is Live!</title>
       <style>
         body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
+        .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; border-radius: 12px; text-align: center; margin-bottom: 30px; }
         .content { background: #f8fafc; padding: 30px; border-radius: 12px; margin-bottom: 20px; }
         .section { margin-bottom: 25px; }
         .label { font-weight: 600; color: #1f2937; margin-bottom: 8px; display: block; }
-        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #059669; }
-        .website-card { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 25px; text-align: center; margin: 20px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
-        .website-url { font-size: 18px; font-weight: 600; color: #059669; margin: 15px 0; word-break: break-all; }
-        .launch-button { background: #059669; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; font-size: 16px; margin: 15px 0; }
-        .launch-button:hover { background: #047857; text-decoration: none; color: white; }
+        .value { background: white; padding: 12px; border-radius: 8px; border-left: 4px solid #10b981; }
+        .website-card { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 12px; padding: 25px; text-align: center; margin: 30px 0; box-shadow: 0 8px 16px rgba(16, 185, 129, 0.2); }
+        .website-url { font-size: 20px; font-weight: 700; margin: 15px 0; word-break: break-all; background: white; color: #059669; padding: 12px; border-radius: 8px; }
+        .launch-button { background: white; color: #059669; padding: 15px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; font-size: 16px; margin: 20px 0; transition: all 0.3s ease; }
+        .launch-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(255, 255, 255, 0.3); text-decoration: none; color: #059669; }
+        .cta-button { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; display: inline-block; font-weight: 600; font-size: 16px; margin: 20px 0; transition: all 0.3s ease; }
+        .cta-button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); text-decoration: none; color: white; }
         .celebration { font-size: 48px; margin: 20px 0; }
         .footer { text-align: center; color: #6b7280; font-size: 14px; margin-top: 30px; }
       </style>
@@ -484,7 +458,7 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
       <div class="header">
         <div class="celebration">🎉🚀🎉</div>
         <h1 style="margin: 0; font-size: 28px;">Your Website is Live!</h1>
-        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Congratulations! Your new website is now online and ready for the world to see</p>
+        <p style="margin: 10px 0 0 0; font-size: 16px; opacity: 0.9;">Congratulations! Your new website is now online and ready for the world</p>
       </div>
 
       <div class="content">
@@ -492,43 +466,40 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
           <span class="label">🎊 Congratulations ${data.customerName || 'there'}!</span>
           <div class="value">
             We're thrilled to announce that your website for <strong>${data.businessName || 'your business'}</strong> is now live and accessible to the world! 
-            After all the planning, designing, and development, your digital presence is ready to make an impact.
+            Your digital presence is ready to make an impact.
           </div>
         </div>
 
         <div class="website-card">
-          <h3 style="margin: 0 0 15px 0; color: #1f2937;">🌟 Your Live Website</h3>
-          <p style="margin: 0 0 10px 0; color: #6b7280;">Your website is now accessible at:</p>
+          <h3 style="margin: 0 0 15px 0;">🌟 Your Live Website</h3>
+          <p style="margin: 0 0 15px 0; opacity: 0.9;">Your website is now accessible at:</p>
           <div class="website-url">${data.websiteUrl}</div>
-          <a href="${data.websiteUrl}" class="launch-button" target="_blank">Visit Your Website</a>
-          <p style="margin: 15px 0 0 0; font-size: 14px; color: #6b7280;">Share this URL with your customers, partners, and social networks!</p>
+          <a href="${data.websiteUrl}" class="launch-button" target="_blank">🚀 Visit Your Website</a>
         </div>
 
         <div class="section">
-          <span class="label">📈 What's Next?</span>
+          <span class="label">� Next Steps</span>
           <div class="value">
-            <ol style="margin: 0; padding-left: 20px;">
-              <li><strong>Share your website:</strong> Spread the word on social media and with your network</li>
-              <li><strong>Monitor performance:</strong> Keep track of visitors and engagement</li>
-              <li><strong>Update content:</strong> Keep your website fresh with regular updates</li>
-              <li><strong>SEO optimization:</strong> Continue to improve your search engine visibility</li>
-              <li><strong>Backup & maintenance:</strong> Regular updates and security checks</li>
-            </ol>
+            <p style="margin: 0 0 15px 0;">Visit your dashboard to:</p>
+            <ul style="margin: 0; padding-left: 20px;">
+              <li>Access website management tools</li>
+              <li>View performance analytics</li>
+              <li>Request updates or changes</li>
+              <li>Manage your subscription</li>
+            </ul>
           </div>
         </div>
 
-        <div class="section">
-          <span class="label">🛠️ Need Help?</span>
-          <div class="value">
-            If you need any assistance with your website, have questions about updates, or want to discuss additional features, 
-            don't hesitate to reach out. We're here to support your online success!
-          </div>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="https://customerflows.ch/dashboard" class="cta-button">
+            📊 Manage Your Website
+          </a>
         </div>
       </div>
 
       <div class="footer">
-        <p>Congratulations again on your new website launch! 🎉</p>
-        <p>Customer Flows Dashboard • ${new Date().toLocaleDateString()}</p>
+        <p>Congratulations again on your website launch! 🎉</p>
+        <p>Customer Flows • ${new Date().toLocaleDateString()}</p>
       </div>
     </body>
     </html>
@@ -544,19 +515,18 @@ We're thrilled to announce that your website for ${data.businessName || 'your bu
 Your Live Website:
 ${data.websiteUrl}
 
-What's Next:
-1. Share your website: Spread the word on social media and with your network
-2. Monitor performance: Keep track of visitors and engagement  
-3. Update content: Keep your website fresh with regular updates
-4. SEO optimization: Continue to improve your search engine visibility
-5. Backup & maintenance: Regular updates and security checks
+Next Steps:
+Visit your dashboard to:
+- Access website management tools
+- View performance analytics  
+- Request updates or changes
+- Manage your subscription
 
-Need Help?
-If you need any assistance with your website, have questions about updates, or want to discuss additional features, don't hesitate to reach out. We're here to support your online success!
+Manage Your Website: https://app.customerflows.ch/dashboard
 
-Congratulations again on your new website launch! 🎉
+Congratulations again on your website launch! 🎉
 
-Generated on: ${new Date().toLocaleString()}
+Customer Flows
   `;
 
   return { subject, html, text };
