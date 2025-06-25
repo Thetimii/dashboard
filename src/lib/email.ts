@@ -388,7 +388,7 @@ export function generateDemoReadyEmail(data: DemoReadyData) {
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://customerflows.ch/dashboard" class="cta-button">
+          <a href="https://app.customerflows.ch/dashboard" class="cta-button">
             🚀 View Your Demos in Dashboard
           </a>
         </div>
@@ -470,12 +470,6 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
           </div>
         </div>
 
-        <div class="website-card">
-          <h3 style="margin: 0 0 15px 0;">🌟 Your Live Website</h3>
-          <p style="margin: 0 0 15px 0; opacity: 0.9;">Your website is now accessible at:</p>
-          <div class="website-url">${data.websiteUrl}</div>
-          <a href="${data.websiteUrl}" class="launch-button" target="_blank">🚀 Visit Your Website</a>
-        </div>
 
         <div class="section">
           <span class="label">� Next Steps</span>
@@ -491,7 +485,7 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
         </div>
 
         <div style="text-align: center; margin: 30px 0;">
-          <a href="https://customerflows.ch/dashboard" class="cta-button">
+          <a href="https://app.customerflows.ch/dashboard" class="cta-button">
             📊 Manage Your Website
           </a>
         </div>
@@ -511,9 +505,6 @@ export function generateWebsiteLaunchEmail(data: WebsiteLaunchData) {
 Congratulations ${data.customerName || 'there'}!
 
 We're thrilled to announce that your website for ${data.businessName || 'your business'} is now live and accessible to the world!
-
-Your Live Website:
-${data.websiteUrl}
 
 Next Steps:
 Visit your dashboard to:
