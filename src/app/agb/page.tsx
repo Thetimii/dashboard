@@ -213,7 +213,7 @@ export default function AGB() {
               8000 Zürich<br/>
               Schweiz<br/>
               E-Mail: info@customerflows.ch<br/>
-              Telefon: +41 (0)78 446 2524
+              Telefon: +41 (0)78 446 25 24
             </p>
           </div>
 

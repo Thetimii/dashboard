@@ -126,7 +126,7 @@ export function LandingPage() {
                 wirklich?
               </span>
             </h2>                <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
-                  Ja, du hast richtig gehört. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Hosting, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Monatlich kündbar, keine Startgebühren, keine versteckten Kosten.
+                  Ja, du hast richtig gelesen. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Rundum-Sorglos-Paket, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Monatlich kündbar, keine Startgebühren, keine versteckten Kosten.
                 </p>
             
             {/* CTA Button */}
@@ -161,7 +161,7 @@ export function LandingPage() {
                   Wie wir arbeiten
                 </h3>
                 <p className="text-gray-300 text-lg leading-relaxed font-inter max-w-4xl mx-auto mb-8">
-                  Transparenz steht bei uns an erster Stelle. Wir erstellen deine professionelle Website komplett kostenlos und du entscheidest, ob sie online geht. Keine versteckten Kosten, keine Startgebühren, monatlich kündbar, kein Risiko.
+                  Transparenz steht bei uns an erster Stelle. Wir erstellen deine professionelle Website komplett kostenlos und du entscheidest, ob sie online geht oder nicht. Keine versteckten Kosten, keine Startgebühren, monatlich kündbar, kein Risiko.
                 </p>
               </div>
               
@@ -743,7 +743,7 @@ export function LandingPage() {
                 <div className="flex items-center text-gray-300">
                   <PhoneIcon className="w-5 h-5 mr-3 text-teal-400" />
                   <a href="tel:+41784462524" className="hover:text-white transition-colors">
-                    +41 (0)78 446 2524
+                    +41 (0)78 446 25 24
                   </a>
                 </div>
                 <div className="flex items-center text-gray-300">

@@ -37,7 +37,7 @@ export default function Impressum() {
             <div className="bg-gray-50 p-6 rounded-lg">
               <h3 className="text-xl font-semibold text-gray-900 mb-4">Kontakt</h3>
               <p className="text-gray-700">
-                <strong>Telefon:</strong> +41 (0)78 446 2524<br/>
+                <strong>Telefon:</strong> +41 (0)78 446 25 24<br/>
                 <strong>E-Mail:</strong> info@customerflows.ch<br/>
                 <strong>Website:</strong> www.customerflows.ch
               </p>

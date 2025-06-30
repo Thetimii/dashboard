@@ -49,7 +49,7 @@ export default function Widerruf() {
                   8000 Zürich<br/>
                   Schweiz<br/>
                   E-Mail: widerruf@customerflows.ch<br/>
-                  Telefon: +41 (0)78 446 2524
+                  Telefon: +41 (0)78 446 25 24
                 </p>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function Widerruf() {
             <p className="text-gray-700">
               Bei Fragen zum Widerrufsrecht oder zur Ausübung kontaktieren Sie uns gerne:<br/>
               <strong>E-Mail:</strong> widerruf@customerflows.ch<br/>
-              <strong>Telefon:</strong> +41 (0)78 446 2524
+              <strong>Telefon:</strong> +41 (0)78 446 25 24
             </p>
           </div>
 

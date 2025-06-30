@@ -35,7 +35,7 @@ export default function Datenschutz() {
               8000 Zürich<br/>
               Schweiz<br/>
               E-Mail: info@customerflows.ch<br/>
-              Telefon: +41 (0)78 446 2524
+              Telefon: +41 (0)78 446 25 24
             </p>
           </div>
 
@@ -171,7 +171,7 @@ export default function Datenschutz() {
             <p className="text-gray-700">
               Bei Fragen zum Datenschutz oder zur Ausübung Ihrer Rechte kontaktieren Sie uns unter:<br/>
               <strong>E-Mail:</strong> datenschutz@customerflows.ch<br/>
-              <strong>Telefon:</strong> +41 (0)78 446 2524
+              <strong>Telefon:</strong> +41 (0)78 446 25 24
             </p>
           </div>
 
