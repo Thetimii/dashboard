@@ -8,7 +8,7 @@ interface AuthContextType {
   user: User | null
   userProfile: any
   loading: boolean
-  signUp: (email: string, password: string, fullName: string) => Promise<void>
+  signUp: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<void>
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   isAdmin: () => boolean
@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           setUserProfile({ 
             id: session.user.id, 
             role: 'user',
-            full_name: session.user.user_metadata?.full_name || null 
+            full_name: session.user.user_metadata?.full_name || null,
+            phone_number: session.user.user_metadata?.phone_number || null
           })
         }
       } catch (error) {
@@ -61,7 +62,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserProfile({ 
               id: session.user.id, 
               role: 'user',
-              full_name: session.user.user_metadata?.full_name || null 
+              full_name: session.user.user_metadata?.full_name || null,
+              phone_number: session.user.user_metadata?.phone_number || null
             })
           }
           if (isMounted) setLoading(false)
@@ -75,7 +77,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUserProfile({ 
               id: session.user.id, 
               role: 'user',
-              full_name: session.user.user_metadata?.full_name || null 
+              full_name: session.user.user_metadata?.full_name || null,
+              phone_number: session.user.user_metadata?.phone_number || null
             })
           } else if (event === 'SIGNED_OUT') {
             // Only clear user state on explicit sign out
@@ -93,12 +96,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [supabase.auth])
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { full_name: fullName },
+        data: { 
+          full_name: fullName,
+          phone_number: phoneNumber 
+        },
       },
     })
     if (error) throw error

@@ -9,16 +9,19 @@ export type Database = {
         Row: {
           id: string
           full_name: string | null
+          phone_number: string | null
           created_at: string
         }
         Insert: {
           id: string
           full_name?: string | null
+          phone_number?: string | null
           created_at?: string
         }
         Update: {
           id?: string
           full_name?: string | null
+          phone_number?: string | null
           created_at?: string
         }
       }

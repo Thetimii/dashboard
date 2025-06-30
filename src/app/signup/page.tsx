@@ -29,7 +29,7 @@ export default function SignUpPage() {
     setError(null)
 
     try {
-      await signUp(data.email, data.password, data.fullName)
+      await signUp(data.email, data.password, data.fullName, data.phoneNumber)
       router.push('/kickoff')
     } catch (err: unknown) {
       setError((err as Error).message || 'Ein Fehler ist bei der Registrierung aufgetreten')
@@ -104,6 +104,22 @@ export default function SignUpPage() {
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.email.message}</p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700 dark:text-white/90 mb-2 font-inter">
+                Telefonnummer
+              </label>
+              <input
+                {...register('phoneNumber')}
+                type="tel"
+                id="phoneNumber"
+                className="w-full px-4 py-3 bg-white dark:bg-slate-800/90 backdrop-blur-sm border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
+                placeholder="+41 79 123 45 67"
+              />
+              {errors.phoneNumber && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-300">{errors.phoneNumber.message}</p>
               )}
             </div>
 
