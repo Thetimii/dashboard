@@ -58,7 +58,7 @@ export default function SignInPage() {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md"
       >
-        <div className="bg-white/95 dark:bg-white/10 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-gray-200/50 dark:border-white/20">
+        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-lg rounded-3xl shadow-2xl p-8 border border-gray-200/50 dark:border-slate-600/50">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <Logo size="lg" priority className="filter drop-shadow-lg" />
@@ -90,7 +90,7 @@ export default function SignInPage() {
                 {...register('email')}
                 type="email"
                 id="email"
-                className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
+                className="w-full px-4 py-3 bg-white dark:bg-slate-800/90 backdrop-blur-sm border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
                 placeholder="deine@email.ch"
               />
               {errors.email && (
@@ -106,7 +106,7 @@ export default function SignInPage() {
                 {...register('password')}
                 type="password"
                 id="password"
-                className="w-full px-4 py-3 bg-white dark:bg-white/10 backdrop-blur-sm border border-gray-300 dark:border-white/20 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-white/50 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
+                className="w-full px-4 py-3 bg-white dark:bg-slate-800/90 backdrop-blur-sm border border-gray-300 dark:border-slate-600 rounded-xl text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-slate-400 focus:ring-2 focus:ring-teal-400 focus:border-transparent transition-all duration-300 font-inter"
                 placeholder="Dein Passwort"
               />
               {errors.password && (

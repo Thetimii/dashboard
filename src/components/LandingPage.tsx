@@ -126,7 +126,7 @@ export function LandingPage() {
                 wirklich?
               </span>
             </h2>                <p className="text-xl text-gray-300 max-w-4xl mx-auto font-inter leading-relaxed mb-12">
-                  Ja, du hast richtig gelesen. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Rundum-Sorglos-Paket, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. Monatlich kündbar, keine Startgebühren, keine versteckten Kosten.
+                  Ja, du hast richtig gelesen. Wir erstellen deine Website komplett kostenlos. Du zahlst nur für das Rundum-Sorglos-Paket, und das auch nur, wenn du mit dem Ergebnis zu 100% zufrieden bist. 99 Franken pro Monat - monatlich kündbar, keine Startgebühren, keine versteckten Kosten.
                 </p>
             
             {/* CTA Button */}
