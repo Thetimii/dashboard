@@ -44,9 +44,9 @@ export default function Widerruf() {
                 <p className="text-gray-700 text-sm">
                   <strong>Kontakt für Widerruf:</strong><br/>
                   Customer Flows<br/>
+                  Inhaber: Dario Näpfer<br/>
                   <br/>
-                  <br/>
-                  8000 Zürich<br/>
+                  8600 Dübendorf<br/>
                   Schweiz<br/>
                   E-Mail: widerruf@customerflows.ch<br/>
                   Telefon: +41 (0)78 446 25 24
@@ -96,9 +96,9 @@ export default function Widerruf() {
               <p className="text-gray-700">
                 <strong>An:</strong><br/>
                 Customer Flows<br/>
+                Inhaber: Dario Näpfer<br/>
                 <br/>
-                <br/>
-                8000 Zürich<br/>
+                8600 Dübendorf<br/>
                 Schweiz<br/>
                 E-Mail: widerruf@customerflows.ch
               </p>

@@ -208,9 +208,9 @@ export default function AGB() {
           <div className="bg-gray-50 p-6 rounded-lg mb-8">
             <p className="text-gray-700">
               <strong>Customer Flows</strong><br/>
-              Customerflows<br/>
+              Inhaber: Dario Näpfer<br/>
               <br/>
-              8000 Zürich<br/>
+              8600 Dübendorf<br/>
               Schweiz<br/>
               E-Mail: info@customerflows.ch<br/>
               Telefon: +41 (0)78 446 25 24

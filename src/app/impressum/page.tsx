@@ -26,9 +26,9 @@ export default function Impressum() {
             <h3 className="text-xl font-semibold text-gray-900 mb-4">Anbieter</h3>
             <p className="text-gray-700 leading-relaxed">
               <strong>Customer Flows</strong><br/>
+              Inhaber: Dario Näpfer<br/>
               <br/>
-              <br/>
-              8000 Zürich<br/>
+              8600 Dübendorf<br/>
               Schweiz
             </p>
           </div>
