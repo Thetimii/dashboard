@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import MetaPixel from "@/components/MetaPixel";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -31,6 +32,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <MetaPixel pixelId="3672960629671381" />
+        <GoogleAnalytics measurementId="AW-17438573608" />
       </head>
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans`}

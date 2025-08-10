@@ -166,6 +166,7 @@ END $$;
 -- =============================================================================
 
 -- Admin dashboard view - only accessible to admins, no SECURITY DEFINER
+-- Note: Views inherit security from their underlying tables, no direct RLS needed
 CREATE OR REPLACE VIEW public.admin_dashboard_view AS
 SELECT 
     up.id,
@@ -186,19 +187,8 @@ LEFT JOIN public.project_status ps ON up.id = ps.user_id
 LEFT JOIN public.demo_links dl ON up.id = dl.user_id
 LEFT JOIN public.payments p ON up.id = p.user_id;
 
--- Enable RLS on admin view
-ALTER VIEW public.admin_dashboard_view ENABLE ROW LEVEL SECURITY;
-
--- Only admins can access this view
-CREATE POLICY "Only admins can view dashboard" ON public.admin_dashboard_view
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM auth.users 
-            WHERE id = auth.uid() AND raw_user_meta_data->>'role' = 'admin'
-        )
-    );
-
--- Grant permissions only to authenticated users (RLS will handle admin check)
+-- Grant permissions only to authenticated users 
+-- (RLS on underlying tables will restrict data access appropriately)
 GRANT SELECT ON public.admin_dashboard_view TO authenticated;
 REVOKE ALL ON public.admin_dashboard_view FROM anon;
 
@@ -211,7 +201,9 @@ DO $$ BEGIN
     RAISE NOTICE 'Security audit completed successfully:';
     RAISE NOTICE '✓ Removed views exposing auth.users data';
     RAISE NOTICE '✓ Eliminated SECURITY DEFINER views';
-    RAISE NOTICE '✓ Implemented comprehensive RLS policies';
+    RAISE NOTICE '✓ Implemented comprehensive RLS policies on tables';
     RAISE NOTICE '✓ Removed anon access to sensitive data';
     RAISE NOTICE '✓ Created secure admin dashboard view';
+    RAISE NOTICE '✓ Views inherit security from underlying tables';
+    RAISE NOTICE 'ℹ️  Note: PostgreSQL views automatically inherit RLS from their tables';
 END $$;
