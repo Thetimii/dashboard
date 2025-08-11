@@ -159,7 +159,73 @@ export default function Datenschutz() {
             </p>
           </div>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-6 mt-8">10. Änderungen der Datenschutzerklärung</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 mt-8">10. Hotjar Analytics</h2>
+          <div className="bg-orange-50 p-6 rounded-lg mb-8">
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.1 Was ist Hotjar?</h3>
+            <p className="text-gray-700 mb-4">
+              Wir nutzen <strong>Hotjar</strong> zur Analyse des Nutzerverhaltens auf unserer Website, um die Benutzererfahrung zu verbessern. Hotjar ist ein Service der Hotjar Ltd., Malta.
+            </p>
+            
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.2 Welche Daten sammelt Hotjar?</h3>
+            <p className="text-gray-700 mb-3">Hotjar sammelt folgende Informationen:</p>
+            <ul className="list-disc list-inside text-gray-700 space-y-1 mb-4">
+              <li>Geräteinformationen (Bildschirmgröße, Gerätetyp, Browser)</li>
+              <li>Anonymisierte IP-Adresse (letzte Ziffern werden entfernt)</li>
+              <li>Besuchte Seiten und Interaktionen (Klicks, Mausbewegungen, Scroll-Verhalten)</li>
+              <li>Standortdaten (nur Land)</li>
+              <li>Spracheinstellungen</li>
+            </ul>
+            
+            <div className="bg-white p-4 rounded border-l-4 border-orange-400 mb-4">
+              <p className="text-gray-700 font-medium">
+                ⚠️ <strong>Wichtig:</strong> Hotjar zeichnet KEINE Eingaben in Passwort-, Kreditkarten- oder anderen sensiblen Formularfeldern auf.
+              </p>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.3 Rechtsgrundlage</h3>
+            <p className="text-gray-700 mb-4">
+              Die Verarbeitung erfolgt auf Grundlage Ihrer <strong>Einwilligung (Art. 6 Abs. 1 lit. a DSGVO)</strong>, 
+              die Sie über unser Cookie-Banner erteilen können.
+            </p>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.4 Speicherdauer und Datenschutz</h3>
+            <ul className="list-disc list-inside text-gray-700 space-y-1 mb-4">
+              <li>Hotjar speichert Daten für maximal 365 Tage</li>
+              <li>IP-Adressen werden automatisch anonymisiert</li>
+              <li>Hotjar ist vertraglich verpflichtet, keine gesammelten Daten zu verkaufen</li>
+              <li>Datenverarbeitung erfolgt auf Servern in der EU (DSGVO-konform)</li>
+            </ul>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.5 Ihre Optionen</h3>
+            <div className="bg-white p-4 rounded border-l-4 border-green-400 mb-4">
+              <p className="text-gray-700 mb-2">
+                <strong>Opt-Out:</strong> Sie können Hotjar-Tracking jederzeit deaktivieren:
+              </p>
+              <a 
+                href="https://www.hotjar.com/policies/do-not-track/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition-colors font-medium"
+              >
+                🚫 Hotjar Opt-Out aktivieren
+              </a>
+            </div>
+
+            <h3 className="text-xl font-semibold text-gray-900 mb-3">10.6 Weitere Informationen</h3>
+            <p className="text-gray-700">
+              Ausführliche Informationen finden Sie in Hotjars Datenschutzerklärung: 
+              <a 
+                href="https://www.hotjar.com/legal/policies/privacy/" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-orange-600 hover:text-orange-700 underline ml-1"
+              >
+                https://www.hotjar.com/legal/policies/privacy/
+              </a>
+            </p>
+          </div>
+
+          <h2 className="text-2xl font-bold text-gray-900 mb-6 mt-8">11. Änderungen der Datenschutzerklärung</h2>
           <div className="bg-gray-50 p-6 rounded-lg mb-8">
             <p className="text-gray-700">
               Wir behalten uns vor, diese Datenschutzerklärung zu ändern, um sie an geänderte Rechtslagen oder bei Änderungen des Dienstes sowie der Datenverarbeitung anzupassen. Dies gilt jedoch nur im Hinblick auf Erklärungen zur Datenverarbeitung. Sofern Einwilligungen des Nutzers erforderlich sind oder Bestandteile der Datenschutzerklärung Regelungen des Vertragsverhältnisses mit den Nutzern enthalten, erfolgen die Änderungen nur mit Zustimmung der Nutzer.

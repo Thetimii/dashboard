@@ -1,10 +1,33 @@
+'use client'
+
 import Script from 'next/script';
+import { useEffect, useState } from 'react';
 
 interface HotjarProps {
   siteId: number;
+  consentGiven?: boolean;
 }
 
-export default function Hotjar({ siteId }: HotjarProps) {
+export default function Hotjar({ siteId, consentGiven = false }: HotjarProps) {
+  const [shouldLoad, setShouldLoad] = useState(false);
+
+  useEffect(() => {
+    // Only load Hotjar if consent is given
+    if (consentGiven) {
+      setShouldLoad(true);
+    } else {
+      setShouldLoad(false);
+      // Disable Hotjar if it was previously loaded
+      if (typeof window !== 'undefined' && (window as any).hj) {
+        (window as any).hj('trigger', 'opt_out');
+      }
+    }
+  }, [consentGiven]);
+
+  if (!shouldLoad) {
+    return null;
+  }
+
   return (
     <Script
       id="hotjar-tracking"
