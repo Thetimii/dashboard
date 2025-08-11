@@ -3,8 +3,6 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
-import MetaPixel from "@/components/MetaPixel";
-import GoogleAnalytics from "@/components/GoogleAnalytics";
 import ConsentManager from "@/components/ConsentManager";
 
 const inter = Inter({
@@ -32,8 +30,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <MetaPixel pixelId="3672960629671381" />
-        <GoogleAnalytics measurementId="AW-17438573608" />
+        {/* All tracking scripts now load conditionally via ConsentManager */}
       </head>
       <body
         className={`${inter.variable} ${playfair.variable} antialiased font-sans`}

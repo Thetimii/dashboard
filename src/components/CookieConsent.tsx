@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 interface CookieConsentProps {
-  onConsentChangeAction: (accepted: boolean) => void
+  onConsentChangeAction: (consents: { analytics: boolean; marketing: boolean }) => void
 }
 
 export default function CookieConsent({ onConsentChangeAction }: CookieConsentProps) {
@@ -29,7 +29,10 @@ export default function CookieConsent({ onConsentChangeAction }: CookieConsentPr
       // Load existing preferences
       const savedPreferences = JSON.parse(consent)
       setPreferences(savedPreferences)
-      onConsentChangeAction(savedPreferences.analytics)
+      onConsentChangeAction({
+        analytics: savedPreferences.analytics,
+        marketing: savedPreferences.marketing
+      })
     }
   }, [onConsentChangeAction])
 
@@ -46,7 +49,10 @@ export default function CookieConsent({ onConsentChangeAction }: CookieConsentPr
     
     setPreferences(newPreferences)
     setShowBanner(false)
-    onConsentChangeAction(newPreferences.analytics)
+    onConsentChangeAction({
+      analytics: newPreferences.analytics,
+      marketing: newPreferences.marketing
+    })
   }
 
   const acceptAll = () => {
